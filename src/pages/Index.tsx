@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Icon from "@/components/ui/icon";
 import Calculator from "@/components/Calculator";
 
@@ -58,7 +58,7 @@ const PORTFOLIO_ITEMS = [
   { title: "Беседка + забор евроштакетник",      tag: "Под ключ",     img: IMGS.gazebo },
 ];
 
-// ── Типы калькулятора ────────────────────────────────────────────────────────
+/*REMOVE_START*/
 type FenceType      = "profnastil" | "euro" | "3d" | "kovka" | "setka" | "canopy";
 type GateType       = "none" | "otkatnye" | "raspashnye";
 type WicketType     = "none" | "standard" | "kovka";
@@ -112,8 +112,7 @@ const AUTO_PRICE   = 22000;
 const POST_PRICE   = 1800;
 const CANOPY_PRICE = 3200;
 
-// ── КП генератор ──────────────────────────────────────────────────────────────
-function generateKP(calc: CalcState, lineItems: { label: string; value: number }[], total: number): string {
+function _generateKP_old(calc: CalcState, lineItems: { label: string; value: number }[], total: number): string {
   const date = new Date().toLocaleDateString("ru-RU");
   const fLabel = FENCE_MAT[calc.fenceType].label;
   const lines = lineItems
@@ -155,8 +154,8 @@ info@stalgrupp.ru | Москва, ул. Промышленная, 12
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
 }
 
-// ── Калькулятор ───────────────────────────────────────────────────────────────
-function Calculator() {
+// ── Старый калькулятор (не используется, новый из @/components/Calculator) ──
+function CalculatorLegacy() {
   const [calc, setCalc] = useState<CalcState>({
     fenceType:    "profnastil",
     fenceLength:  30,
@@ -488,8 +487,8 @@ function Calculator() {
     </div>
   );
 }
+/*REMOVE_END*/
 
-// ── Scroll reveal ─────────────────────────────────────────────────────────────
 function useScrollReveal() {
   useEffect(() => {
     const els = document.querySelectorAll(".anim-ready");
