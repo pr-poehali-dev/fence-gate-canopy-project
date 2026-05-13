@@ -1,363 +1,387 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Icon from "@/components/ui/icon";
 
-const HERO_IMG = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/196086a1-d5c9-4caa-a2f6-4d0f7532182f.jpg";
-const PORTFOLIO_IMG = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/d0c5373a-0046-48b2-aba5-5d4847056985.jpg";
+// ── Изображения ─────────────────────────────────────────────────────────────
+const IMGS = {
+  hero:        "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/196086a1-d5c9-4caa-a2f6-4d0f7532182f.jpg",
+  portfolio:   "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/d0c5373a-0046-48b2-aba5-5d4847056985.jpg",
+  profnastil:  "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/05b3de60-7f13-42d7-bc76-76327b8db6b9.jpg",
+  kovka:       "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/884f6229-a60c-45db-baf0-1c2a081a42de.jpg",
+  mesh3d:      "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/0f46f0bc-e0e1-4e23-aeb0-c70f71f3644b.jpg",
+  gates:       "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/ff877075-afb4-4e02-a676-3bece261bb22.jpg",
+  canopy:      "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/b271c1dc-936d-470d-b060-7293cd888f0f.jpg",
+  euro:        "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/81e66b5f-be0c-4f79-a8a9-63ff2cc60584.jpg",
+  foundation:  "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/a05b59ea-6634-4972-8292-732a7a06a1d3.jpg",
+  gazebo:      "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/5c71ebc7-9ec2-4322-957b-f72950d9e5af.jpg",
+};
 
 const NAV_ITEMS = [
-  { id: "home", label: "Главная" },
-  { id: "about", label: "О производстве" },
-  { id: "products", label: "Продукция" },
-  { id: "portfolio", label: "Портфолио" },
-  { id: "services", label: "Услуги" },
+  { id: "home",       label: "Главная" },
+  { id: "products",   label: "Продукция" },
+  { id: "portfolio",  label: "Портфолио" },
+  { id: "services",   label: "Услуги" },
   { id: "calculator", label: "Калькулятор" },
-  { id: "delivery", label: "Доставка" },
-  { id: "warranty", label: "Гарантия" },
-  { id: "contacts", label: "Контакты" },
+  { id: "delivery",   label: "Доставка" },
+  { id: "warranty",   label: "Гарантия" },
+  { id: "contacts",   label: "Контакты" },
 ];
 
-// ── Актуальные рыночные цены 2026 ──────────────────────────────────────────
+// ── Продукция ────────────────────────────────────────────────────────────────
 const PRODUCTS = [
-  {
-    icon: "Fence",
-    title: "Заборы из профнастила",
-    desc: "Самый популярный тип. Оцинкованный профнастил С8, С10, МП20. Покрытие — полиэстер или пурал. Срок службы 25+ лет.",
-    price: "от 1 100 ₽/м²",
-    badge: "Хит продаж",
-  },
-  {
-    icon: "Columns2",
-    title: "Кованые заборы",
-    desc: "Художественная ковка по индивидуальным эскизам. Горячая и холодная ковка. Антикоррозийная обработка + покраска.",
-    price: "от 4 500 ₽/м²",
-    badge: "Премиум",
-  },
-  {
-    icon: "PanelTop",
-    title: "3D-заборы (сварная сетка)",
-    desc: "Секционные ограждения из прутков Ø4–6 мм, ячейка 50×200 мм. Антивандальные, подходят для промышленных объектов.",
-    price: "от 1 600 ₽/м²",
-    badge: null,
-  },
-  {
-    icon: "DoorOpen",
-    title: "Откатные ворота",
-    desc: "Консольные откатные ворота шириной 3–6 м. Наполнение: профнастил, 3D-сетка, ковка. Подготовка под автоматику.",
-    price: "от 42 000 ₽",
-    badge: null,
-  },
-  {
-    icon: "Minus",
-    title: "Распашные ворота",
-    desc: "Одно- и двустворчатые. Любое наполнение, ширина до 5 м. Петли усиленные, рама из профтрубы 60×60 мм.",
-    price: "от 26 000 ₽",
-    badge: null,
-  },
-  {
-    icon: "LayoutGrid",
-    title: "Заборы из сетки-рабицы",
-    desc: "Оцинкованная или ПВХ-покрытая сетка. Быстрый монтаж. Идеальный выбор для дачи и временного ограждения.",
-    price: "от 550 ₽/м²",
-    badge: "Эконом",
-  },
+  { img: IMGS.profnastil, title: "Профнастил", desc: "Оцинкованный С8/С10/МП20, покрытие полиэстер или пурал. Срок службы 25+ лет.", price: "от 1 100 ₽/м²", badge: "Хит" },
+  { img: IMGS.kovka,      title: "Ковка художественная", desc: "Горячая и холодная ковка по индивидуальным эскизам. Антикоррозийная обработка.", price: "от 4 500 ₽/м²", badge: "Премиум" },
+  { img: IMGS.mesh3d,     title: "3D-сетка сварная", desc: "Прутки Ø4–6 мм, ячейка 50×200 мм. Антивандальные, для промышленных объектов.", price: "от 1 600 ₽/м²", badge: null },
+  { img: IMGS.euro,       title: "Евроштакетник", desc: "Двусторонний металлический штакетник. Пропускает свет, современный дизайн.", price: "от 2 100 ₽/м²", badge: null },
+  { img: IMGS.gates,      title: "Ворота и калитки", desc: "Откатные, распашные, секционные. Любое наполнение, подготовка под автоматику.", price: "от 26 000 ₽", badge: null },
+  { img: IMGS.canopy,     title: "Навесы и козырьки", desc: "Навесы для автомобилей, входные группы, козырьки. Поликарбонат и профнастил.", price: "от 18 000 ₽", badge: null },
+  { img: IMGS.gazebo,     title: "Беседки и пергола", desc: "Металлические беседки, перголы, зоны отдыха. Под ключ с кровлей.", price: "от 35 000 ₽", badge: null },
+  { img: IMGS.foundation, title: "Фундаменты", desc: "Ленточный, столбчатый, бутование, бетонирование. Основа долговечного забора.", price: "от 650 ₽/м.п.", badge: null },
+  { img: IMGS.profnastil, title: "Сетка-рабица", desc: "Оцинкованная Ø2 мм или с ПВХ-покрытием. Быстрый монтаж, дачный вариант.", price: "от 550 ₽/м²", badge: "Эконом" },
 ];
 
 const SERVICES = [
-  { icon: "Ruler", title: "Бесплатный замер", desc: "Выезд специалиста в день обращения. Замер, составление проекта и точной сметы — бесплатно." },
-  { icon: "Hammer", title: "Монтаж под ключ", desc: "Бурение, установка столбов, монтаж секций, ворот и калитки. Сдача объекта по акту." },
-  { icon: "Paintbrush", title: "Порошковая покраска", desc: "Собственная камера полимеризации. Покрытие толщиной 60–80 мкм. Палитра RAL, 200+ цветов." },
-  { icon: "Wrench", title: "Ремонт ограждений", desc: "Восстановление геометрии, замена секций, сварочные работы, обновление покраски." },
-  { icon: "Zap", title: "Автоматизация ворот", desc: "Приводы Nice, FAAC, DoorHan. Пульты, GSM-управление, видеодомофон. Гарантия на привод 2 года." },
-  { icon: "Shield", title: "Гарантийное обслуживание", desc: "Бесплатный выезд и устранение в гарантийный период. Без бюрократии и лишних звонков." },
+  { icon: "Ruler",      img: IMGS.hero,       title: "Бесплатный замер",    desc: "Выезд специалиста в день обращения. Замер, проект и смета — бесплатно." },
+  { icon: "Hammer",     img: IMGS.foundation, title: "Монтаж под ключ",     desc: "Бурение, установка столбов, монтаж секций, ворот и калитки по акту." },
+  { icon: "Paintbrush", img: IMGS.kovka,      title: "Порошковая покраска", desc: "Собственная камера. Толщина 60–80 мкм. RAL, 200+ цветов." },
+  { icon: "Wrench",     img: IMGS.mesh3d,     title: "Ремонт ограждений",   desc: "Восстановление геометрии, замена секций, сварка, обновление покраски." },
+  { icon: "Zap",        img: IMGS.gates,      title: "Автоматизация ворот", desc: "Приводы Nice, FAAC, DoorHan. GSM, пульты, видеодомофон. Гарантия 2 года." },
+  { icon: "Shield",     img: IMGS.canopy,     title: "Навесы и беседки",    desc: "Проектирование и монтаж навесов для авто, беседок, пергол под ключ." },
 ];
 
 const PORTFOLIO_ITEMS = [
-  { title: "Кованые ворота в Подмосковье", tag: "Ворота" },
-  { title: "Профнастил С10, 120 м, Красногорск", tag: "Забор" },
-  { title: "3D-ограждение складского комплекса", tag: "Промышленный" },
-  { title: "Откатные ворота с приводом FAAC", tag: "Автоматика" },
-  { title: "Загородный участок под ключ, Истра", tag: "Под ключ" },
-  { title: "Секционные ворота гаража + калитка", tag: "Гараж" },
+  { title: "Кованые ворота в Подмосковье",       tag: "Ворота",       img: IMGS.kovka },
+  { title: "Профнастил С10, 120 м, Красногорск", tag: "Забор",        img: IMGS.profnastil },
+  { title: "3D-ограждение складского комплекса", tag: "Промышленный", img: IMGS.mesh3d },
+  { title: "Откатные ворота с приводом FAAC",    tag: "Автоматика",   img: IMGS.gates },
+  { title: "Навес для автомобиля, Истра",        tag: "Навес",        img: IMGS.canopy },
+  { title: "Беседка + забор евроштакетник",      tag: "Под ключ",     img: IMGS.gazebo },
 ];
 
-// ── Типы калькулятора ───────────────────────────────────────────────────────
-type FenceType = "profnastil" | "3d" | "kovka" | "setka" | "euro";
-type GateType = "none" | "otkаtnye" | "raspashnye";
-type WicketType = "none" | "standard" | "kovka";
-type FoundationType = "none" | "stolbchatyi" | "lentochnyi";
+// ── Типы калькулятора ────────────────────────────────────────────────────────
+type FenceType      = "profnastil" | "euro" | "3d" | "kovka" | "setka" | "canopy";
+type GateType       = "none" | "otkatnye" | "raspashnye";
+type WicketType     = "none" | "standard" | "kovka";
+type FoundationType = "butovanie" | "betonirovanie" | "lentochnyi" | "prisypka";
 
 interface CalcState {
-  fenceType: FenceType;
-  fenceLength: number;
-  fenceHeight: number;
-  gateType: GateType;
-  gateWidth: number;
-  wicketType: WicketType;
-  foundation: FoundationType;
+  fenceType:    FenceType;
+  fenceLength:  number;
+  fenceHeight:  number;
+  gateType:     GateType;
+  gateWidth:    number;
+  wicketType:   WicketType;
+  foundation:   FoundationType;
   installation: boolean;
-  painting: boolean;
-  automation: boolean;
+  painting:     boolean;
+  automation:   boolean;
+  canopyArea:   number;
 }
 
-// Цены на материалы (₽/м²) — рыночные данные 2026
-const FENCE_MAT: Record<FenceType, { price: number; label: string; desc: string }> = {
-  profnastil: { price: 1100, label: "Профнастил", desc: "С8/С10, полиэстер" },
-  "3d":        { price: 1600, label: "3D-сетка",   desc: "Прутки Ø5 мм, ячейка 50×200" },
-  kovka:       { price: 4500, label: "Ковка",       desc: "Горячая/холодная ковка" },
-  setka:       { price: 550,  label: "Сетка-рабица", desc: "Оцинкованная Ø2 мм" },
-  euro:        { price: 2100, label: "Евроштакетник", desc: "Металлический, двусторонний" },
+const FENCE_MAT: Record<FenceType, { price: number; label: string; sub: string }> = {
+  profnastil: { price: 1100, label: "Профнастил",    sub: "С8/С10 полиэстер" },
+  euro:       { price: 2100, label: "Евроштакетник", sub: "2-сторонний металл" },
+  "3d":       { price: 1600, label: "3D-сетка",      sub: "Прутки Ø5 мм" },
+  kovka:      { price: 4500, label: "Ковка",         sub: "Горячая/холодная" },
+  setka:      { price: 550,  label: "Сетка-рабица",  sub: "Оцинк. Ø2 мм" },
+  canopy:     { price: 0,    label: "Навес/беседка", sub: "Расчёт по площади" },
 };
 
-// Базовая стоимость ворот (₽) + цена за метр ширины
-const GATE_BASE: Record<GateType, { base: number; perMeter: number; label: string }> = {
-  none:       { base: 0,     perMeter: 0,    label: "Без ворот" },
-  otkаtnye:  { base: 42000, perMeter: 3200, label: "Откатные" },
-  raspashnye: { base: 26000, perMeter: 2400, label: "Распашные" },
+const GATE_DATA: Record<GateType, { base: number; perM: number; label: string }> = {
+  none:       { base: 0,     perM: 0,    label: "Без ворот" },
+  otkatnye:   { base: 42000, perM: 3200, label: "Откатные" },
+  raspashnye: { base: 26000, perM: 2400, label: "Распашные" },
 };
 
-const WICKET_PRICES: Record<WicketType, { price: number; label: string }> = {
+const WICKET_DATA: Record<WicketType, { price: number; label: string }> = {
   none:     { price: 0,     label: "Без калитки" },
   standard: { price: 8500,  label: "Стандартная" },
   kovka:    { price: 18000, label: "Кованая" },
 };
 
-const FOUNDATION_PRICES: Record<FoundationType, { price: number; label: string; desc: string }> = {
-  none:        { price: 0,    label: "Без фундамента", desc: "Только вкопанные столбы" },
-  stolbchatyi: { price: 650,  label: "Столбчатый",    desc: "Бетонирование столбов Ø200 мм" },
-  lentochnyi:  { price: 2800, label: "Ленточный",     desc: "Монолитная лента 300×400 мм" },
+const FOUND_DATA: Record<FoundationType, { label: string; desc: string; perPost: number; perMeter: number; gift?: boolean }> = {
+  butovanie:     { label: "Бутование",             desc: "Засыпка щебнем + трамбовка",       perPost: 800,  perMeter: 0 },
+  betonirovanie: { label: "Бетонирование столбов", desc: "Цемент М300, глубина 1.2 м",       perPost: 1400, perMeter: 0 },
+  lentochnyi:    { label: "Ленточный фундамент",   desc: "Монолит 300×400 мм, армирование",  perPost: 0,    perMeter: 3200 },
+  prisypka:      { label: "Присыпка щебнем 🎁",   desc: "В подарок! Временный монтаж",       perPost: 0,    perMeter: 0, gift: true },
 };
 
-// Монтаж: % от стоимости материалов
 const INSTALL_RATE = 0.35;
-// Покраска: ₽/м²
-const PAINT_PRICE = 280;
-// Автоматика Nice / DoorHan
-const AUTO_PRICE = 22000;
-// Столбы: ₽/шт (шаг 2.5 м)
-const POST_PRICE = 1800;
+const PAINT_PRICE  = 280;
+const AUTO_PRICE   = 22000;
+const POST_PRICE   = 1800;
+const CANOPY_PRICE = 3200;
 
+// ── КП генератор ──────────────────────────────────────────────────────────────
+function generateKP(calc: CalcState, lineItems: { label: string; value: number }[], total: number): string {
+  const date = new Date().toLocaleDateString("ru-RU");
+  const fLabel = FENCE_MAT[calc.fenceType].label;
+  const lines = lineItems
+    .map(l => `  • ${l.label}: ${l.value === 0 ? "Бесплатно 🎁" : Math.round(l.value).toLocaleString("ru-RU") + " ₽"}`)
+    .join("\n");
+  return `КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Компания: СтальГрупп
+Дата составления: ${date}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+СОСТАВ РАБОТ И МАТЕРИАЛОВ:
+
+${lines}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ИТОГО (предварительно): ${Math.round(total).toLocaleString("ru-RU")} ₽
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ПАРАМЕТРЫ ОБЪЕКТА:
+  • Тип ограждения: ${fLabel}
+${calc.fenceType !== "canopy" ? `  • Периметр: ${calc.fenceLength} м\n  • Высота: ${calc.fenceHeight} м\n` : `  • Площадь навеса: ${calc.canopyArea} м²\n`}${calc.gateType !== "none" ? `  • Ворота: ${GATE_DATA[calc.gateType].label}, ширина ${calc.gateWidth} м\n` : ""}${calc.wicketType !== "none" ? `  • Калитка: ${WICKET_DATA[calc.wicketType].label}\n` : ""}  • Фундамент: ${FOUND_DATA[calc.foundation].label}
+
+УСЛОВИЯ И ГАРАНТИИ:
+  • Гарантия на конструкции: 5 лет
+  • Гарантия на покраску: 3 года
+  • Гарантия на монтаж: 2 года
+  • Бесплатный выезд замерщика
+  • Срок изготовления: 7–14 рабочих дней
+  • Доставка по Москве: от 3 500 ₽
+
+⚠  Предварительный расчёт. Точная стоимость
+    определяется после замера на объекте (±5–15%).
+    Данное КП действительно 30 дней.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+СтальГрупп | 8 800 123-45-67
+info@stalgrupp.ru | Москва, ул. Промышленная, 12
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+}
+
+// ── Калькулятор ───────────────────────────────────────────────────────────────
 function Calculator() {
   const [calc, setCalc] = useState<CalcState>({
-    fenceType: "profnastil",
-    fenceLength: 30,
-    fenceHeight: 2,
-    gateType: "none",
-    gateWidth: 4,
-    wicketType: "none",
-    foundation: "stolbchatyi",
+    fenceType:    "profnastil",
+    fenceLength:  30,
+    fenceHeight:  2,
+    gateType:     "none",
+    gateWidth:    4,
+    wicketType:   "none",
+    foundation:   "betonirovanie",
     installation: true,
-    painting: false,
-    automation: false,
+    painting:     false,
+    automation:   false,
+    canopyArea:   20,
   });
+  const [showKP, setShowKP] = useState(false);
+  const kpRef = useRef<HTMLTextAreaElement>(null);
 
-  const fenceArea = calc.fenceLength * calc.fenceHeight;
-  const matCost = fenceArea * FENCE_MAT[calc.fenceType].price;
-
-  // Столбы (каждые 2.5 м + 1)
-  const postCount = Math.ceil(calc.fenceLength / 2.5) + 1;
-  const postCost = postCount * POST_PRICE;
-
-  // Фундамент
-  const foundationCost = calc.foundation === "none"
-    ? 0
-    : calc.foundation === "stolbchatyi"
-      ? postCount * FOUNDATION_PRICES.stolbchatyi.price
-      : calc.fenceLength * FOUNDATION_PRICES.lentochnyi.price;
-
-  // Ворота
-  const gateCost = calc.gateType !== "none"
-    ? GATE_BASE[calc.gateType].base + calc.gateWidth * GATE_BASE[calc.gateType].perMeter
-    : 0;
-
-  // Калитка
-  const wicketCost = WICKET_PRICES[calc.wicketType].price;
-
-  // Монтаж
-  const materialsTotal = matCost + postCost + gateCost + wicketCost;
-  const installCost = calc.installation ? Math.round(materialsTotal * INSTALL_RATE) : 0;
-
-  // Покраска (только забор)
-  const paintCost = calc.painting ? fenceArea * PAINT_PRICE : 0;
-
-  // Автоматика
-  const autoCost = calc.automation && calc.gateType !== "none" ? AUTO_PRICE : 0;
-
-  const total = matCost + postCost + foundationCost + gateCost + wicketCost + installCost + paintCost + autoCost;
+  const isCanopy    = calc.fenceType === "canopy";
+  const fenceArea   = calc.fenceLength * calc.fenceHeight;
+  const matCost     = isCanopy ? calc.canopyArea * CANOPY_PRICE : fenceArea * FENCE_MAT[calc.fenceType].price;
+  const postCount   = isCanopy ? 0 : Math.ceil(calc.fenceLength / 2.5) + 1;
+  const postCost    = isCanopy ? 0 : postCount * POST_PRICE;
+  const fd          = FOUND_DATA[calc.foundation];
+  const foundCost   = isCanopy ? 0 : fd.gift ? 0 : fd.perPost > 0 ? postCount * fd.perPost : calc.fenceLength * fd.perMeter;
+  const gateCost    = calc.gateType !== "none" ? GATE_DATA[calc.gateType].base + calc.gateWidth * GATE_DATA[calc.gateType].perM : 0;
+  const wicketCost  = WICKET_DATA[calc.wicketType].price;
+  const materialsSum = matCost + postCost + gateCost + wicketCost;
+  const installCost = calc.installation ? Math.round(materialsSum * INSTALL_RATE) : 0;
+  const paintCost   = calc.painting && !isCanopy ? fenceArea * PAINT_PRICE : 0;
+  const autoCost    = calc.automation && calc.gateType !== "none" ? AUTO_PRICE : 0;
+  const total       = matCost + postCost + foundCost + gateCost + wicketCost + installCost + paintCost + autoCost;
 
   const fmt = (n: number) => Math.round(n).toLocaleString("ru-RU") + " ₽";
 
   const lineItems = [
-    { label: `Материал забора (${fenceArea} м²)`, value: matCost },
-    { label: `Опорные столбы (${postCount} шт.)`, value: postCost },
-    ...(foundationCost > 0 ? [{ label: `Фундамент — ${FOUNDATION_PRICES[calc.foundation].label}`, value: foundationCost }] : []),
-    ...(gateCost > 0 ? [{ label: `${GATE_BASE[calc.gateType].label} ворота ${calc.gateWidth} м`, value: gateCost }] : []),
-    ...(wicketCost > 0 ? [{ label: `Калитка — ${WICKET_PRICES[calc.wicketType].label}`, value: wicketCost }] : []),
+    { label: isCanopy ? `Навес/беседка (${calc.canopyArea} м²)` : `${FENCE_MAT[calc.fenceType].label} (${fenceArea} м²)`, value: matCost },
+    ...(!isCanopy ? [{ label: `Опорные столбы — ${postCount} шт. × ${POST_PRICE.toLocaleString("ru-RU")} ₽`, value: postCost }] : []),
+    ...(foundCost > 0 ? [{ label: `Фундамент: ${fd.label}`, value: foundCost }] : []),
+    ...(fd.gift && !isCanopy ? [{ label: "Присыпка щебнем 🎁 — в подарок", value: 0 }] : []),
+    ...(gateCost > 0 ? [{ label: `${GATE_DATA[calc.gateType].label} ворота (${calc.gateWidth} м)`, value: gateCost }] : []),
+    ...(wicketCost > 0 ? [{ label: `Калитка: ${WICKET_DATA[calc.wicketType].label}`, value: wicketCost }] : []),
     ...(installCost > 0 ? [{ label: "Монтаж (35% от материалов)", value: installCost }] : []),
-    ...(paintCost > 0 ? [{ label: `Порошковая покраска (${PAINT_PRICE} ₽/м²)`, value: paintCost }] : []),
-    ...(autoCost > 0 ? [{ label: "Автоматика для ворот (DoorHan)", value: autoCost }] : []),
+    ...(paintCost > 0 ? [{ label: `Покраска порошковая (${PAINT_PRICE} ₽/м²)`, value: paintCost }] : []),
+    ...(autoCost > 0 ? [{ label: "Автоматика ворот DoorHan", value: autoCost }] : []),
   ];
 
+  const kpText = generateKP(calc, lineItems, total);
+
+  const set = (patch: Partial<CalcState>) => setCalc(c => ({ ...c, ...patch }));
+
+  const copyKP = () => {
+    if (!kpRef.current) return;
+    kpRef.current.select();
+    document.execCommand("copy");
+    alert("КП скопировано в буфер обмена!");
+  };
+
+  const downloadKP = () => {
+    const blob = new Blob([kpText], { type: "text/plain;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `КП_СтальГрупп_${new Date().toLocaleDateString("ru-RU").replace(/\./g, "-")}.txt`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      {/* ── Левая колонка: настройки ── */}
-      <div className="space-y-7">
+    <div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* ── Настройки ── */}
+        <div className="space-y-7">
 
-        {/* Тип забора */}
-        <div>
-          <label className="block text-sm font-medium text-white/70 mb-3">Тип забора</label>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {(Object.entries(FENCE_MAT) as [FenceType, typeof FENCE_MAT[FenceType]][]).map(([v, { label, price }]) => (
-              <button
-                key={v}
-                onClick={() => setCalc({ ...calc, fenceType: v })}
-                className={`px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 text-left ${
-                  calc.fenceType === v
-                    ? "bg-orange-500 text-gray-900 shadow-lg shadow-orange-500/25"
-                    : "bg-[#1a1f2e] border border-[#1e2230] text-white/70 hover:border-orange-500/50 hover:text-white"
-                }`}
-              >
-                <div className="font-semibold leading-tight">{label}</div>
-                <div className={`text-xs mt-0.5 ${calc.fenceType === v ? "text-gray-900/70" : "text-white/35"}`}>
-                  {price.toLocaleString("ru-RU")} ₽/м²
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Длина */}
-        <div>
-          <div className="flex justify-between mb-2">
-            <label className="text-sm font-medium text-white/70">Длина периметра</label>
-            <span className="text-orange-400 font-bold font-oswald text-lg">{calc.fenceLength} м</span>
-          </div>
-          <input type="range" min={5} max={300} step={5}
-            value={calc.fenceLength}
-            onChange={e => setCalc({ ...calc, fenceLength: +e.target.value })}
-          />
-          <div className="flex justify-between text-xs text-white/30 mt-1"><span>5 м</span><span>300 м</span></div>
-        </div>
-
-        {/* Высота */}
-        <div>
-          <div className="flex justify-between mb-2">
-            <label className="text-sm font-medium text-white/70">Высота забора</label>
-            <span className="text-orange-400 font-bold font-oswald text-lg">{calc.fenceHeight.toFixed(1)} м</span>
-          </div>
-          <input type="range" min={1} max={3} step={0.5}
-            value={calc.fenceHeight}
-            onChange={e => setCalc({ ...calc, fenceHeight: +e.target.value })}
-          />
-          <div className="flex justify-between text-xs text-white/30 mt-1"><span>1.0 м</span><span>3.0 м</span></div>
-        </div>
-
-        {/* Фундамент */}
-        <div>
-          <label className="block text-sm font-medium text-white/70 mb-2">Фундамент / столбы</label>
-          <div className="space-y-2">
-            {(Object.entries(FOUNDATION_PRICES) as [FoundationType, typeof FOUNDATION_PRICES[FoundationType]][]).map(([v, { label, desc, price }]) => (
-              <label key={v} className="flex items-center gap-3 cursor-pointer group">
-                <div
-                  onClick={() => setCalc({ ...calc, foundation: v })}
-                  className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-                    calc.foundation === v ? "border-orange-500 bg-orange-500" : "border-[#2a3040] group-hover:border-orange-500/50"
-                  }`}
-                >
-                  {calc.foundation === v && <div className="w-2 h-2 rounded-full bg-gray-900" />}
-                </div>
-                <div className="flex-1 flex items-center justify-between">
-                  <div>
-                    <div className="text-sm font-medium text-white">{label}</div>
-                    <div className="text-xs text-white/35">{desc}</div>
+          {/* Тип */}
+          <div>
+            <label className="block text-sm font-medium text-white/70 mb-3">Тип ограждения / объекта</label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {(Object.entries(FENCE_MAT) as [FenceType, typeof FENCE_MAT[FenceType]][]).map(([v, { label, sub, price }]) => (
+                <button key={v} onClick={() => set({ fenceType: v })}
+                  className={`px-3 py-3 rounded-xl text-left transition-all duration-200 ${
+                    calc.fenceType === v
+                      ? "bg-orange-500 text-gray-900 shadow-lg shadow-orange-500/25"
+                      : "bg-[#1a1f2e] border border-[#1e2230] text-white/70 hover:border-orange-500/50 hover:text-white"
+                  }`}>
+                  <div className="text-xs font-semibold leading-tight">{label}</div>
+                  <div className={`text-xs mt-0.5 ${calc.fenceType === v ? "text-gray-900/70" : "text-white/35"}`}>
+                    {price > 0 ? `${price.toLocaleString("ru-RU")} ₽/м²` : sub}
                   </div>
-                  {price > 0 && (
-                    <div className="text-xs text-white/40 text-right">
-                      {v === "stolbchatyi" ? `${price.toLocaleString("ru-RU")} ₽/столб` : `${price.toLocaleString("ru-RU")} ₽/м`}
-                    </div>
-                  )}
-                </div>
-              </label>
-            ))}
-          </div>
-        </div>
-
-        {/* Ворота */}
-        <div>
-          <label className="block text-sm font-medium text-white/70 mb-2">Ворота</label>
-          <div className="grid grid-cols-3 gap-2 mb-3">
-            {(Object.entries(GATE_BASE) as [GateType, typeof GATE_BASE[GateType]][]).map(([v, { label, base }]) => (
-              <button
-                key={v}
-                onClick={() => setCalc({ ...calc, gateType: v })}
-                className={`px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-                  calc.gateType === v
-                    ? "bg-orange-500 text-gray-900 shadow-lg shadow-orange-500/25"
-                    : "bg-[#1a1f2e] border border-[#1e2230] text-white/70 hover:border-orange-500/50 hover:text-white"
-                }`}
-              >
-                <div className="font-semibold text-xs leading-tight">{label}</div>
-                {base > 0 && <div className={`text-xs mt-0.5 ${calc.gateType === v ? "text-gray-900/70" : "text-white/35"}`}>от {(base / 1000).toFixed(0)}к ₽</div>}
-              </button>
-            ))}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {calc.gateType !== "none" && (
+          {/* Площадь навеса ИЛИ длина+высота */}
+          {isCanopy ? (
             <div>
               <div className="flex justify-between mb-2">
-                <label className="text-sm text-white/60">Ширина проёма</label>
-                <span className="text-orange-400 font-bold font-oswald">{calc.gateWidth} м</span>
+                <label className="text-sm font-medium text-white/70">Площадь навеса / беседки</label>
+                <span className="text-orange-400 font-bold font-oswald text-lg">{calc.canopyArea} м²</span>
               </div>
-              <input type="range" min={2.5} max={8} step={0.5}
-                value={calc.gateWidth}
-                onChange={e => setCalc({ ...calc, gateWidth: +e.target.value })}
+              <input type="range" min={6} max={100} step={2}
+                value={calc.canopyArea}
+                onChange={e => set({ canopyArea: +e.target.value })}
               />
-              <div className="flex justify-between text-xs text-white/30 mt-1"><span>2.5 м</span><span>8 м</span></div>
+              <div className="flex justify-between text-xs text-white/30 mt-1"><span>6 м²</span><span>100 м²</span></div>
+            </div>
+          ) : (
+            <>
+              <div>
+                <div className="flex justify-between mb-2">
+                  <label className="text-sm font-medium text-white/70">Длина периметра</label>
+                  <span className="text-orange-400 font-bold font-oswald text-lg">{calc.fenceLength} м</span>
+                </div>
+                <input type="range" min={5} max={300} step={5}
+                  value={calc.fenceLength}
+                  onChange={e => set({ fenceLength: +e.target.value })}
+                />
+                <div className="flex justify-between text-xs text-white/30 mt-1"><span>5 м</span><span>300 м</span></div>
+              </div>
+              <div>
+                <div className="flex justify-between mb-2">
+                  <label className="text-sm font-medium text-white/70">Высота забора</label>
+                  <span className="text-orange-400 font-bold font-oswald text-lg">{calc.fenceHeight.toFixed(1)} м</span>
+                </div>
+                <input type="range" min={1} max={3} step={0.5}
+                  value={calc.fenceHeight}
+                  onChange={e => set({ fenceHeight: +e.target.value })}
+                />
+                <div className="flex justify-between text-xs text-white/30 mt-1"><span>1.0 м</span><span>3.0 м</span></div>
+              </div>
+            </>
+          )}
+
+          {/* Фундамент */}
+          {!isCanopy && (
+            <div>
+              <label className="block text-sm font-medium text-white/70 mb-3">Тип фундамента / монтажа столбов</label>
+              <div className="space-y-2">
+                {(Object.entries(FOUND_DATA) as [FoundationType, typeof FOUND_DATA[FoundationType]][]).map(([v, d]) => (
+                  <label key={v} className="flex items-start gap-3 cursor-pointer group">
+                    <div onClick={() => set({ foundation: v })}
+                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${
+                        calc.foundation === v ? "border-orange-500 bg-orange-500" : "border-[#2a3040] group-hover:border-orange-500/50"
+                      }`}>
+                      {calc.foundation === v && <div className="w-2 h-2 rounded-full bg-gray-900" />}
+                    </div>
+                    <div className="flex-1 flex items-start justify-between gap-2">
+                      <div>
+                        <div className={`text-sm font-medium ${d.gift ? "text-orange-400" : "text-white"}`}>{d.label}</div>
+                        <div className="text-xs text-white/35">{d.desc}</div>
+                      </div>
+                      <div className="text-xs text-white/40 whitespace-nowrap mt-0.5">
+                        {d.gift ? "Бесплатно" : d.perPost > 0 ? `${d.perPost.toLocaleString("ru-RU")} ₽/столб` : d.perMeter > 0 ? `${d.perMeter.toLocaleString("ru-RU")} ₽/м` : ""}
+                      </div>
+                    </div>
+                  </label>
+                ))}
+              </div>
             </div>
           )}
-        </div>
 
-        {/* Калитка */}
-        <div>
-          <label className="block text-sm font-medium text-white/70 mb-2">Калитка</label>
-          <div className="grid grid-cols-3 gap-2">
-            {(Object.entries(WICKET_PRICES) as [WicketType, typeof WICKET_PRICES[WicketType]][]).map(([v, { label, price }]) => (
-              <button
-                key={v}
-                onClick={() => setCalc({ ...calc, wicketType: v })}
-                className={`px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-                  calc.wicketType === v
-                    ? "bg-orange-500 text-gray-900 shadow-lg shadow-orange-500/25"
-                    : "bg-[#1a1f2e] border border-[#1e2230] text-white/70 hover:border-orange-500/50 hover:text-white"
-                }`}
-              >
-                <div className="font-semibold text-xs leading-tight">{label}</div>
-                {price > 0 && <div className={`text-xs mt-0.5 ${calc.wicketType === v ? "text-gray-900/70" : "text-white/35"}`}>{(price / 1000).toFixed(1)}к ₽</div>}
-              </button>
-            ))}
-          </div>
-        </div>
+          {/* Ворота */}
+          {!isCanopy && (
+            <div>
+              <label className="block text-sm font-medium text-white/70 mb-2">Ворота</label>
+              <div className="grid grid-cols-3 gap-2 mb-3">
+                {(Object.entries(GATE_DATA) as [GateType, typeof GATE_DATA[GateType]][]).map(([v, d]) => (
+                  <button key={v} onClick={() => set({ gateType: v })}
+                    className={`px-2 py-3 rounded-xl text-xs font-medium transition-all duration-200 ${
+                      calc.gateType === v
+                        ? "bg-orange-500 text-gray-900 shadow-lg shadow-orange-500/25"
+                        : "bg-[#1a1f2e] border border-[#1e2230] text-white/70 hover:border-orange-500/50 hover:text-white"
+                    }`}>
+                    <div className="font-semibold">{d.label}</div>
+                    {d.base > 0 && <div className={`mt-0.5 ${calc.gateType === v ? "text-gray-900/70" : "text-white/35"}`}>от {(d.base / 1000).toFixed(0)}к ₽</div>}
+                  </button>
+                ))}
+              </div>
+              {calc.gateType !== "none" && (
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <label className="text-xs text-white/60">Ширина проёма</label>
+                    <span className="text-orange-400 font-bold font-oswald">{calc.gateWidth} м</span>
+                  </div>
+                  <input type="range" min={2.5} max={8} step={0.5}
+                    value={calc.gateWidth}
+                    onChange={e => set({ gateWidth: +e.target.value })}
+                  />
+                  <div className="flex justify-between text-xs text-white/30 mt-1"><span>2.5 м</span><span>8 м</span></div>
+                </div>
+              )}
+            </div>
+          )}
 
-        {/* Доп опции */}
-        <div>
-          <label className="block text-sm font-medium text-white/70 mb-3">Дополнительные работы</label>
-          <div className="space-y-3">
-            {([
-              { key: "installation", label: "Монтаж под ключ", desc: `+35% от стоимости материалов (~${fmt(materialsTotal * INSTALL_RATE)})` },
-              { key: "painting",     label: "Порошковая покраска", desc: `${PAINT_PRICE} ₽/м² · RAL любой цвет (~${fmt(fenceArea * PAINT_PRICE)})` },
-              { key: "automation",   label: "Автоматика ворот",
-                desc: calc.gateType !== "none" ? `Привод DoorHan / Nice — ${AUTO_PRICE.toLocaleString("ru-RU")} ₽` : "Сначала выберите ворота" },
-            ] as { key: keyof CalcState; label: string; desc: string }[]).map(({ key, label, desc }) => {
-              const disabled = key === "automation" && calc.gateType === "none";
-              return (
+          {/* Калитка */}
+          {!isCanopy && (
+            <div>
+              <label className="block text-sm font-medium text-white/70 mb-2">Калитка</label>
+              <div className="grid grid-cols-3 gap-2">
+                {(Object.entries(WICKET_DATA) as [WicketType, typeof WICKET_DATA[WicketType]][]).map(([v, d]) => (
+                  <button key={v} onClick={() => set({ wicketType: v })}
+                    className={`px-2 py-3 rounded-xl text-xs font-medium transition-all duration-200 ${
+                      calc.wicketType === v
+                        ? "bg-orange-500 text-gray-900 shadow-lg shadow-orange-500/25"
+                        : "bg-[#1a1f2e] border border-[#1e2230] text-white/70 hover:border-orange-500/50 hover:text-white"
+                    }`}>
+                    <div className="font-semibold">{d.label}</div>
+                    {d.price > 0 && <div className={`mt-0.5 ${calc.wicketType === v ? "text-gray-900/70" : "text-white/35"}`}>{(d.price / 1000).toFixed(1)}к ₽</div>}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Дополнительно */}
+          <div>
+            <label className="block text-sm font-medium text-white/70 mb-3">Дополнительные работы</label>
+            <div className="space-y-3">
+              {([
+                { key: "installation" as const, label: "Монтаж под ключ",    desc: `35% от суммы материалов — ${fmt(materialsSum * INSTALL_RATE)}` },
+                { key: "painting"     as const, label: "Порошковая покраска", desc: `${PAINT_PRICE} ₽/м², RAL любой цвет — ${fmt(fenceArea * PAINT_PRICE)}`, hidden: isCanopy },
+                { key: "automation"   as const, label: "Автоматика ворот",   desc: calc.gateType !== "none" ? `Привод DoorHan/Nice — ${AUTO_PRICE.toLocaleString("ru-RU")} ₽` : "Сначала выберите ворота", disabled: calc.gateType === "none" || isCanopy },
+              ]).filter(i => !i.hidden).map(({ key, label, desc, disabled }) => (
                 <label key={key} className={`flex items-start gap-3 cursor-pointer group ${disabled ? "opacity-40 pointer-events-none" : ""}`}>
-                  <div
-                    onClick={() => !disabled && setCalc({ ...calc, [key]: !calc[key] })}
+                  <div onClick={() => !disabled && set({ [key]: !calc[key] })}
                     className={`w-6 h-6 rounded flex items-center justify-center flex-shrink-0 mt-0.5 border-2 transition-all ${
-                      calc[key]
-                        ? "bg-orange-500 border-orange-500"
-                        : "border-[#2a3040] group-hover:border-orange-500/50"
-                    }`}
-                  >
+                      calc[key] ? "bg-orange-500 border-orange-500" : "border-[#2a3040] group-hover:border-orange-500/50"
+                    }`}>
                     {calc[key] && <Icon name="Check" size={14} className="text-gray-900" />}
                   </div>
                   <div>
@@ -365,84 +389,119 @@ function Calculator() {
                     <div className="text-xs text-white/40">{desc}</div>
                   </div>
                 </label>
-              );
-            })}
+              ))}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* ── Правая колонка: результат ── */}
-      <div className="flex flex-col">
-        <div className="bg-[#0a0c10] border border-[#1e2230] rounded-2xl p-7 flex-1">
-          <div className="section-tag mb-1">Предварительный расчёт</div>
-          <div className="text-xs text-white/30 mb-5">Точная стоимость — после бесплатного замера на объекте</div>
+        {/* ── Результат ── */}
+        <div className="flex flex-col">
+          <div className="bg-[#0a0c10] border border-[#1e2230] rounded-2xl p-7 flex-1">
+            <div className="section-tag mb-1">Предварительный расчёт</div>
+            <div className="text-xs text-white/30 mb-5">Точная стоимость — после бесплатного замера (±5–15%)</div>
 
-          {/* Детализация */}
-          <div className="space-y-0 mb-5">
-            {lineItems.map(({ label, value }) => (
-              <div key={label} className="flex justify-between items-start py-2.5 border-b border-[#1a1f2e] gap-4">
-                <span className="text-white/55 text-sm leading-tight">{label}</span>
-                <span className="text-white font-medium text-sm whitespace-nowrap">{fmt(value)}</span>
+            <div className="space-y-0 mb-5">
+              {lineItems.map(({ label, value }) => (
+                <div key={label} className="flex justify-between items-start py-2.5 border-b border-[#1a1f2e] gap-3">
+                  <span className="text-white/55 text-sm leading-tight">{label}</span>
+                  <span className={`text-sm whitespace-nowrap font-medium ${value === 0 ? "text-orange-400" : "text-white"}`}>
+                    {value === 0 ? "Бесплатно 🎁" : fmt(value)}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <div className="bg-[#0d1017] border border-orange-500/20 rounded-xl p-5 mb-5">
+              <div className="flex items-end justify-between gap-2">
+                <div>
+                  <div className="text-white/50 text-xs mb-1">Итого ориентировочно</div>
+                  <div className="stat-number">{fmt(total)}</div>
+                </div>
+                <div className="text-right text-xs text-white/40 space-y-1">
+                  {!isCanopy && <div>Площадь: <span className="text-white font-bold">{fenceArea} м²</span></div>}
+                  {!isCanopy && <div>Столбов: <span className="text-white font-bold">{postCount} шт.</span></div>}
+                  {isCanopy && <div>Навес: <span className="text-white font-bold">{calc.canopyArea} м²</span></div>}
+                </div>
+              </div>
+              <div className="mt-3 pt-3 border-t border-orange-500/15 text-white/30 text-xs leading-relaxed">
+                ⚠ Расчёт предварительный. Финальная цена после обмера участка и уточнения конфигурации.
+              </div>
+            </div>
+
+            <button className="btn-orange w-full py-4 rounded-xl text-base mb-3">
+              Заказать бесплатный замер
+            </button>
+            <button
+              onClick={() => setShowKP(!showKP)}
+              className="btn-outline-orange w-full py-3 rounded-xl text-sm flex items-center justify-center gap-2">
+              <Icon name={showKP ? "ChevronUp" : "FileText"} size={16} />
+              {showKP ? "Скрыть КП" : "Сформировать КП"}
+            </button>
+          </div>
+
+          <div className="grid grid-cols-3 gap-3 mt-4">
+            {[
+              { icon: "Clock",       text: "Замер бесплатно" },
+              { icon: "Truck",       text: "Доставка по РФ" },
+              { icon: "ShieldCheck", text: "Гарантия 5 лет" },
+            ].map(({ icon, text }) => (
+              <div key={text} className="bg-[#141720] border border-[#1e2230] rounded-xl p-3 text-center">
+                <Icon name={icon} size={18} className="text-orange-400 mx-auto mb-1" />
+                <div className="text-xs text-white/55 leading-tight">{text}</div>
               </div>
             ))}
           </div>
-
-          {/* Итог */}
-          <div className="bg-orange-500/5 border border-orange-500/20 rounded-xl p-5 mb-5">
-            <div className="flex items-end justify-between gap-2">
-              <div>
-                <div className="text-white/50 text-xs mb-1">Итого (ориентировочно)</div>
-                <div className="stat-number">{fmt(total)}</div>
-              </div>
-              <div className="text-right">
-                <div className="text-white/30 text-xs">Площадь забора</div>
-                <div className="text-white font-oswald font-bold text-xl">{fenceArea} м²</div>
-                <div className="text-white/30 text-xs mt-1">Столбов: {postCount} шт.</div>
-              </div>
-            </div>
-            <div className="mt-3 pt-3 border-t border-orange-500/15 text-white/30 text-xs">
-              ⚠ Расчёт предварительный. Финальная цена может отличаться на 5–15% после обмера участка и уточнения конфигурации.
-            </div>
-          </div>
-
-          <button className="btn-orange w-full py-4 rounded-xl text-base mb-3">
-            Заказать бесплатный замер
-          </button>
-          <button className="btn-outline-orange w-full py-3 rounded-xl text-sm">
-            Получить КП на email
-          </button>
-        </div>
-
-        {/* Бонусы */}
-        <div className="grid grid-cols-3 gap-3 mt-4">
-          {[
-            { icon: "Clock",       text: "Замер бесплатно" },
-            { icon: "Truck",       text: "Доставка по РФ" },
-            { icon: "ShieldCheck", text: "Гарантия 5 лет" },
-          ].map(({ icon, text }) => (
-            <div key={text} className="bg-[#141720] border border-[#1e2230] rounded-xl p-3 text-center">
-              <Icon name={icon} size={18} className="text-orange-400 mx-auto mb-1" />
-              <div className="text-xs text-white/55 leading-tight">{text}</div>
-            </div>
-          ))}
         </div>
       </div>
+
+      {/* КП блок */}
+      {showKP && (
+        <div className="mt-8 bg-[#0a0c10] border border-orange-500/30 rounded-2xl p-6 animate-fade-in">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3">
+            <div>
+              <div className="font-oswald font-bold text-lg text-white">Коммерческое предложение</div>
+              <div className="text-xs text-white/40">Готово к печати или отправке клиенту</div>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={copyKP}
+                className="flex items-center gap-2 bg-[#1a1f2e] border border-[#2a3040] hover:border-orange-500/50 text-white/70 hover:text-white px-4 py-2 rounded-lg text-sm transition-all">
+                <Icon name="Copy" size={14} />
+                Копировать
+              </button>
+              <button onClick={downloadKP}
+                className="btn-orange px-4 py-2 rounded-lg text-sm flex items-center gap-2">
+                <Icon name="Download" size={14} />
+                Скачать .txt
+              </button>
+            </div>
+          </div>
+          <textarea
+            ref={kpRef}
+            readOnly
+            value={kpText}
+            className="w-full bg-[#141720] border border-[#1e2230] rounded-xl p-4 text-white/70 text-xs font-mono leading-relaxed resize-none focus:outline-none focus:border-orange-500/40"
+            rows={28}
+          />
+        </div>
+      )}
     </div>
   );
 }
 
+// ── Scroll reveal ─────────────────────────────────────────────────────────────
 function useScrollReveal() {
   useEffect(() => {
     const els = document.querySelectorAll(".anim-ready");
-    const observer = new IntersectionObserver(
-      entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add("visible"); }),
-      { threshold: 0.1 }
+    const io = new IntersectionObserver(
+      es => es.forEach(e => { if (e.isIntersecting) e.target.classList.add("visible"); }),
+      { threshold: 0.08 }
     );
-    els.forEach(el => observer.observe(el));
-    return () => observer.disconnect();
+    els.forEach(el => io.observe(el));
+    return () => io.disconnect();
   }, []);
 }
 
+// ── Главная страница ──────────────────────────────────────────────────────────
 export default function Index() {
   const [menuOpen, setMenuOpen] = useState(false);
   useScrollReveal();
@@ -457,7 +516,7 @@ export default function Index() {
 
       {/* NAV */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-[#1e2230]"
-        style={{ background: "rgba(13,15,20,0.92)", backdropFilter: "blur(16px)" }}>
+        style={{ background: "rgba(13,15,20,0.93)", backdropFilter: "blur(16px)" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
@@ -472,14 +531,14 @@ export default function Index() {
               </div>
             </div>
 
-            <div className="hidden lg:flex items-center gap-6">
+            <div className="hidden lg:flex items-center gap-5">
               {NAV_ITEMS.map(({ id, label }) => (
                 <button key={id} onClick={() => scrollTo(id)} className="nav-link text-sm">{label}</button>
               ))}
             </div>
 
             <div className="hidden lg:flex items-center gap-3">
-              <a href="tel:+78001234567" className="flex items-center gap-2 text-orange-400 font-oswald font-medium hover:text-orange-300 transition-colors">
+              <a href="tel:+78001234567" className="flex items-center gap-2 text-orange-400 font-oswald font-medium hover:text-orange-300 transition-colors text-sm">
                 <Icon name="Phone" size={15} />
                 8 800 123-45-67
               </a>
@@ -514,9 +573,10 @@ export default function Index() {
       {/* HERO */}
       <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden grid-pattern">
         <div className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${HERO_IMG})`, opacity: 0.18 }} />
+          style={{ backgroundImage: `url(${IMGS.hero})`, opacity: 0.18 }} />
         <div className="absolute inset-0 bg-gradient-to-b from-[#0d0f14] via-transparent to-[#0d0f14]" />
-        <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse 70% 60% at 50% 40%, rgba(249,115,22,0.13) 0%, transparent 70%)" }} />
+        <div className="absolute inset-0"
+          style={{ background: "radial-gradient(ellipse 70% 60% at 50% 40%, rgba(249,115,22,0.12) 0%, transparent 70%)" }} />
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/30 rounded-full px-4 py-2 mb-8">
@@ -525,19 +585,19 @@ export default function Index() {
           </div>
 
           <h1 className="font-oswald font-bold text-5xl sm:text-6xl lg:text-8xl leading-none mb-6 tracking-tight">
-            ЗАБОРЫ И ВОРОТА<br />
-            <span className="text-orange-400">ИЗ МЕТАЛЛА</span>
+            ЗАБОРЫ, ВОРОТА<br />
+            <span className="text-orange-400">НАВЕСЫ И КОВКА</span>
           </h1>
 
           <p className="text-white/60 text-lg sm:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
-            Производство и монтаж металлических ограждений любой сложности. Собственный завод, гарантия качества, доставка по всей России.
+            Производство и монтаж металлических ограждений, ворот, навесов и беседок любой сложности. Собственный завод, гарантия качества, доставка по всей России.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
             <button className="btn-orange px-8 py-4 rounded-xl text-base w-full sm:w-auto" onClick={() => scrollTo("calculator")}>
               <span className="flex items-center gap-2 justify-center">
                 <Icon name="Calculator" size={18} />
-                Рассчитать стоимость
+                Рассчитать + сформировать КП
               </span>
             </button>
             <button className="btn-outline-orange px-8 py-4 rounded-xl text-base w-full sm:w-auto" onClick={() => scrollTo("portfolio")}>
@@ -565,57 +625,6 @@ export default function Index() {
         </div>
       </section>
 
-      {/* О ПРОИЗВОДСТВЕ */}
-      <section id="about" className="py-24 relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div className="anim-ready">
-              <span className="section-tag">О производстве</span>
-              <h2 className="font-oswald font-bold text-4xl sm:text-5xl text-white mb-2 leading-tight">
-                СОБСТВЕННЫЙ ЗАВОД<br /><span className="text-orange-400">В МОСКВЕ</span>
-              </h2>
-              <div className="orange-line mb-6" />
-              <p className="text-white/60 leading-relaxed mb-5">
-                Компания «СтальГрупп» — полный цикл производства металлических заборов, ворот и ограждений. Наш завод площадью 3 500 м² оснащён современным оборудованием: плазменная резка, гибка, сварочные линии и собственная камера порошковой покраски (палитра RAL, 200+ цветов).
-              </p>
-              <p className="text-white/60 leading-relaxed mb-8">
-                Работаем напрямую без посредников — это позволяет держать цены ниже рыночных и контролировать каждый этап производства от заготовки до монтажа на объекте.
-              </p>
-
-              <div className="grid grid-cols-2 gap-4">
-                {[
-                  { icon: "Factory",  title: "Собственный завод",  desc: "3 500 м² производственных площадей" },
-                  { icon: "Users",    title: "80 сотрудников",     desc: "Опытные технологи и монтажники" },
-                  { icon: "Award",    title: "Сертификаты ИСО",   desc: "Международный стандарт качества" },
-                  { icon: "MapPin",   title: "Москва и МО",        desc: "Выезд на замер в день обращения" },
-                ].map(({ icon, title, desc }) => (
-                  <div key={title} className="bg-[#141720] border border-[#1e2230] rounded-xl p-4 hover:border-orange-500/30 transition-colors">
-                    <Icon name={icon} size={22} className="text-orange-400 mb-2" />
-                    <div className="font-medium text-white text-sm mb-0.5">{title}</div>
-                    <div className="text-white/40 text-xs">{desc}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="anim-ready relative" style={{ transitionDelay: "0.15s" }}>
-              <div className="relative rounded-2xl overflow-hidden aspect-[4/3]">
-                <img src={HERO_IMG} alt="Производство" className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-tr from-[#0d0f14]/60 to-transparent" />
-              </div>
-              <div className="absolute -bottom-4 -left-4 bg-orange-500 text-gray-900 rounded-xl p-4 font-oswald font-bold shadow-xl shadow-orange-500/30">
-                <div className="text-3xl">1 200+</div>
-                <div className="text-sm font-normal opacity-80">объектов сдано</div>
-              </div>
-              <div className="absolute -top-4 -right-4 bg-[#141720] border border-[#1e2230] rounded-xl p-3 text-center shadow-xl">
-                <div className="font-oswald font-bold text-2xl text-white">5 лет</div>
-                <div className="text-xs text-white/50">гарантия</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* ПРОДУКЦИЯ */}
       <section id="products" className="py-24 bg-[#0a0c10]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -624,27 +633,30 @@ export default function Index() {
             <h2 className="font-oswald font-bold text-4xl sm:text-5xl text-white mb-3">
               ВСЁ ДЛЯ ВАШЕГО <span className="text-orange-400">УЧАСТКА</span>
             </h2>
-            <p className="text-white/50 max-w-xl mx-auto">Производим весь спектр металлических ограждений и ворот. Цены актуальны на 2026 год.</p>
+            <p className="text-white/50 max-w-xl mx-auto">Полный спектр металлических конструкций. Цены актуальны на 2026 год.</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {PRODUCTS.map(({ icon, title, desc, price, badge }, i) => (
-              <div key={title} className="product-card rounded-2xl p-6 anim-ready relative" style={{ transitionDelay: `${i * 0.07}s` }}>
+            {PRODUCTS.map(({ img, title, desc, price, badge }, i) => (
+              <div key={title} className="product-card rounded-2xl overflow-hidden anim-ready relative"
+                style={{ transitionDelay: `${i * 0.06}s` }}>
                 {badge && (
-                  <div className="absolute top-4 right-4 bg-orange-500/15 border border-orange-500/30 text-orange-400 text-xs font-bold font-oswald px-2 py-1 rounded tracking-wider uppercase">
+                  <div className="absolute top-3 right-3 z-10 bg-orange-500 text-gray-900 text-xs font-bold font-oswald px-2 py-1 rounded tracking-wider uppercase">
                     {badge}
                   </div>
                 )}
-                <div className="w-12 h-12 bg-orange-500/10 border border-orange-500/20 rounded-xl flex items-center justify-center mb-4">
-                  <Icon name={icon} size={22} className="text-orange-400" />
+                <div className="h-44 overflow-hidden">
+                  <img src={img} alt={title} className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" />
                 </div>
-                <h3 className="font-oswald font-semibold text-xl text-white mb-2">{title}</h3>
-                <p className="text-white/50 text-sm leading-relaxed mb-4">{desc}</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-orange-400 font-oswald font-bold text-lg">{price}</span>
-                  <button className="text-white/40 hover:text-orange-400 transition-colors text-sm flex items-center gap-1">
-                    Подробнее <Icon name="ArrowRight" size={14} />
-                  </button>
+                <div className="p-5">
+                  <h3 className="font-oswald font-semibold text-lg text-white mb-1.5">{title}</h3>
+                  <p className="text-white/50 text-sm leading-relaxed mb-4">{desc}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-orange-400 font-oswald font-bold text-lg">{price}</span>
+                    <button className="text-white/40 hover:text-orange-400 transition-colors text-sm flex items-center gap-1">
+                      Подробнее <Icon name="ArrowRight" size={14} />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -666,16 +678,16 @@ export default function Index() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {PORTFOLIO_ITEMS.map(({ title, tag }, i) => (
+            {PORTFOLIO_ITEMS.map(({ title, tag, img }, i) => (
               <div key={title} className="portfolio-item anim-ready"
-                style={{ height: i === 0 || i === 5 ? "320px" : "220px", transitionDelay: `${i * 0.07}s` }}>
-                <img src={PORTFOLIO_IMG} alt={title} />
+                style={{ height: i === 0 || i === 5 ? "320px" : "230px", transitionDelay: `${i * 0.07}s` }}>
+                <img src={img} alt={title} />
                 <div className="portfolio-overlay">
                   <div>
                     <div className="inline-block bg-orange-500 text-gray-900 text-xs font-bold font-oswald px-2 py-1 rounded mb-2 uppercase tracking-wider">
                       {tag}
                     </div>
-                    <div className="text-white font-semibold text-base">{title}</div>
+                    <div className="text-white font-semibold">{title}</div>
                   </div>
                 </div>
                 <div className="absolute top-3 left-3 bg-orange-500/10 border border-orange-500/30 text-orange-400 text-xs px-2 py-1 rounded-full font-oswald tracking-wider uppercase">
@@ -697,15 +709,21 @@ export default function Index() {
             </h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {SERVICES.map(({ icon, title, desc }, i) => (
+            {SERVICES.map(({ icon, img, title, desc }, i) => (
               <div key={title}
-                className="group bg-[#141720] border border-[#1e2230] hover:border-orange-500/40 rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 anim-ready"
+                className="group bg-[#141720] border border-[#1e2230] hover:border-orange-500/40 rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 anim-ready"
                 style={{ transitionDelay: `${i * 0.07}s` }}>
-                <div className="w-10 h-10 bg-orange-500/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-orange-500/20 transition-colors">
-                  <Icon name={icon} size={20} className="text-orange-400" />
+                <div className="h-36 overflow-hidden relative">
+                  <img src={img} alt={title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#141720] via-transparent to-transparent" />
                 </div>
-                <h3 className="font-oswald font-semibold text-lg text-white mb-2">{title}</h3>
-                <p className="text-white/50 text-sm leading-relaxed">{desc}</p>
+                <div className="p-5">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Icon name={icon} size={18} className="text-orange-400" />
+                    <h3 className="font-oswald font-semibold text-base text-white">{title}</h3>
+                  </div>
+                  <p className="text-white/50 text-sm leading-relaxed">{desc}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -714,18 +732,20 @@ export default function Index() {
 
       {/* КАЛЬКУЛЯТОР */}
       <section id="calculator" className="py-24 grid-pattern relative">
-        <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse 60% 70% at 50% 50%, rgba(249,115,22,0.06) 0%, transparent 70%)" }} />
+        <div className="absolute inset-0"
+          style={{ background: "radial-gradient(ellipse 60% 70% at 50% 50%, rgba(249,115,22,0.06) 0%, transparent 70%)" }} />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center mb-14 anim-ready">
-            <span className="section-tag">Калькулятор</span>
+          <div className="text-center mb-12 anim-ready">
+            <span className="section-tag">Калькулятор + КП</span>
             <h2 className="font-oswald font-bold text-4xl sm:text-5xl text-white mb-3">
-              РАССЧИТАЙТЕ <span className="text-orange-400">СТОИМОСТЬ</span>
+              РАССЧИТАЙТЕ <span className="text-orange-400">И СКАЧАЙТЕ КП</span>
             </h2>
             <p className="text-white/50 max-w-xl mx-auto">
-              Интерактивный расчёт с актуальными ценами 2026 года — материалы, столбы, фундамент, ворота, калитка, монтаж
+              Актуальные цены 2026. Заборы, ворота, навесы, все типы фундаментов.<br />
+              Готовое коммерческое предложение — за 1 клик.
             </p>
           </div>
-          <div className="bg-[#141720] border border-[#1e2230] rounded-3xl p-8 anim-ready">
+          <div className="bg-[#141720] border border-[#1e2230] rounded-3xl p-6 sm:p-8 anim-ready">
             <Calculator />
           </div>
         </div>
@@ -734,56 +754,66 @@ export default function Index() {
       {/* ДОСТАВКА */}
       <section id="delivery" className="py-24 bg-[#0a0c10]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div className="text-center mb-14 anim-ready">
+            <span className="section-tag">Доставка</span>
+            <h2 className="font-oswald font-bold text-4xl sm:text-5xl text-white mb-3">
+              ДОСТАВИМ <span className="text-orange-400">ТОЧНО В СРОК</span>
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             <div className="anim-ready">
-              <span className="section-tag">Доставка</span>
-              <h2 className="font-oswald font-bold text-4xl sm:text-5xl text-white mb-2">
-                ДОСТАВИМ <span className="text-orange-400">ПО ВСЕЙ</span><br />РОССИИ
-              </h2>
-              <div className="orange-line mb-6" />
-              <p className="text-white/60 leading-relaxed mb-8">
-                Собственный автопарк из 12 грузовых автомобилей обеспечивает доставку по Москве и МО в день заказа. По всей России — транспортными компаниями с упаковкой и страхованием груза.
-              </p>
-              <div className="space-y-4">
-                {[
-                  { icon: "Truck",      title: "Москва и МО",        desc: "Доставка в день заказа. Бесплатно при заказе от 60 000 ₽" },
-                  { icon: "Globe",      title: "По всей России",      desc: "3–10 дней. СДЭК, ПЭК, Деловые Линии — по тарифу ТК" },
-                  { icon: "Package",    title: "Упаковка и страховка", desc: "Металлические конструкции надёжно упакованы, груз застрахован" },
-                  { icon: "PhoneCall", title: "Сопровождение",       desc: "Менеджер уведомляет об отгрузке и статусе в режиме реального времени" },
-                ].map(({ icon, title, desc }) => (
-                  <div key={title} className="flex items-start gap-4 bg-[#141720] border border-[#1e2230] rounded-xl p-4 hover:border-orange-500/30 transition-colors">
-                    <div className="w-10 h-10 bg-orange-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <Icon name={icon} size={18} className="text-orange-400" />
-                    </div>
-                    <div>
-                      <div className="font-medium text-white text-sm">{title}</div>
-                      <div className="text-white/40 text-xs mt-0.5">{desc}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="anim-ready" style={{ transitionDelay: "0.1s" }}>
               <div className="bg-[#141720] border border-[#1e2230] rounded-3xl p-8">
-                <div className="font-oswald font-bold text-2xl text-white mb-6">Стоимость доставки</div>
-                <div className="space-y-3">
+                <div className="font-oswald font-bold text-xl text-white mb-6 flex items-center gap-2">
+                  <Icon name="Truck" size={20} className="text-orange-400" />
+                  Тарифы по Москве и МО
+                </div>
+                <div className="space-y-3 mb-6">
                   {[
-                    { region: "Москва в пределах МКАД",     price: "Бесплатно", highlight: true },
-                    { region: "Московская область (до 50 км)", price: "от 3 500 ₽" },
-                    { region: "МО (50–100 км от МКАД)",      price: "от 6 000 ₽" },
-                    { region: "ЦФО и соседние регионы",      price: "от 8 000 ₽" },
-                    { region: "По России (ТК)",              price: "по тарифу ТК" },
-                    { region: "Выезд монтажной бригады",     price: "от 1 500 ₽/день" },
-                  ].map(({ region, price, highlight }) => (
-                    <div key={region}
-                      className={`flex justify-between items-center py-3 px-4 rounded-xl ${highlight ? "bg-orange-500/10 border border-orange-500/30" : "border border-[#1e2230]"}`}>
-                      <span className="text-sm text-white/70">{region}</span>
-                      <span className={`font-oswald font-bold ${highlight ? "text-orange-400" : "text-white"}`}>{price}</span>
+                    { zone: "Москва (в пределах МКАД)",   price: "Бесплатно",   sub: "при заказе от 60 000 ₽", highlight: true },
+                    { zone: "До 20 км от МКАД",           price: "3 500 ₽",     sub: "фиксированный тариф за рейс" },
+                    { zone: "20–50 км от МКАД",           price: "4 500 ₽",     sub: "фиксированный тариф за рейс" },
+                    { zone: "Более 50 км от МКАД",        price: "70 ₽/км",     sub: "от МКАД + базовый тариф" },
+                    { zone: "Негабаритный груз",           price: "Индивидуально", sub: "длина >6 м, масса >5 т — позвоните" },
+                    { zone: "По России (СДЭК / ПЭК)",     price: "По тарифу ТК", sub: "3–10 рабочих дней" },
+                  ].map(({ zone, price, sub, highlight }) => (
+                    <div key={zone}
+                      className={`flex items-center justify-between py-3 px-4 rounded-xl gap-3 ${
+                        highlight ? "bg-orange-500/10 border border-orange-500/30" : "border border-[#1e2230]"
+                      }`}>
+                      <div>
+                        <div className={`text-sm font-medium ${highlight ? "text-orange-300" : "text-white"}`}>{zone}</div>
+                        <div className="text-xs text-white/35">{sub}</div>
+                      </div>
+                      <div className={`font-oswald font-bold whitespace-nowrap ${highlight ? "text-orange-400" : "text-white"}`}>{price}</div>
                     </div>
                   ))}
                 </div>
-                <button className="btn-orange w-full py-4 rounded-xl mt-6">Рассчитать доставку</button>
+                <div className="bg-[#0a0c10] border border-[#1e2230] rounded-xl p-4 text-xs text-white/40 leading-relaxed">
+                  <span className="text-orange-400 font-medium">Негабаритные грузы</span> — длина конструкции &gt;6 м, ширина &gt;2.5 м или масса &gt;5 т. Рассчитывается индивидуально, позвоните менеджеру.
+                </div>
               </div>
+            </div>
+
+            <div className="anim-ready space-y-4" style={{ transitionDelay: "0.1s" }}>
+              {[
+                { icon: "Truck",      title: "Собственный автопарк",   desc: "12 грузовых авто. Доставка по Москве — в день отгрузки с завода." },
+                { icon: "Package",    title: "Упаковка и страхование",  desc: "Конструкции упакованы на заводе, груз застрахован на всём пути." },
+                { icon: "Clock",      title: "Чёткие сроки",           desc: "Подтверждаем дату доставки за сутки. Задержки — под договорную ответственность." },
+                { icon: "PhoneCall", title: "Сопровождение груза",    desc: "SMS и звонок при отгрузке, уведомление за 1 час до прибытия." },
+                { icon: "Wrench",     title: "Выезд монтажной бригады", desc: "От 1 500 ₽/день. Бригада 2–4 чел. с инструментом. Сдача по акту." },
+              ].map(({ icon, title, desc }) => (
+                <div key={title} className="flex items-start gap-4 bg-[#141720] border border-[#1e2230] rounded-xl p-4 hover:border-orange-500/30 transition-colors">
+                  <div className="w-10 h-10 bg-orange-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Icon name={icon} size={18} className="text-orange-400" />
+                  </div>
+                  <div>
+                    <div className="font-medium text-white text-sm">{title}</div>
+                    <div className="text-white/40 text-xs mt-0.5">{desc}</div>
+                  </div>
+                </div>
+              ))}
+              <button className="btn-orange w-full py-4 rounded-xl mt-2">Рассчитать доставку</button>
             </div>
           </div>
         </div>
@@ -802,8 +832,8 @@ export default function Index() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
             {[
               { years: "5", label: "лет", title: "На конструкции", desc: "Полная замена при производственном браке или преждевременной коррозии" },
-              { years: "3", label: "года", title: "На покраску",    desc: "Порошковое покрытие не отслоится, не потрескается, сохранит яркость цвета" },
-              { years: "2", label: "года", title: "На монтаж",      desc: "Если геометрия нарушится — исправим бесплатно в удобное для вас время" },
+              { years: "3", label: "года", title: "На покраску",   desc: "Порошковое покрытие не отслоится, не потрескается, сохранит яркость цвета" },
+              { years: "2", label: "года", title: "На монтаж",     desc: "Если геометрия нарушится — исправим бесплатно в удобное время" },
             ].map(({ years, label, title, desc }, i) => (
               <div key={title}
                 className="anim-ready bg-[#141720] border border-[#1e2230] hover:border-orange-500/40 rounded-2xl p-8 text-center transition-all duration-300 hover:-translate-y-2"
@@ -848,10 +878,10 @@ export default function Index() {
 
               <div className="space-y-5 mb-10">
                 {[
-                  { icon: "Phone",  title: "Телефон",       value: "8 800 123-45-67",         sub: "Бесплатно, пн–сб 8:00–20:00", href: "tel:+78001234567" },
-                  { icon: "Mail",   title: "Email",         value: "info@stalgrupp.ru",        sub: "Ответим в течение часа",       href: "mailto:info@stalgrupp.ru" },
-                  { icon: "MapPin", title: "Адрес",         value: "Москва, ул. Промышленная, 12", sub: "Производство и шоурум" },
-                  { icon: "Clock",  title: "Режим работы",  value: "Пн–Сб: 8:00 – 20:00",    sub: "Воскресенье: по записи" },
+                  { icon: "Phone",  title: "Телефон",      value: "8 800 123-45-67",         sub: "Бесплатно, пн–сб 8:00–20:00", href: "tel:+78001234567" },
+                  { icon: "Mail",   title: "Email",        value: "info@stalgrupp.ru",        sub: "Ответим в течение часа",       href: "mailto:info@stalgrupp.ru" },
+                  { icon: "MapPin", title: "Адрес",        value: "Москва, ул. Промышленная, 12", sub: "Производство и шоурум" },
+                  { icon: "Clock",  title: "Режим работы", value: "Пн–Сб: 8:00 – 20:00",    sub: "Воскресенье: по записи" },
                 ].map(({ icon, title, value, sub, href }) => (
                   <div key={title} className="flex items-start gap-4">
                     <div className="w-10 h-10 bg-orange-500/10 border border-orange-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -875,7 +905,7 @@ export default function Index() {
                   { icon: "Phone",         label: "Позвонить" },
                 ].map(({ icon, label }) => (
                   <button key={label} className="flex-1 btn-outline-orange py-3 rounded-xl text-xs flex items-center justify-center gap-2">
-                    <Icon name={icon} size={15} />
+                    <Icon name={icon} size={14} />
                     {label}
                   </button>
                 ))}
@@ -887,9 +917,9 @@ export default function Index() {
                 <div className="font-oswald font-bold text-xl text-white mb-6">Оставить заявку</div>
                 <div className="space-y-4">
                   {[
-                    { placeholder: "Ваше имя", type: "text" },
-                    { placeholder: "Телефон", type: "tel" },
-                    { placeholder: "Email", type: "email" },
+                    { placeholder: "Ваше имя",  type: "text" },
+                    { placeholder: "Телефон",   type: "tel" },
+                    { placeholder: "Email",     type: "email" },
                   ].map(({ placeholder, type }) => (
                     <input key={placeholder} type={type} placeholder={placeholder} className="select-field" />
                   ))}
@@ -921,7 +951,9 @@ export default function Index() {
               </div>
               <div className="font-oswald font-bold text-white">СТАЛЬ<span className="text-orange-400">ГРУПП</span></div>
             </div>
-            <div className="text-white/25 text-xs text-center">© 2009–2026 СтальГрупп. Производство металлических заборов и ворот.</div>
+            <div className="text-white/25 text-xs text-center">
+              © 2009–2026 СтальГрупп. Производство металлических заборов, ворот и навесов.
+            </div>
             <div className="flex gap-4">
               {["Политика", "Реквизиты"].map(item => (
                 <button key={item} className="text-white/30 hover:text-white/60 text-xs transition-colors">{item}</button>
