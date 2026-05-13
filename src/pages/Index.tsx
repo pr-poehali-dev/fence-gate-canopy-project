@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
+import Calculator from "@/components/Calculator";
 
 // ── Изображения ─────────────────────────────────────────────────────────────
 const IMGS = {
