@@ -57,14 +57,14 @@ export default function MaxSetup() {
         </Step>
 
         {/* ШАГ 2 */}
-        <Step n="2" title="Получите ID чата для уведомлений">
+        <Step n="2" title="Подготовьте чат, куда будут приходить заявки">
           <p>Заявки могут приходить в личные сообщения, групповой чат или канал. На выбор:</p>
 
           <Sub title="A. В личные сообщения">
             <ol className="list-decimal pl-5 space-y-1 text-sm text-white/70">
               <li>Найдите свежесозданного бота в MAX по логину</li>
               <li>Нажмите «Старт» / отправьте <Code>/start</Code></li>
-              <li>Бот ответит вам — в ответе будет ваш chat_id (или его можно узнать в логах MasterBot)</li>
+              <li>Готово — бот «увидел» вас, ваш чат появится в автопоиске</li>
             </ol>
           </Sub>
 
@@ -72,26 +72,39 @@ export default function MaxSetup() {
             <ol className="list-decimal pl-5 space-y-1 text-sm text-white/70">
               <li>Создайте чат «Заявки СтальГрупп», добавьте туда бота</li>
               <li>Назначьте бота администратором (для отправки сообщений)</li>
-              <li>Напишите в чат <Code>@yourbot_id</Code> — бот пришлёт chat_id чата</li>
+              <li>Отправьте в чат любое сообщение — чат появится в автопоиске</li>
             </ol>
           </Sub>
 
           <Callout type="info">
-            ID личного чата выглядит как обычное число: <Code>9876543210</Code><br />
-            ID группы начинается с минуса: <Code>-10012345678901</Code>
+            Числовой ID искать вручную не нужно — он определится автоматически на следующем шаге.
           </Callout>
         </Step>
 
-        {/* ШАГ 3 */}
-        <Step n="3" title="Вставьте токен и chat_id в админку">
+        {/* ШАГ 3 — Автопоиск */}
+        <Step n="3" title="Вставьте токен и нажмите «Автопоиск chat_id»">
           <ol className="list-decimal pl-5 space-y-1.5 text-sm text-white/70">
             <li>
               Откройте <Link to="/admin" className="text-orange-400 hover:underline">админ-панель</Link>{" "}
               → войдите → вкладка <b>«Настройки»</b>
             </li>
             <li>В поле <b>«Токен бота»</b> вставьте <Code>access_token</Code></li>
-            <li>В поле <b>«ID чата для уведомлений»</b> вставьте chat_id из шага 2</li>
             <li>Нажмите <b>«Сохранить настройки»</b></li>
+            <li>
+              Над полем <b>«ID чата»</b> появится кнопка{" "}
+              <span className="inline-flex items-center gap-1 bg-orange-500/10 border border-orange-500/30 text-orange-400 px-2 py-0.5 rounded text-[11px] font-bold">
+                <Icon name="Wand2" size={11} /> Автопоиск chat_id
+              </span>{" "}
+              — нажмите её
+            </li>
+            <li>
+              Откроется список всех чатов, где состоит бот. У каждого 2 кнопки:
+              <ul className="list-disc pl-5 mt-1 space-y-0.5">
+                <li><b>Тест</b> — пришлёт тестовое сообщение, чтобы проверить доступ</li>
+                <li><b>Использовать</b> — подставит chat_id в поле автоматически</li>
+              </ul>
+            </li>
+            <li>Снова нажмите <b>«Сохранить настройки»</b></li>
             <li>Бейдж должен переключиться с «Не настроен» на <span className="text-green-400 font-bold">«Подключён»</span></li>
           </ol>
         </Step>

@@ -17,6 +17,23 @@ def _auth_ok(headers, conn):
         return cur.fetchone() is not None
 
 
+def _max_get(bot_token, path, params=None):
+    """GET-запрос к MAX Bot API. Возвращает dict или {} при ошибке."""
+    if not bot_token:
+        return {}
+    try:
+        qs = {'access_token': bot_token}
+        if params:
+            qs.update(params)
+        query = urllib.parse.urlencode(qs)
+        url = "https://botapi.max.ru" + path + "?" + query
+        req = urllib.request.Request(url, headers={'Accept': 'application/json'})
+        with urllib.request.urlopen(req, timeout=12) as resp:
+            return json.loads(resp.read().decode('utf-8') or '{}')
+    except Exception:
+        return {}
+
+
 def _send_to_max(bot_token: str, chat_id: str, text: str,
                  phone: str = '', pdf_url: str = '') -> bool:
     """Отправка сообщения через MAX Messenger Bot API с inline-кнопками.
@@ -341,6 +358,126 @@ def handler(event: dict, context) -> dict:
                 conn.commit()
             return {'statusCode': 200, 'headers': cors,
                     'body': json.dumps({'ok': True, 'delivered': delivered})}
+
+        # ── АВТОПОИСК CHAT_ID (по обновлениям и подпискам) ────────
+        if action == 'chats' and method == 'GET':
+            if not _auth_ok(event.get('headers'), conn):
+                return {'statusCode': 401, 'headers': cors,
+                        'body': json.dumps({'error': 'unauthorized'})}
+            with conn.cursor() as cur:
+                cur.execute("SELECT value FROM site_settings WHERE key='max_bot_token'")
+                row = cur.fetchone()
+                bot_token = (row[0] if row else '') or ''
+            if not bot_token:
+                return {'statusCode': 200, 'headers': cors,
+                        'body': json.dumps({
+                            'ok': False,
+                            'error': 'no_token',
+                            'message': 'Сначала сохраните токен бота',
+                            'items': [],
+                        })}
+
+            # Проверим что токен валидный — запросим /me
+            me = _max_get(bot_token, '/me')
+            bot_info = {}
+            if isinstance(me, dict) and me.get('user_id'):
+                bot_info = {
+                    'user_id':    me.get('user_id'),
+                    'name':       me.get('name') or me.get('first_name') or '',
+                    'username':   me.get('username') or '',
+                }
+            elif isinstance(me, dict) and me.get('code'):
+                return {'statusCode': 200, 'headers': cors,
+                        'body': json.dumps({
+                            'ok': False,
+                            'error': 'bad_token',
+                            'message': me.get('message') or 'Неверный токен',
+                            'items': [],
+                        })}
+
+            # Собираем чаты из 3 источников
+            chats_map = {}
+
+            def _push(cid, title, ctype, user_label=''):
+                if cid is None or cid == '':
+                    return
+                key = str(cid)
+                if key not in chats_map:
+                    chats_map[key] = {
+                        'chat_id': key,
+                        'title': title or user_label or 'Без названия',
+                        'type': ctype or 'unknown',
+                        'last_message': '',
+                        'last_user': user_label,
+                    }
+                else:
+                    if user_label and not chats_map[key].get('last_user'):
+                        chats_map[key]['last_user'] = user_label
+
+            # 1) Подписки (чаты где бот состоит)
+            subs = _max_get(bot_token, '/chats', {'count': 50})
+            for c in (subs.get('chats') or []):
+                _push(
+                    c.get('chat_id'),
+                    c.get('title') or '',
+                    c.get('type') or 'chat',
+                )
+
+            # 2) Свежие обновления (личные сообщения боту от пользователей)
+            ups = _max_get(bot_token, '/updates', {'limit': 100, 'types': 'message_created'})
+            for u in (ups.get('updates') or []):
+                msg = u.get('message') or {}
+                rec = (msg.get('recipient') or {})
+                sender = (msg.get('sender') or {})
+                body = (msg.get('body') or {})
+                cid = rec.get('chat_id') or rec.get('user_id') or sender.get('user_id')
+                ctype = rec.get('chat_type') or ('dialog' if rec.get('user_id') else 'chat')
+                title = ''
+                user_label = (sender.get('name') or sender.get('first_name')
+                              or sender.get('username') or '').strip()
+                _push(cid, title, ctype, user_label)
+                if cid is not None and str(cid) in chats_map:
+                    last_text = (body.get('text') or '').strip()
+                    if last_text:
+                        chats_map[str(cid)]['last_message'] = last_text[:120]
+
+            items = list(chats_map.values())
+            # сначала диалоги, потом группы
+            items.sort(key=lambda x: (0 if x['type'] == 'dialog' else 1, x['title']))
+
+            return {'statusCode': 200, 'headers': cors,
+                    'body': json.dumps({
+                        'ok': True,
+                        'bot': bot_info,
+                        'items': items,
+                        'hint': 'Если список пуст — напишите боту /start в личку, '
+                                'или добавьте его в групповой чат и отправьте любое сообщение.',
+                    })}
+
+        # ── ТЕСТОВОЕ СООБЩЕНИЕ В MAX ──────────────────────────────
+        if action == 'test_max' and method == 'POST':
+            if not _auth_ok(event.get('headers'), conn):
+                return {'statusCode': 401, 'headers': cors,
+                        'body': json.dumps({'error': 'unauthorized'})}
+            body = json.loads(event.get('body') or '{}')
+            target_chat = str(body.get('chat_id') or '').strip()
+            with conn.cursor() as cur:
+                cur.execute("SELECT key,value FROM site_settings")
+                settings = {r[0]: r[1] for r in cur.fetchall()}
+            bot_token = settings.get('max_bot_token') or ''
+            chat_id = target_chat or settings.get('max_chat_id') or ''
+            if not bot_token or not chat_id:
+                return {'statusCode': 200, 'headers': cors,
+                        'body': json.dumps({'ok': False, 'error': 'no_token_or_chat'})}
+            ok = _send_to_max(
+                bot_token, chat_id,
+                "✅ *Тест соединения*\n────────────────\n"
+                "Бот СтальГрупп подключён к этому чату.\n"
+                "Заявки с сайта будут приходить сюда автоматически.",
+                phone='', pdf_url=''
+            )
+            return {'statusCode': 200, 'headers': cors,
+                    'body': json.dumps({'ok': bool(ok)})}
 
         return {'statusCode': 400, 'headers': cors,
                 'body': json.dumps({'error': 'unknown_action_or_method'})}

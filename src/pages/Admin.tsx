@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Icon from "@/components/ui/icon";
+import MaxChatPicker from "@/components/MaxChatPicker";
 import {
   fetchPrices, fetchReviews, loginAdmin, verifyAdmin,
   updatePrices, moderateReview, deleteReview, adminToken,
@@ -30,6 +31,7 @@ export default function Admin() {
   const [settingsDirty, setSettingsDirty] = useState(false);
   const [settingsSaving, setSettingsSaving] = useState(false);
   const [settingsSaved, setSettingsSaved] = useState(false);
+  const [chatPickerOpen, setChatPickerOpen] = useState(false);
 
   useEffect(() => {
     document.title = "Админ-панель — СтальГрупп";
@@ -385,9 +387,18 @@ export default function Admin() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
-                    ID чата для уведомлений
-                  </label>
+                  <div className="flex items-end justify-between gap-3 mb-2">
+                    <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider">
+                      ID чата для уведомлений
+                    </label>
+                    <button type="button" onClick={() => setChatPickerOpen(true)}
+                      disabled={!settings.max_bot_token && !(settings as Record<string, unknown>).max_bot_active}
+                      className="text-[11px] px-2.5 py-1.5 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border border-orange-500/30 hover:border-orange-500/50 rounded-lg transition-all flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
+                      title={!settings.max_bot_token ? "Сначала введите токен и сохраните" : "Открыть список чатов"}>
+                      <Icon name="Wand2" size={12} />
+                      Автопоиск chat_id
+                    </button>
+                  </div>
                   <input
                     type="text"
                     value={settings.max_chat_id || ""}
@@ -396,9 +407,17 @@ export default function Admin() {
                     className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none font-mono" />
                   <div className="text-[11px] text-white/35 mt-1.5 leading-relaxed">
                     Это ID личного чата, группы или канала, куда бот будет отправлять заявки.
-                    Чтобы узнать: добавьте бота в чат и напишите ему — ID появится в логах MAX.
+                    Нажмите <b className="text-orange-400/70">«Автопоиск chat_id»</b> — бот покажет все чаты, где он состоит.
                   </div>
                 </div>
+
+                <MaxChatPicker
+                  open={chatPickerOpen}
+                  onClose={() => setChatPickerOpen(false)}
+                  onPick={(cid) => {
+                    onSettingChange("max_chat_id", cid);
+                  }}
+                />
 
                 <div className="pt-3 flex items-center gap-3">
                   <button onClick={saveSettingsHandler}

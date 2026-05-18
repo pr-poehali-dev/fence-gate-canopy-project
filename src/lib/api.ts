@@ -202,3 +202,37 @@ export async function resendLead(id: number) {
   });
   return r.json();
 }
+
+// ───────── Автопоиск chat_id MAX ─────────
+export interface MaxChat {
+  chat_id: string;
+  title: string;
+  type: string;
+  last_message: string;
+  last_user: string;
+}
+
+export interface MaxChatsResponse {
+  ok: boolean;
+  error?: string;
+  message?: string;
+  bot?: { user_id?: number; name?: string; username?: string };
+  items: MaxChat[];
+  hint?: string;
+}
+
+export async function fetchMaxChats(): Promise<MaxChatsResponse> {
+  const r = await fetch(`${API.bot}?action=chats`, {
+    headers: { "X-Auth-Token": adminToken.get() },
+  });
+  return r.json();
+}
+
+export async function testMaxChat(chat_id: string) {
+  const r = await fetch(`${API.bot}?action=test_max`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Auth-Token": adminToken.get() },
+    body: JSON.stringify({ chat_id }),
+  });
+  return r.json();
+}
