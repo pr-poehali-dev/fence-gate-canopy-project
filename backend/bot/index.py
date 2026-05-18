@@ -17,24 +17,71 @@ def _auth_ok(headers, conn):
         return cur.fetchone() is not None
 
 
-def _send_to_max(bot_token: str, chat_id: str, text: str) -> bool:
-    """Отправка сообщения через MAX Messenger Bot API.
-    POST https://botapi.max.ru/messages?access_token=...
-    body: {"chat_id":"...","text":"..."}
+def _send_to_max(bot_token: str, chat_id: str, text: str,
+                 phone: str = '', pdf_url: str = '') -> bool:
+    """Отправка сообщения через MAX Messenger Bot API с inline-кнопками.
+    Кнопки: «Перезвонить» (tel:) и «Открыть КП в PDF» (link).
     """
     if not bot_token or not chat_id:
         return False
     try:
-        url = f"https://botapi.max.ru/messages?access_token={urllib.parse.quote(bot_token)}"
-        body = json.dumps({"chat_id": chat_id, "text": text}).encode('utf-8')
+        buttons = []
+        if phone:
+            digits = ''.join(ch for ch in phone if ch.isdigit() or ch == '+')
+            if digits and not digits.startswith('+'):
+                digits = '+' + digits
+            buttons.append([
+                {"type": "link", "text": f"📞 Перезвонить {phone}", "url": f"tel:{digits}"}
+            ])
+        if pdf_url:
+            buttons.append([
+                {"type": "link", "text": "📄 Открыть КП в PDF", "url": pdf_url}
+            ])
+        payload = {"text": text, "format": "markdown"}
+        if buttons:
+            payload["attachments"] = [{
+                "type": "inline_keyboard",
+                "payload": {"buttons": buttons}
+            }]
+        url = (
+            f"https://botapi.max.ru/messages"
+            f"?access_token={urllib.parse.quote(bot_token)}"
+            f"&chat_id={urllib.parse.quote(str(chat_id))}"
+        )
+        body = json.dumps(payload, ensure_ascii=False).encode('utf-8')
         req = urllib.request.Request(
             url, data=body,
             headers={'Content-Type': 'application/json; charset=utf-8'}
         )
-        with urllib.request.urlopen(req, timeout=10) as resp:
+        with urllib.request.urlopen(req, timeout=12) as resp:
             return 200 <= resp.status < 300
     except Exception:
         return False
+
+
+def _upload_pdf_to_s3(b64data: str, order_num: str) -> str:
+    """Принимает data:application/pdf;base64,... или чистую base64-строку.
+    Загружает PDF в S3 и возвращает CDN URL."""
+    if not b64data:
+        return ''
+    try:
+        import base64
+        import boto3
+        if ',' in b64data:
+            _, b64data = b64data.split(',', 1)
+        raw = base64.b64decode(b64data)
+        safe_num = ''.join(ch for ch in (order_num or 'KP') if ch.isalnum() or ch in '-_')
+        key = f"kp/{safe_num}.pdf"
+        s3 = boto3.client(
+            's3',
+            endpoint_url='https://bucket.poehali.dev',
+            aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
+            aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY']
+        )
+        s3.put_object(Bucket='files', Key=key, Body=raw, ContentType='application/pdf')
+        return f"https://cdn.poehali.dev/projects/{os.environ['AWS_ACCESS_KEY_ID']}/bucket/{key}"
+    except Exception:
+        return ''
 
 
 def handler(event: dict, context) -> dict:
@@ -130,6 +177,10 @@ def handler(event: dict, context) -> dict:
             object_type = (body.get('object_type') or '').strip()[:64]
             total = float(body.get('total_rub') or 0)
             payload = body.get('payload') or {}
+            pdf_b64 = body.get('pdf_base64') or ''
+
+            # Загружаем PDF КП в S3 (для кнопки в MAX)
+            pdf_url = _upload_pdf_to_s3(pdf_b64, order_num) if pdf_b64 else ''
 
             with conn.cursor() as cur:
                 cur.execute("SELECT key, value FROM site_settings")
@@ -139,19 +190,21 @@ def handler(event: dict, context) -> dict:
 
                 total_fmt = ('{:,}'.format(int(total))).replace(',', ' ')
                 txt = (
-                    "🔔 НОВАЯ ЗАЯВКА — СтальГрупп\n"
+                    "🔔 *НОВАЯ ЗАЯВКА — СтальГрупп*\n"
                     "────────────────\n"
-                    f"№ заказа: {order_num or '—'}\n"
-                    f"Имя: {name or '—'}\n"
-                    f"Телефон: {phone or '—'}\n"
-                    f"Город: {city or '—'}\n"
-                    f"Адрес: {address or '—'}\n"
-                    f"Тип: {object_type or '—'}\n"
-                    f"Сумма: {total_fmt} ₽\n"
+                    f"📋 № заказа: `{order_num or '—'}`\n"
+                    f"👤 Имя: *{name or '—'}*\n"
+                    f"📱 Телефон: *{phone or '—'}*\n"
+                    f"📍 Город: {city or '—'}\n"
+                    f"🏠 Адрес: {address or '—'}\n"
+                    f"🔧 Тип: {object_type or '—'}\n"
+                    f"💰 Сумма: *{total_fmt} ₽*\n"
                     "────────────────"
                 )
 
-                delivered = _send_to_max(bot_token, chat_id, txt) if bot_token and chat_id else False
+                delivered = _send_to_max(
+                    bot_token, chat_id, txt, phone=phone, pdf_url=pdf_url
+                ) if bot_token and chat_id else False
 
                 safe_name = name.replace("'", "''")
                 safe_phone = phone.replace("'", "''")

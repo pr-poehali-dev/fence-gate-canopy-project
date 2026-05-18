@@ -174,8 +174,9 @@ async function generatePDF(
   _objectType: ObjectType,
   items: LineItem[],
   total: number,
-  params: Record<string, string>
-) {
+  params: Record<string, string>,
+  opts: { returnBase64?: boolean } = {}
+): Promise<string | void> {
   const { jsPDF } = await import("jspdf");
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
 
@@ -375,6 +376,11 @@ async function generatePDF(
     doc.text(COMPANY.legalAddress, M, 294);
   }
 
+  if (opts.returnBase64) {
+    // datauristring → "data:application/pdf;filename=...;base64,..."
+    const dataUri = doc.output("datauristring");
+    return dataUri;
+  }
   doc.save(`КП_СтальГрупп_${orderNum}.pdf`);
 }
 
@@ -761,6 +767,16 @@ export default function Calculator() {
     }
     setMaxLoading(true);
     try {
+      // 1) Генерируем PDF КП и получаем base64 — пойдёт в S3 и затем в кнопку MAX
+      let pdfBase64 = "";
+      try {
+        const dataUri = await generatePDF(orderNum, calc.objectType, lineItems, total, kpParams, { returnBase64: true });
+        if (typeof dataUri === "string") pdfBase64 = dataUri;
+      } catch (e) {
+        console.warn("PDF для MAX не сгенерирован, отправим без него", e);
+      }
+
+      // 2) Отправляем заявку на бэкенд → MAX-бот с кнопками «Перезвонить» / «Открыть КП»
       const res = await sendLead({
         order_num:   orderNum,
         name:        calc.clientName || "—",
@@ -770,6 +786,7 @@ export default function Calculator() {
         object_type: OBJECT_LABELS[calc.objectType],
         total_rub:   Math.round(total),
         payload:     buildExportJSON(),
+        pdf_base64:  pdfBase64,
       });
       if (res?.ok) {
         setMaxSent(true);

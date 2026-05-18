@@ -139,6 +139,8 @@ export interface LeadPayload {
   object_type?: string;
   total_rub?: number;
   payload?: Record<string, unknown>;
+  /** PDF в base64 (data:application/pdf;base64,...) — для кнопки «Открыть КП» в MAX-боте */
+  pdf_base64?: string;
 }
 
 export async function sendLead(p: LeadPayload) {
