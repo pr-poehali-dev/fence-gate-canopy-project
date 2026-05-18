@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import Icon from "@/components/ui/icon";
-import Calculator from "@/components/Calculator";
 import ContactForm from "@/components/ContactForm";
 import SiteLogo from "@/components/SiteLogo";
 import { COMPANY } from "@/lib/company";
@@ -12,7 +11,7 @@ import { usePageContent } from "@/hooks/usePageContent";
 import EditableBgPhoto from "@/components/EditableBgPhoto";
 import { EditableText, EditableImage } from "@/components/InlineEditor";
 import QuickQuoteForm from "@/components/QuickQuoteForm";
-import CalculatorWizardIntro from "@/components/CalculatorWizardIntro";
+import CalculatorWizard from "@/components/CalculatorWizard";
 
 // ── Изображения ─────────────────────────────────────────────────────────────
 const IMGS = {
@@ -1064,20 +1063,18 @@ export default function Index() {
         <div className="absolute inset-0"
           style={{ background: "radial-gradient(ellipse 60% 70% at 50% 50%, rgba(249,115,22,0.06) 0%, transparent 70%)" }} />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center mb-12 anim-ready">
-            <span className="section-tag">Калькулятор + КП</span>
-            <h2 className="font-oswald font-bold text-4xl sm:text-5xl text-white mb-3">
-              РАССЧИТАЙТЕ <span className="text-orange-400">И СКАЧАЙТЕ КП</span>
+          <div className="text-center mb-10 anim-ready">
+            <span className="section-tag">Пошаговый калькулятор</span>
+            <h2 className="font-oswald font-bold text-3xl sm:text-4xl lg:text-5xl text-white mb-3">
+              РАССЧИТАЙТЕ <span className="text-orange-400">И ПОЛУЧИТЕ КП</span>
             </h2>
-            <p className="text-white/50 max-w-xl mx-auto">
-              Актуальные цены 2026. Заборы, ворота, навесы, все типы фундаментов.<br />
-              Готовое коммерческое предложение — за 1 клик.
+            <p className="text-white/50 max-w-xl mx-auto text-sm sm:text-base">
+              Заполняем поля по шагам — мы покажем только нужные параметры. После заявки КП в PDF
+              автоматически придёт вам в MAX и на email.
             </p>
           </div>
           <div className="bg-[#141720] border border-[#1e2230] rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 anim-ready">
-            <CalculatorWizardIntro>
-              <Calculator />
-            </CalculatorWizardIntro>
+            <CalculatorWizard />
           </div>
         </div>
       </section>
