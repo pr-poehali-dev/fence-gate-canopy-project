@@ -5,6 +5,7 @@ const IMG = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45a
 export default function Foundations() {
   return (
     <ServicePage
+      pageSlug="services/fundamenty"
       metaTitle="Фундаменты под забор от 650 ₽/м.п. — СтальГрупп, Москва и МО"
       metaDescription="Бутование, бетонирование, винтовые сваи, ленточный фундамент. Москва, Люберцы, Чапаевка. Расчёт по типу грунта. Гарантия 5 лет."
       breadcrumb="Фундаменты под забор"

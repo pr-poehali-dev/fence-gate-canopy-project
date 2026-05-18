@@ -6,6 +6,7 @@ const SPEC = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45
 export default function Profnastil() {
   return (
     <ServicePage
+      pageSlug="services/profnastil"
       metaTitle="Заборы из профнастила под ключ от 1 450 ₽/м.п. — СтальГрупп, Москва и МО"
       metaDescription="Установка забора из профнастила С8, С10, С20, МП20 от производителя. Цены 2026, замер бесплатно, гарантия 5 лет. Полный цикл работ под ключ."
       breadcrumb="Заборы из профнастила"

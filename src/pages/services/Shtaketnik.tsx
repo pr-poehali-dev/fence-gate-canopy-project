@@ -10,6 +10,7 @@ const P3 = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa
 export default function Shtaketnik() {
   return (
     <ServicePage
+      pageSlug="services/shtaketnik"
       metaTitle="Заборы из евроштакетника под ключ от 1 950 ₽/м.п. — СтальГрупп, Москва и МО"
       metaDescription="Установка забора из евроштакетника под ключ от производителя. Двусторонняя покраска, более 200 цветов RAL, гарантия 5 лет. Бесплатный замер и расчёт сметы. Цены на 2026 год."
       breadcrumb="Заборы из евроштакетника"

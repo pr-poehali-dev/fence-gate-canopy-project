@@ -3,10 +3,12 @@ import { Link } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import Calculator from "@/components/Calculator";
 import ContactForm from "@/components/ContactForm";
+import SiteLogo from "@/components/SiteLogo";
 import { COMPANY } from "@/lib/company";
 import { useLeadModal } from "@/hooks/useLeadModal";
 import { generatePriceListPDF } from "@/lib/priceListPDF";
 import { sendLead } from "@/lib/api";
+import { usePageContent } from "@/hooks/usePageContent";
 
 // ── Изображения ─────────────────────────────────────────────────────────────
 const IMGS = {
@@ -537,6 +539,7 @@ export default function Index() {
   const lead = useLeadModal();
   const [priceLoading, setPriceLoading] = useState(false);
   const [priceDone, setPriceDone] = useState(false);
+  const cms = usePageContent("home");
 
   const downloadPriceList = async (source: string) => {
     if (priceLoading) return;
@@ -577,17 +580,7 @@ export default function Index() {
         style={{ background: "rgba(13,15,20,0.93)", backdropFilter: "blur(16px)" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <Link to="/" className="flex items-center gap-3 group" aria-label="На главную">
-              <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Icon name="Fence" size={18} className="text-gray-900" />
-              </div>
-              <div>
-                <div className="font-oswald font-bold text-white text-lg leading-none tracking-wider group-hover:text-orange-200 transition-colors">
-                  СТАЛЬ<span className="text-orange-400">ГРУПП</span>
-                </div>
-                <div className="text-[10px] text-white/30 leading-none tracking-widest">ПРОИЗВОДСТВО</div>
-              </div>
-            </Link>
+            <SiteLogo size="md" />
 
             <div className="hidden lg:flex items-center gap-5">
               {NAV_ITEMS.map(({ id, label }) => (
@@ -647,7 +640,7 @@ export default function Index() {
       {/* HERO */}
       <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden grid-pattern">
         <div className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${IMGS.hero})`, opacity: 0.18 }} />
+          style={{ backgroundImage: `url(${cms("hero_image", IMGS.hero)})`, opacity: 0.18 }} />
         <div className="absolute inset-0 bg-gradient-to-b from-[#0d0f14] via-transparent to-[#0d0f14]" />
         <div className="absolute inset-0"
           style={{ background: "radial-gradient(ellipse 70% 60% at 50% 40%, rgba(249,115,22,0.12) 0%, transparent 70%)" }} />
@@ -655,17 +648,29 @@ export default function Index() {
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/30 rounded-full px-4 py-2 mb-8">
             <div className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
-            <span className="text-orange-400 text-sm font-medium">Производство с 2009 года · 15 лет опыта</span>
+            <span className="text-orange-400 text-sm font-medium">
+              {cms("hero_badge", "Производство с 2009 года · 15 лет опыта")}
+            </span>
           </div>
 
-          <h1 className="font-oswald font-bold text-5xl sm:text-6xl lg:text-8xl leading-none mb-6 tracking-tight">
-            ЗАБОРЫ, ВОРОТА<br />
-            <span className="text-orange-400">НАВЕСЫ И КОВКА</span>
-          </h1>
+          {cms("hero_title") ? (
+            <h1 className="font-oswald font-bold text-5xl sm:text-6xl lg:text-8xl leading-none mb-6 tracking-tight"
+              dangerouslySetInnerHTML={{ __html: cms("hero_title") }} />
+          ) : (
+            <h1 className="font-oswald font-bold text-5xl sm:text-6xl lg:text-8xl leading-none mb-6 tracking-tight">
+              ЗАБОРЫ, ВОРОТА<br />
+              <span className="text-orange-400">НАВЕСЫ И КОВКА</span>
+            </h1>
+          )}
 
-          <p className="text-white/60 text-lg sm:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
-            Производство и монтаж металлических ограждений, ворот, навесов и беседок любой сложности. Собственный завод, гарантия качества, доставка по всей России.
-          </p>
+          {cms("hero_subtitle") ? (
+            <div className="text-white/60 text-lg sm:text-xl max-w-2xl mx-auto mb-10 leading-relaxed prose prose-invert prose-p:my-0"
+              dangerouslySetInnerHTML={{ __html: cms("hero_subtitle") }} />
+          ) : (
+            <p className="text-white/60 text-lg sm:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
+              Производство и монтаж металлических ограждений, ворот, навесов и беседок любой сложности. Собственный завод, гарантия качества, доставка по всей России.
+            </p>
+          )}
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
             <button className="btn-orange px-8 py-4 rounded-xl text-base w-full sm:w-auto" onClick={() => scrollTo("calculator")}>
@@ -1237,14 +1242,8 @@ export default function Index() {
 
             {/* Лого + о компании */}
             <div>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-9 h-9 bg-orange-500 rounded-lg flex items-center justify-center">
-                  <Icon name="Fence" size={18} className="text-gray-900" />
-                </div>
-                <div>
-                  <div className="font-oswald font-bold text-white text-lg tracking-wider">СТАЛЬ<span className="text-orange-400">ГРУПП</span></div>
-                  <div className="text-[10px] text-white/30 tracking-widest">ПРОИЗВОДСТВО С 2009</div>
-                </div>
+              <div className="mb-4">
+                <SiteLogo size="md" />
               </div>
               <p className="text-white/40 text-sm leading-relaxed mb-4">
                 Производим и устанавливаем заборы, ворота, навесы и беседки под ключ. 1 200+ сданных объектов по всей России.

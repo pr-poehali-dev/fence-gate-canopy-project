@@ -6,6 +6,7 @@ const SPEC = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45
 export default function Otkatnye() {
   return (
     <ServicePage
+      pageSlug="services/otkatnye-vorota"
       metaTitle="Откатные ворота под ключ от 42 000 ₽ — производство и монтаж, СтальГрупп Москва"
       metaDescription="Откатные ворота для частного дома и въезда: консольная конструкция, балка ЭКО / КСД, ролики Combi Arialdo. Автоматика DoorHan, Nice, FAAC. Гарантия 5 лет."
       breadcrumb="Откатные ворота"

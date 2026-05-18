@@ -5,6 +5,7 @@ const IMG = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45a
 export default function Raspashnye() {
   return (
     <ServicePage
+      pageSlug="services/raspashnye-vorota"
       metaTitle="Распашные ворота под ключ от 42 000 ₽ — СтальГрупп, Москва и МО"
       metaDescription="Распашные ворота для частного дома и въезда. Любое наполнение, подготовка под автоматику. Москва, Люберцы, Чапаевка, Назарьево. Гарантия 5 лет."
       breadcrumb="Распашные ворота"

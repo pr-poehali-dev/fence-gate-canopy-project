@@ -5,6 +5,7 @@ const IMG = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45a
 export default function Mesh3D() {
   return (
     <ServicePage
+      pageSlug="services/3d-setka"
       metaTitle="Заборы 3D-сетка от 1 900 ₽/м.п. — СтальГрупп, Москва и МО"
       metaDescription="Сварные 3D-секции из прутка Ø4–6 мм. Для частных домов, КП, школ, промзон. Москва, Люберцы, Чапаевка, Назарьево. Гарантия 5 лет."
       breadcrumb="3D-сетка сварная"

@@ -5,6 +5,7 @@ const IMG = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45a
 export default function Besedki() {
   return (
     <ServicePage
+      pageSlug="services/besedki"
       metaTitle="Беседки и пергола металлические от 85 000 ₽ — СтальГрупп"
       metaDescription="Изготовление металлических беседок и пергол под ключ. С кровлей, мангалом, мебелью. Москва и МО. Гарантия 5 лет."
       breadcrumb="Беседки и пергола"

@@ -5,6 +5,7 @@ const IMG = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45a
 export default function Kalitki() {
   return (
     <ServicePage
+      pageSlug="services/kalitki"
       metaTitle="Калитки под ключ от 9 500 ₽ — СтальГрупп, Москва и МО"
       metaDescription="Изготовление и установка калиток: профнастил, штакетник, ковка. Врезные замки DOM/Apecs. Москва, Люберцы, Чапаевка. Гарантия 5 лет."
       breadcrumb="Калитки"

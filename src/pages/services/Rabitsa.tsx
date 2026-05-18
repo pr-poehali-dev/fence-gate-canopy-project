@@ -5,6 +5,7 @@ const IMG = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45a
 export default function Rabitsa() {
   return (
     <ServicePage
+      pageSlug="services/setka-rabitsa"
       metaTitle="Забор из сетки-рабицы от 950 ₽/м.п. — СтальГрупп, Москва и МО"
       metaDescription="Установка забора-рабицы. Натяжной или в секциях. Оцинковка или ПВХ-покрытие. Самый бюджетный вариант, монтаж за 1 день. Москва, Люберцы, Чапаевка."
       breadcrumb="Сетка-рабица"

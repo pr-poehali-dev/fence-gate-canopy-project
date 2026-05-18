@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Icon from "@/components/ui/icon";
+import SiteLogo from "@/components/SiteLogo";
 import { useLeadModal } from "@/hooks/useLeadModal";
 import { generatePriceListPDF } from "@/lib/priceListPDF";
 import { sendLead } from "@/lib/api";
+import { usePageContent } from "@/hooks/usePageContent";
 
 // ─────────────────────────────────────────────────────────────────
 // ТИПЫ ДАННЫХ ШАБЛОНА
@@ -94,9 +96,11 @@ export interface ServiceProps {
 // ─────────────────────────────────────────────────────────────────
 // ШАБЛОН
 // ─────────────────────────────────────────────────────────────────
-export default function ServicePage(p: ServiceProps) {
+export default function ServicePage(p: ServiceProps & { pageSlug?: string }) {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [activeRal, setActiveRal] = useState<string>(p.ralColors[0]?.ral || "");
+  // CMS-данные для перезаписи hero (если задан pageSlug)
+  const cms = usePageContent(p.pageSlug || "");
 
   // SEO
   useEffect(() => {
@@ -152,17 +156,7 @@ export default function ServicePage(p: ServiceProps) {
         style={{ background: "rgba(13,15,20,0.93)", backdropFilter: "blur(16px)" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <Link to="/" className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
-                <Icon name="Fence" size={18} className="text-gray-900" />
-              </div>
-              <div>
-                <div className="font-oswald font-bold text-white text-lg leading-none tracking-wider">
-                  СТАЛЬ<span className="text-orange-400">ГРУПП</span>
-                </div>
-                <div className="text-[10px] text-white/30 leading-none tracking-widest">ПРОИЗВОДСТВО</div>
-              </div>
-            </Link>
+            <SiteLogo size="md" />
 
             <div className="hidden lg:flex items-center gap-4">
               <div className="text-right leading-tight">
@@ -213,11 +207,21 @@ export default function ServicePage(p: ServiceProps) {
                 </div>
               )}
 
-              <h1 className="font-oswald font-bold text-4xl sm:text-5xl lg:text-6xl text-white leading-tight mb-5">
-                {p.h1}
-              </h1>
+              {cms("hero_title") ? (
+                <h1 className="font-oswald font-bold text-4xl sm:text-5xl lg:text-6xl text-white leading-tight mb-5"
+                  dangerouslySetInnerHTML={{ __html: cms("hero_title") }} />
+              ) : (
+                <h1 className="font-oswald font-bold text-4xl sm:text-5xl lg:text-6xl text-white leading-tight mb-5">
+                  {p.h1}
+                </h1>
+              )}
 
-              <p className="text-white/60 text-base sm:text-lg mb-6 leading-relaxed max-w-xl">{p.subtitle}</p>
+              {cms("hero_subtitle") ? (
+                <div className="text-white/60 text-base sm:text-lg mb-6 leading-relaxed max-w-xl prose prose-invert prose-p:my-0"
+                  dangerouslySetInnerHTML={{ __html: cms("hero_subtitle") }} />
+              ) : (
+                <p className="text-white/60 text-base sm:text-lg mb-6 leading-relaxed max-w-xl">{p.subtitle}</p>
+              )}
 
               <ul className="space-y-2.5 mb-7">
                 {p.benefits.map(b => (
@@ -257,7 +261,7 @@ export default function ServicePage(p: ServiceProps) {
 
             <div className="relative">
               <div className="aspect-[4/3] rounded-3xl overflow-hidden border border-[#1e2230] shadow-2xl">
-                <img src={p.heroImg} alt={p.h1} className="w-full h-full object-cover" />
+                <img src={cms("hero_image", p.heroImg)} alt={p.h1} className="w-full h-full object-cover" />
               </div>
               <div className="absolute -bottom-5 -left-5 bg-[#141720] border border-orange-500/30 rounded-2xl p-4 shadow-xl">
                 <div className="flex items-center gap-3">

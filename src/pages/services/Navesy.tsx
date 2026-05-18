@@ -7,6 +7,7 @@ const ONE  = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45
 export default function Navesy() {
   return (
     <ServicePage
+      pageSlug="services/navesy"
       metaTitle="Навесы для авто и беседки под ключ от 3 200 ₽/м² — СтальГрупп Москва"
       metaDescription="Изготовление навесов для авто, террас, беседок. Арочные, двухскатные, односкатные. Поликарбонат, профнастил, цены 2026. Замер бесплатно, гарантия 5 лет."
       breadcrumb="Навесы и беседки"

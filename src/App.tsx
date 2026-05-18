@@ -13,6 +13,7 @@ import AdminContent from "./pages/AdminContent";
 import ErpLogin from "./pages/ErpLogin";
 import ErpDashboard from "./pages/ErpDashboard";
 import ErpEmployees from "./pages/ErpEmployees";
+import DynamicFavicon from "./components/DynamicFavicon";
 import MaxSetup from "./pages/MaxSetup";
 import Privacy from "./pages/Privacy";
 import Shtaketnik from "./pages/services/Shtaketnik";
@@ -35,6 +36,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <DynamicFavicon />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/reviews" element={<Reviews />} />

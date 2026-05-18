@@ -14,8 +14,20 @@ import { toast } from "sonner";
 // сразу, даже если в БД ещё ничего нет.
 const PRESET_PAGES: { slug: string; title: string; blocks: { key: string; type: ContentBlockType; label: string; placeholder?: string }[] }[] = [
   {
+    slug: "global", title: "🌐 Логотип и брендинг",
+    blocks: [
+      { key: "logo_text_1",   type: "text",  label: "Логотип — первая часть текста (тёмная)" },
+      { key: "logo_text_2",   type: "text",  label: "Логотип — вторая часть (оранжевая)" },
+      { key: "logo_subtitle", type: "text",  label: "Логотип — подпись под названием" },
+      { key: "logo_icon",     type: "text",  label: "Логотип — иконка lucide-react (Fence, Building2, Shield, Factory, Wrench, и т.д.)" },
+      { key: "logo_image",    type: "image", label: "Логотип — картинка (если задана, иконка не показывается)" },
+      { key: "favicon_url",   type: "image", label: "Favicon (иконка вкладки браузера, 32×32)" },
+    ],
+  },
+  {
     slug: "home", title: "Главная",
     blocks: [
+      { key: "hero_badge",    type: "text",  label: "Hero — плашка над заголовком" },
       { key: "hero_title",    type: "html",  label: "Hero — заголовок" },
       { key: "hero_subtitle", type: "html",  label: "Hero — подзаголовок" },
       { key: "hero_image",    type: "image", label: "Hero — главное изображение" },

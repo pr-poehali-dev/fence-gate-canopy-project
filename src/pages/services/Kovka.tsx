@@ -5,6 +5,7 @@ const IMG = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45a
 export default function Kovka() {
   return (
     <ServicePage
+      pageSlug="services/kovka"
       metaTitle="Кованые заборы и ворота под ключ от 5 500 ₽/м.п. — СтальГрупп"
       metaDescription="Художественная ковка по индивидуальным эскизам. Заборы, ворота, калитки, перила. Москва, Люберцы, Назарьево, Астрецово. Гарантия 5 лет."
       breadcrumb="Художественная ковка"
