@@ -18,26 +18,30 @@ def _auth_ok(headers, conn):
         return cur.fetchone() is not None
 
 
-MAX_API_HOSTS = ('https://botapi.max.ru', 'https://platform-api.max.ru')
+MAX_API_HOSTS = ('https://platform-api.max.ru', 'https://botapi.max.ru')
 
 
 def _max_request(bot_token, method, path, params=None, json_body=None):
-    """Запрос к MAX Bot API. Использует ТОЛЬКО Authorization: Bearer (актуальный способ).
-    Перебирает оба домена API. Возвращает (status, dict).
+    """Запрос к MAX Bot API (актуальный формат с октября 2025).
 
-    ВАЖНО: query-параметр access_token deprecated с 2025 — MAX возвращает 400.
-    Не используем его, чтобы не получать ошибки.
+    Авторизация: HTTP-заголовок ``Authorization: <token>`` БЕЗ префикса Bearer.
+    Это подтверждено официальной документацией dev.max.ru/docs-api.
+
+    Перебирает оба домена API. Возвращает (status, dict).
     """
     if not bot_token:
         return 0, {'error': 'no_token'}
 
-    # Чистим токен от случайных пробелов/кавычек, которые иногда копируют вместе с токеном
+    # Чистим токен от случайных пробелов/кавычек/префикса Bearer
     bot_token = str(bot_token).strip().strip('"').strip("'")
+    if bot_token.lower().startswith('bearer '):
+        bot_token = bot_token[7:].strip()
 
     body = None
+    # КЛЮЧЕВОЙ МОМЕНТ: MAX требует ИМЕННО `Authorization: <token>` без "Bearer"
     headers = {
         'Accept': 'application/json',
-        'Authorization': f'Bearer {bot_token}',
+        'Authorization': bot_token,
         'User-Agent': 'StalgrupSite/1.0',
     }
     if json_body is not None:
@@ -60,10 +64,10 @@ def _max_request(bot_token, method, path, params=None, json_body=None):
                 return resp.status, data
         except urllib.error.HTTPError as e:
             try:
-                raw = e.read().decode('utf-8') or '{}'
-                data = json.loads(raw) if raw else {}
+                raw_err = e.read().decode('utf-8') or '{}'
+                data = json.loads(raw_err) if raw_err else {}
             except Exception:
-                data = {'raw': raw if 'raw' in dir() else ''}
+                data = {}
             last_status, last_data = e.code, data
             # 5xx или сетевые ошибки — пробуем другой хост; всё остальное возвращаем как есть
             if 500 <= e.code < 600:
