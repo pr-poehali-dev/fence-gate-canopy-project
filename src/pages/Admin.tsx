@@ -4,10 +4,11 @@ import Icon from "@/components/ui/icon";
 import {
   fetchPrices, fetchReviews, loginAdmin, verifyAdmin,
   updatePrices, moderateReview, deleteReview, adminToken,
-  PriceItem, ReviewItem,
+  fetchSettings, saveSettings,
+  PriceItem, ReviewItem, SiteSettings,
 } from "@/lib/api";
 
-type Tab = "prices" | "reviews";
+type Tab = "prices" | "reviews" | "settings";
 
 export default function Admin() {
   const [authed, setAuthed] = useState<boolean | null>(null);
@@ -24,6 +25,12 @@ export default function Admin() {
   // Reviews state
   const [reviews, setReviews] = useState<ReviewItem[]>([]);
 
+  // Settings state
+  const [settings, setSettings] = useState<SiteSettings>({});
+  const [settingsDirty, setSettingsDirty] = useState(false);
+  const [settingsSaving, setSettingsSaving] = useState(false);
+  const [settingsSaved, setSettingsSaved] = useState(false);
+
   useEffect(() => {
     document.title = "Админ-панель — СтальГрупп";
     verifyAdmin().then(ok => setAuthed(ok));
@@ -33,11 +40,36 @@ export default function Admin() {
     if (authed) {
       loadPrices();
       loadReviews();
+      loadSettings();
     }
   }, [authed]);
 
-  const loadPrices = async () => setPrices(await fetchPrices());
-  const loadReviews = async () => setReviews(await fetchReviews(true));
+  const loadPrices   = async () => setPrices(await fetchPrices());
+  const loadReviews  = async () => setReviews(await fetchReviews(true));
+  const loadSettings = async () => setSettings(await fetchSettings(true));
+
+  const onSettingChange = (key: keyof SiteSettings, value: string) => {
+    setSettings(s => ({ ...s, [key]: value }));
+    setSettingsDirty(true);
+    setSettingsSaved(false);
+  };
+
+  const saveSettingsHandler = async () => {
+    setSettingsSaving(true);
+    try {
+      const items = [
+        { key: "max_bot_token", value: settings.max_bot_token || "" },
+        { key: "max_chat_id",   value: settings.max_chat_id   || "" },
+      ];
+      await saveSettings(items);
+      setSettingsDirty(false);
+      setSettingsSaved(true);
+      setTimeout(() => setSettingsSaved(false), 4000);
+      await loadSettings();
+    } finally {
+      setSettingsSaving(false);
+    }
+  };
 
   const doLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -159,8 +191,12 @@ export default function Admin() {
             </button>
           </div>
         </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex gap-2 -mb-px">
-          {([["prices", "Цены", prices.length], ["reviews", "Отзывы", pending.length]] as [Tab, string, number][]).map(([k, label, badge]) => (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex gap-2 -mb-px overflow-x-auto">
+          {([
+            ["prices",   "Цены",      prices.length],
+            ["reviews",  "Отзывы",    pending.length],
+            ["settings", "Настройки", 0],
+          ] as [Tab, string, number][]).map(([k, label, badge]) => (
             <button key={k} onClick={() => setTab(k)}
               className={`px-4 py-2.5 text-sm border-b-2 transition-all flex items-center gap-2 ${
                 tab === k
@@ -296,6 +332,102 @@ export default function Admin() {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {tab === "settings" && (
+          <div className="max-w-3xl">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="font-oswald font-bold text-2xl text-white mb-1">Настройки сайта</h2>
+                <p className="text-white/40 text-sm">Подключение мессенджера MAX для приёма заявок.</p>
+              </div>
+            </div>
+
+            {/* MAX-бот */}
+            <div className="bg-[#141720] border border-[#1e2230] rounded-2xl p-6 mb-5">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-10 h-10 bg-[#2563eb]/15 border border-[#2563eb]/30 rounded-xl flex items-center justify-center">
+                  <Icon name="MessagesSquare" size={20} className="text-[#2563eb]" />
+                </div>
+                <div>
+                  <div className="font-oswald font-bold text-white text-lg">MAX мессенджер</div>
+                  <div className="text-white/40 text-xs">Заявки из калькулятора будут приходить в указанный чат</div>
+                </div>
+                <div className="ml-auto">
+                  {settings.max_bot_token && settings.max_chat_id ? (
+                    <span className="text-[10px] uppercase tracking-wider bg-green-500/15 text-green-400 px-2 py-1 rounded">Подключён</span>
+                  ) : (
+                    <span className="text-[10px] uppercase tracking-wider bg-orange-500/15 text-orange-400 px-2 py-1 rounded">Не настроен</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
+                    Токен бота (access_token)
+                  </label>
+                  <input
+                    type="text"
+                    value={settings.max_bot_token || ""}
+                    onChange={e => onSettingChange("max_bot_token", e.target.value)}
+                    placeholder="Например: HMAC.eyJ0eXAiOiJKV1QiLCJh..."
+                    className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none font-mono" />
+                  <div className="text-[11px] text-white/35 mt-1.5 leading-relaxed">
+                    Получите токен в боте <a href="https://max.ru/MasterBot" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline">@MasterBot</a> мессенджера MAX
+                    (команда <code className="text-orange-400/70">/newbot</code>).
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
+                    ID чата для уведомлений
+                  </label>
+                  <input
+                    type="text"
+                    value={settings.max_chat_id || ""}
+                    onChange={e => onSettingChange("max_chat_id", e.target.value)}
+                    placeholder="Например: -10012345678901 или 9876543210"
+                    className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none font-mono" />
+                  <div className="text-[11px] text-white/35 mt-1.5 leading-relaxed">
+                    Это ID личного чата, группы или канала, куда бот будет отправлять заявки.
+                    Чтобы узнать: добавьте бота в чат и напишите ему — ID появится в логах MAX.
+                  </div>
+                </div>
+
+                <div className="pt-3 flex items-center gap-3">
+                  <button onClick={saveSettingsHandler}
+                    disabled={!settingsDirty || settingsSaving}
+                    className="btn-orange px-6 py-2.5 rounded-xl text-sm disabled:opacity-40">
+                    <span className="flex items-center gap-2">
+                      <Icon name={settingsSaving ? "Loader" : "Save"} size={15} className={settingsSaving ? "animate-spin" : ""} />
+                      {settingsSaving ? "Сохранение..." : "Сохранить настройки"}
+                    </span>
+                  </button>
+                  {settingsSaved && (
+                    <span className="text-green-400 text-xs flex items-center gap-1">
+                      <Icon name="CheckCircle2" size={14} /> Сохранено
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Инструкция */}
+            <div className="bg-[#0d1017] border border-[#1e2230] rounded-2xl p-5 text-sm text-white/55 leading-relaxed">
+              <div className="font-bold text-white mb-2 flex items-center gap-2">
+                <Icon name="Info" size={16} className="text-orange-400" /> Как настроить MAX-бота
+              </div>
+              <ol className="space-y-1.5 ml-5 list-decimal text-xs">
+                <li>Откройте мессенджер MAX → найдите <b>@MasterBot</b></li>
+                <li>Команда <code className="text-orange-400/70">/newbot</code> → задайте имя и логин</li>
+                <li>Скопируйте полученный <b>access_token</b> и вставьте сюда</li>
+                <li>Добавьте бота в нужный чат / напишите ему лично</li>
+                <li>Узнайте <b>chat_id</b> и вставьте во второе поле</li>
+                <li>Нажмите «Сохранить» — заявки начнут приходить автоматически</li>
+              </ol>
             </div>
           </div>
         )}

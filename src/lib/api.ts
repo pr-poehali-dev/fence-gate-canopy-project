@@ -3,6 +3,7 @@ export const API = {
   prices:  "https://functions.poehali.dev/5ce688dd-ed6c-4c7d-8e4b-899b4943fcf0",
   auth:    "https://functions.poehali.dev/4c4b6b0c-ac97-4644-94b6-63d724b326a2",
   reviews: "https://functions.poehali.dev/4d424d2e-b164-46ab-ad42-7f4ce291d054",
+  bot:     "https://functions.poehali.dev/88f39f73-7b49-4be2-9331-cd25cf22e4d6",
 };
 
 export interface PriceItem {
@@ -102,4 +103,49 @@ export async function deleteReview(id: number) {
     method: "DELETE",
     headers: { "X-Auth-Token": adminToken.get() },
   }).then(r => r.json());
+}
+
+// ───────────────── Настройки и заявки ─────────────────
+export interface SiteSettings {
+  max_bot_token?: string;
+  max_chat_id?: string;
+  max_bot_active?: boolean;
+}
+
+export async function fetchSettings(adminMode = false): Promise<SiteSettings> {
+  const url = adminMode ? `${API.bot}?action=settings&admin=1` : `${API.bot}?action=settings`;
+  const headers: Record<string, string> = {};
+  if (adminMode) headers["X-Auth-Token"] = adminToken.get();
+  const r = await fetch(url, { headers });
+  const d = await r.json();
+  return d.items || {};
+}
+
+export async function saveSettings(items: { key: string; value: string }[]) {
+  const r = await fetch(`${API.bot}?action=settings`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", "X-Auth-Token": adminToken.get() },
+    body: JSON.stringify({ items }),
+  });
+  return r.json();
+}
+
+export interface LeadPayload {
+  order_num?: string;
+  name?: string;
+  phone?: string;
+  city?: string;
+  address?: string;
+  object_type?: string;
+  total_rub?: number;
+  payload?: Record<string, unknown>;
+}
+
+export async function sendLead(p: LeadPayload) {
+  const r = await fetch(`${API.bot}?action=lead`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(p),
+  });
+  return r.json();
 }

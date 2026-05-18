@@ -533,17 +533,17 @@ export default function Index() {
         style={{ background: "rgba(13,15,20,0.93)", backdropFilter: "blur(16px)" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
+            <Link to="/" className="flex items-center gap-3 group" aria-label="На главную">
+              <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                 <Icon name="Fence" size={18} className="text-gray-900" />
               </div>
               <div>
-                <div className="font-oswald font-bold text-white text-lg leading-none tracking-wider">
+                <div className="font-oswald font-bold text-white text-lg leading-none tracking-wider group-hover:text-orange-200 transition-colors">
                   СТАЛЬ<span className="text-orange-400">ГРУПП</span>
                 </div>
                 <div className="text-[10px] text-white/30 leading-none tracking-widest">ПРОИЗВОДСТВО</div>
               </div>
-            </div>
+            </Link>
 
             <div className="hidden lg:flex items-center gap-5">
               {NAV_ITEMS.map(({ id, label }) => (
@@ -586,6 +586,10 @@ export default function Index() {
                 {label}
               </button>
             ))}
+            <Link to="/reviews" onClick={() => setMenuOpen(false)}
+              className="block w-full text-left py-2 px-3 rounded text-orange-400 hover:bg-[#141720] transition-all text-sm flex items-center gap-2">
+              <Icon name="Star" size={14} /> Отзывы клиентов
+            </Link>
             <div className="pt-3 border-t border-[#1e2230]">
               <button className="btn-orange w-full py-3 rounded-lg text-sm" onClick={() => scrollTo("calculator")}>
                 Рассчитать стоимость
@@ -1148,6 +1152,40 @@ export default function Index() {
                   </p>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* БАННЕР ОТЗЫВОВ */}
+      <section className="py-16 bg-[#0a0c10] border-t border-[#1e2230]">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-gradient-to-br from-orange-500/10 to-orange-500/5 border border-orange-500/20 rounded-3xl p-8 sm:p-10 flex flex-col sm:flex-row items-start sm:items-center gap-6">
+            <div className="flex-1">
+              <div className="flex items-center gap-1 mb-3">
+                {[1,2,3,4,5].map(i => (
+                  <Icon key={i} name="Star" size={20} className="text-orange-400 fill-orange-400" />
+                ))}
+                <span className="ml-2 text-white/60 text-sm">5.0 · реальные клиенты</span>
+              </div>
+              <h2 className="font-oswald font-bold text-2xl sm:text-3xl text-white mb-2">
+                Что говорят <span className="text-orange-400">наши клиенты</span>
+              </h2>
+              <p className="text-white/55 text-sm max-w-md">
+                Отзывы с фотографиями объектов из Люберец, Чапаевки, Назарьево и Астрецово. Оставьте свой после установки.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+              <Link to="/reviews" className="btn-orange px-6 py-3 rounded-xl text-sm text-center">
+                <span className="flex items-center gap-2 justify-center">
+                  <Icon name="MessageSquare" size={16} /> Читать отзывы
+                </span>
+              </Link>
+              <Link to="/reviews#form" className="btn-outline-orange px-6 py-3 rounded-xl text-sm text-center">
+                <span className="flex items-center gap-2 justify-center">
+                  <Icon name="Star" size={16} /> Оставить отзыв
+                </span>
+              </Link>
             </div>
           </div>
         </div>

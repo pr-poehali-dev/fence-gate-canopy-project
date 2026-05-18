@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import Icon from "@/components/ui/icon";
 import { COMPANY } from "@/lib/company";
+import { sendLead } from "@/lib/api";
 
 // ─────────────────────────────────────────────────────────────────
 // СПРАВОЧНИКИ КОМПЛЕКТУЮЩИХ (рыночные цены РФ 2026)
@@ -125,11 +126,52 @@ function fmt(n: number) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// PDF генерация через jsPDF
+// PDF генерация через jsPDF с подключением кириллического шрифта
 // ─────────────────────────────────────────────────────────────────
+
+// Кэшируем base64-шрифт в памяти, чтобы не качать повторно
+let _ptSansRegularB64: string | null = null;
+let _ptSansBoldB64: string | null = null;
+
+async function _loadFont(url: string): Promise<string> {
+  const resp = await fetch(url);
+  const buf  = await resp.arrayBuffer();
+  // ArrayBuffer → base64
+  let bin = "";
+  const bytes = new Uint8Array(buf);
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    bin += String.fromCharCode.apply(
+      null,
+      Array.from(bytes.subarray(i, i + chunk)) as unknown as number[]
+    );
+  }
+  return btoa(bin);
+}
+
+async function _ensureFonts() {
+  if (_ptSansRegularB64 && _ptSansBoldB64) return;
+  // Шрифт PT Sans с поддержкой кириллицы (Google Fonts через jsdelivr)
+  const regUrl  = "https://cdn.jsdelivr.net/npm/@fontsource/pt-sans@5.0.12/files/pt-sans-cyrillic-400-normal.woff";
+  const boldUrl = "https://cdn.jsdelivr.net/npm/@fontsource/pt-sans@5.0.12/files/pt-sans-cyrillic-700-normal.woff";
+  // jsPDF поддерживает только TTF — берём TTF-исходник из gstatic (PT Sans)
+  const ttfReg  = "https://fonts.gstatic.com/s/ptsans/v17/jizaRExUiTo99u79D0KExcOPIDU.ttf";
+  const ttfBold = "https://fonts.gstatic.com/s/ptsans/v17/jizfRExUiTo99u79B_mh4OmnLD0Z4zM.ttf";
+  try {
+    const [r, b] = await Promise.all([_loadFont(ttfReg), _loadFont(ttfBold)]);
+    _ptSansRegularB64 = r;
+    _ptSansBoldB64 = b;
+  } catch {
+    // fallback на woff (хуже, но лучше чем ничего)
+    const [r, b] = await Promise.all([_loadFont(regUrl), _loadFont(boldUrl)]);
+    _ptSansRegularB64 = r;
+    _ptSansBoldB64 = b;
+  }
+}
+
 async function generatePDF(
   orderNum: string,
-  objectType: ObjectType,
+  _objectType: ObjectType,
   items: LineItem[],
   total: number,
   params: Record<string, string>
@@ -137,53 +179,52 @@ async function generatePDF(
   const { jsPDF } = await import("jspdf");
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
 
+  // Подключаем кириллический шрифт
+  try {
+    await _ensureFonts();
+    if (_ptSansRegularB64 && _ptSansBoldB64) {
+      doc.addFileToVFS("PTSans-Regular.ttf", _ptSansRegularB64);
+      doc.addFileToVFS("PTSans-Bold.ttf", _ptSansBoldB64);
+      doc.addFont("PTSans-Regular.ttf", "PTSans", "normal");
+      doc.addFont("PTSans-Bold.ttf", "PTSans", "bold");
+      doc.setFont("PTSans", "normal");
+    }
+  } catch (e) {
+    console.warn("PDF: не удалось загрузить кириллический шрифт", e);
+  }
+
+  const FONT = (_ptSansRegularB64 && _ptSansBoldB64) ? "PTSans" : "helvetica";
   const W = 210, M = 16, CW = W - M * 2;
   let y = M;
-
-  // eslint-disable-next-line no-control-regex
-  const safeText = (t: string) => t.replace(/[^\x00-\x7F]/g, (c) => {
-    const map: Record<string, string> = {
-      "А":"A","Б":"B","В":"V","Г":"G","Д":"D","Е":"E","Ё":"YO","Ж":"ZH","З":"Z","И":"I","Й":"J",
-      "К":"K","Л":"L","М":"M","Н":"N","О":"O","П":"P","Р":"R","С":"S","Т":"T","У":"U","Ф":"F",
-      "Х":"KH","Ц":"TS","Ч":"CH","Ш":"SH","Щ":"SCH","Ъ":"","Ы":"Y","Ь":"","Э":"E","Ю":"YU","Я":"YA",
-      "а":"a","б":"b","в":"v","г":"g","д":"d","е":"e","ё":"yo","ж":"zh","з":"z","и":"i","й":"j",
-      "к":"k","л":"l","м":"m","н":"n","о":"o","п":"p","р":"r","с":"s","т":"t","у":"u","ф":"f",
-      "х":"kh","ц":"ts","ч":"ch","ш":"sh","щ":"sch","ъ":"","ы":"y","ь":"","э":"e","ю":"yu","я":"ya",
-      "₽":"rub","×":"x","–":"-","—":"-","°":"","©":"(c)","«":'"',"»":'"',
-    };
-    return map[c] !== undefined ? map[c] : "?";
-  });
-
-  const tr = (t: string) => safeText(t);
 
   // ── Шапка с реквизитами ──
   doc.setFillColor(249, 115, 22);
   doc.rect(0, 0, W, 32, "F");
   doc.setTextColor(255, 255, 255);
+  doc.setFont(FONT, "bold");
   doc.setFontSize(20);
-  doc.setFont("helvetica", "bold");
-  doc.text("STAL'GRUPP", M, 12);
+  doc.text("СТАЛЬГРУПП", M, 12);
+  doc.setFont(FONT, "normal");
   doc.setFontSize(9);
-  doc.setFont("helvetica", "normal");
-  doc.text(tr("IP Baltag Aleksey Vasilevich"), M, 18);
+  doc.text("ИП Балтаг Алексей Васильевич", M, 18);
   doc.setFontSize(8);
-  doc.text(tr(`INN ${COMPANY.inn}  *  OGRNIP ${COMPANY.ogrnip}`), M, 24);
-  doc.text(tr(`Tel: ${COMPANY.phone}`), W - M, 12, { align: "right" });
-  doc.text(tr(`Email: ${COMPANY.email}`), W - M, 18, { align: "right" });
-  doc.text(tr(`Sayt: ${COMPANY.site}`), W - M, 24, { align: "right" });
+  doc.text(`ИНН ${COMPANY.inn}  •  ОГРНИП ${COMPANY.ogrnip}`, M, 24);
+  doc.text(`Тел.: ${COMPANY.phone}`, W - M, 12, { align: "right" });
+  doc.text(`Email: ${COMPANY.email}`, W - M, 18, { align: "right" });
+  doc.text(`Сайт: ${COMPANY.site}`, W - M, 24, { align: "right" });
 
   y = 40;
   // Заголовок КП
   doc.setTextColor(30, 30, 30);
+  doc.setFont(FONT, "bold");
   doc.setFontSize(16);
-  doc.setFont("helvetica", "bold");
-  doc.text("KOMMERCHESKOE PREDLOZHENIE", M, y);
+  doc.text("КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ", M, y);
   y += 7;
+  doc.setFont(FONT, "normal");
   doc.setFontSize(10);
-  doc.setFont("helvetica", "normal");
   doc.setTextColor(120, 120, 120);
-  doc.text(`Nomer: ${orderNum}`, M, y);
-  doc.text(`Data: ${new Date().toLocaleDateString("ru-RU")}`, W - M, y, { align: "right" });
+  doc.text(`Номер: ${orderNum}`, M, y);
+  doc.text(`Дата: ${new Date().toLocaleDateString("ru-RU")}`, W - M, y, { align: "right" });
   y += 4;
   doc.setDrawColor(249, 115, 22);
   doc.setLineWidth(0.8);
@@ -192,15 +233,15 @@ async function generatePDF(
 
   // Параметры объекта
   doc.setTextColor(30, 30, 30);
+  doc.setFont(FONT, "bold");
   doc.setFontSize(11);
-  doc.setFont("helvetica", "bold");
-  doc.text(tr("PARAMETRY OB'EKTA"), M, y);
+  doc.text("ПАРАМЕТРЫ ОБЪЕКТА", M, y);
   y += 6;
+  doc.setFont(FONT, "normal");
   doc.setFontSize(9);
-  doc.setFont("helvetica", "normal");
   doc.setTextColor(60, 60, 60);
   for (const [k, v] of Object.entries(params)) {
-    doc.text(tr(`${k}: ${v}`), M + 3, y);
+    doc.text(`${k}: ${v}`, M + 3, y);
     y += 5;
   }
   y += 3;
@@ -209,38 +250,46 @@ async function generatePDF(
   doc.setDrawColor(230, 230, 230);
   doc.setLineWidth(0.3);
 
-  // Заголовок таблицы
   doc.setFillColor(240, 240, 240);
   doc.rect(M, y, CW, 8, "F");
+  doc.setFont(FONT, "bold");
   doc.setFontSize(9);
-  doc.setFont("helvetica", "bold");
   doc.setTextColor(60, 60, 60);
-  doc.text("Nr", M + 2, y + 5.5);
-  doc.text(tr("Nazvanie pozitsii"), M + 10, y + 5.5);
-  doc.text(tr("Kol-vo"), M + 110, y + 5.5);
-  doc.text(tr("Tsena ed."), M + 130, y + 5.5);
-  doc.text(tr("Summa"), W - M - 3, y + 5.5, { align: "right" });
+  doc.text("№", M + 2, y + 5.5);
+  doc.text("Наименование позиции", M + 10, y + 5.5);
+  doc.text("Кол-во", M + 110, y + 5.5);
+  doc.text("Цена ед.", M + 130, y + 5.5);
+  doc.text("Сумма", W - M - 3, y + 5.5, { align: "right" });
   y += 8;
 
   let rowNum = 1;
   for (const item of items) {
-    if (y > 265) { doc.addPage(); y = 20; }
-    const bg = rowNum % 2 === 0;
-    if (bg) {
+    if (y > 255) { doc.addPage(); y = 20; }
+    if (rowNum % 2 === 0) {
       doc.setFillColor(250, 248, 245);
       doc.rect(M, y, CW, 8, "F");
     }
-    doc.setFont("helvetica", "normal");
+    doc.setFont(FONT, "normal");
     doc.setFontSize(8.5);
     doc.setTextColor(40, 40, 40);
     doc.text(String(rowNum), M + 2, y + 5.5);
-    const nameLines = doc.splitTextToSize(tr(item.label), 90);
-    doc.text(nameLines, M + 10, y + 5.5);
-    doc.text(tr(item.qty || ""), M + 110, y + 5.5);
-    doc.text(item.unitPrice ? tr(fmt(item.unitPrice)) : "", M + 130, y + 5.5);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(item.value === 0 ? 249 : 40, item.value === 0 ? 115 : 40, item.value === 0 ? 22 : 40);
-    doc.text(item.value === 0 ? "BESPLATNO" : tr(fmt(item.value)), W - M - 3, y + 5.5, { align: "right" });
+
+    // Обрезаем длинные названия в 1 строку
+    const nameLines = doc.splitTextToSize(item.label, 90);
+    const firstLine = Array.isArray(nameLines) ? nameLines[0] : nameLines;
+    doc.text(firstLine, M + 10, y + 5.5);
+
+    doc.text(item.qty || "—", M + 110, y + 5.5);
+    doc.text(item.unitPrice ? fmt(item.unitPrice) : "—", M + 130, y + 5.5);
+
+    doc.setFont(FONT, "bold");
+    if (item.value === 0) {
+      doc.setTextColor(249, 115, 22);
+      doc.text("БЕСПЛАТНО", W - M - 3, y + 5.5, { align: "right" });
+    } else {
+      doc.setTextColor(40, 40, 40);
+      doc.text(fmt(item.value), W - M - 3, y + 5.5, { align: "right" });
+    }
     doc.setLineWidth(0.2);
     doc.setDrawColor(220, 220, 220);
     doc.line(M, y + 8, W - M, y + 8);
@@ -252,60 +301,59 @@ async function generatePDF(
   // Итог
   doc.setFillColor(249, 115, 22);
   doc.rect(M, y, CW, 12, "F");
+  doc.setFont(FONT, "bold");
   doc.setFontSize(13);
-  doc.setFont("helvetica", "bold");
   doc.setTextColor(255, 255, 255);
-  doc.text(tr("ITOGO (predvaritelno):"), M + 4, y + 8.5);
-  doc.text(tr(fmt(total)), W - M - 4, y + 8.5, { align: "right" });
+  doc.text("ИТОГО (предварительно):", M + 4, y + 8.5);
+  doc.text(fmt(total), W - M - 4, y + 8.5, { align: "right" });
   y += 18;
 
   // Условия
+  doc.setFont(FONT, "normal");
   doc.setFontSize(8.5);
-  doc.setFont("helvetica", "normal");
   doc.setTextColor(100, 100, 100);
   const conditions = [
-    "* Predvaritelnyy raschet. Tochnaya stoimost opredelyaetsya posle zamera (+/- 5-15%).",
-    "* Garantiya na konstruktsii: 5 let. Na pokrasku: 3 goda. Na montazh: 2 goda.",
-    "* Srok izgotovleniya: 7-14 rabochikh dney. KP deystvitelno 30 dney.",
-    "* Besplatnyy vyezd zamershchika v den obrashcheniya po Moskve i MO.",
-    "* Geografiya: Lyubertsy, Chapaevka, Astretsovo, Nazarevo, Reutov, Balashikha, Mytishchi i dr.",
+    "• Предварительный расчёт. Точная стоимость определяется после замера (±5–15%).",
+    "• Гарантия на конструкции: 5 лет. На покраску: 3 года. На монтаж: 2 года.",
+    "• Срок изготовления: 7–14 рабочих дней. КП действительно 30 дней.",
+    "• Бесплатный выезд замерщика в день обращения по Москве и МО.",
+    "• География: Люберцы, Чапаевка, Астрецово, Назарьево, Реутов, Балашиха, Мытищи и др.",
   ];
   for (const line of conditions) {
-    if (y > 250) break;
+    if (y > 248) break;
     doc.text(line, M, y);
     y += 5;
   }
 
   y += 3;
-  // Блок с банковскими реквизитами
-  if (y < 245) {
+  if (y < 240) {
     doc.setDrawColor(220, 220, 220);
     doc.setLineWidth(0.3);
-    doc.rect(M, y, CW, 26);
+    doc.rect(M, y, CW, 30);
+    doc.setFont(FONT, "bold");
     doc.setFontSize(8);
-    doc.setFont("helvetica", "bold");
     doc.setTextColor(60, 60, 60);
-    doc.text(tr("REKVIZITY ISPOLNITELYA"), M + 3, y + 5);
-    doc.setFont("helvetica", "normal");
+    doc.text("РЕКВИЗИТЫ ИСПОЛНИТЕЛЯ", M + 3, y + 5);
+    doc.setFont(FONT, "normal");
     doc.setFontSize(7.5);
     doc.setTextColor(80, 80, 80);
-    doc.text(tr(`${COMPANY.legalName}`), M + 3, y + 10);
-    doc.text(tr(`INN: ${COMPANY.inn}  *  OGRNIP: ${COMPANY.ogrnip}  *  OKPO: ${COMPANY.okpo}`), M + 3, y + 14);
-    doc.text(tr(`Yur. adres: ${COMPANY.legalAddress}`), M + 3, y + 18);
-    doc.text(tr(`Bank: ${COMPANY.bankName}  *  BIK: ${COMPANY.bik}`), M + 3, y + 22);
-    doc.text(tr(`R/s: ${COMPANY.bankAccount}  *  K/s: ${COMPANY.corrAccount}`), M + 3, y + 26 - 0.5);
-    y += 30;
+    doc.text(COMPANY.legalName, M + 3, y + 10);
+    doc.text(`ИНН: ${COMPANY.inn}    •    ОГРНИП: ${COMPANY.ogrnip}    •    ОКПО: ${COMPANY.okpo}`, M + 3, y + 14);
+    doc.text(`Юр. адрес: ${COMPANY.legalAddress}`, M + 3, y + 18);
+    doc.text(`Банк: ${COMPANY.bankName}    •    БИК: ${COMPANY.bik}`, M + 3, y + 22);
+    doc.text(`Р/счёт: ${COMPANY.bankAccount}    •    К/счёт: ${COMPANY.corrAccount}`, M + 3, y + 26);
+    y += 34;
   }
 
   // Подпись
-  if (y < 270) {
+  if (y < 268) {
+    doc.setFont(FONT, "normal");
     doc.setFontSize(9);
-    doc.setFont("helvetica", "normal");
     doc.setTextColor(60, 60, 60);
-    doc.text(tr("Ispolnitel: IP Baltag A. V.  ______________________"), M, y + 4);
+    doc.text("Исполнитель: ИП Балтаг А. В. _______________________", M, y + 4);
     doc.setFontSize(7);
     doc.setTextColor(140, 140, 140);
-    doc.text("M.P.", W - M - 25, y + 4);
+    doc.text("М. П.", W - M - 25, y + 4);
   }
 
   // ── Нижний колонтитул на всех страницах ──
@@ -314,16 +362,20 @@ async function generatePDF(
     doc.setPage(i);
     doc.setFillColor(30, 30, 35);
     doc.rect(0, 285, W, 12, "F");
+    doc.setFont(FONT, "normal");
     doc.setFontSize(7.5);
     doc.setTextColor(200, 200, 200);
-    doc.text(tr(`IP Baltag A. V.  *  INN ${COMPANY.inn}  *  ${COMPANY.phone}  *  ${COMPANY.email}`), W / 2, 290, { align: "center" });
+    doc.text(
+      `ИП Балтаг А. В.  •  ИНН ${COMPANY.inn}  •  ${COMPANY.phone}  •  ${COMPANY.email}`,
+      W / 2, 290, { align: "center" }
+    );
     doc.setFontSize(7);
     doc.setTextColor(160, 160, 160);
-    doc.text(tr(`Str. ${i} / ${pageCount}`), W - M, 294, { align: "right" });
-    doc.text(tr(`${COMPANY.legalAddress}`), M, 294);
+    doc.text(`Стр. ${i} / ${pageCount}`, W - M, 294, { align: "right" });
+    doc.text(COMPANY.legalAddress, M, 294);
   }
 
-  doc.save(`KP_StalGrupp_${orderNum}.pdf`);
+  doc.save(`КП_СтальГрупп_${orderNum}.pdf`);
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -404,6 +456,8 @@ export default function Calculator() {
   const [showKP, setShowKP] = useState(false);
   const [orderNum] = useState(() => nextOrderNumber());
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [maxLoading, setMaxLoading] = useState(false);
+  const [maxSent, setMaxSent] = useState(false);
   const kpRef = useRef<HTMLDivElement>(null);
 
   const set = (p: Partial<CalcState>) => setCalc(c => ({ ...c, ...p }));
@@ -517,16 +571,22 @@ export default function Calculator() {
 
   // Параметры объекта для КП
   const kpParams: Record<string, string> = isCanopy
-    ? { "Tip ob'ekta": "Naves/Besedka", "Forma krovli": calc.canopyType, "Ploshchad": `${calc.canopyArea} m2`, "Pokrytie": CANOPY_COVER.find(c=>c.id===calc.canopyCoverId)!.label }
+    ? {
+        "Тип объекта":  "Навес / беседка",
+        "Форма кровли": calc.canopyType,
+        "Площадь":      `${calc.canopyArea} м²`,
+        "Покрытие":     CANOPY_COVER.find(c => c.id === calc.canopyCoverId)!.label,
+      }
     : {
-        "Tip obedinenyya": OBJECT_LABELS[calc.objectType],
-        "Perimetr":  `${calc.fenceLength} m`,
-        "Vysota":    `${calc.fenceHeight} m`,
-        "Stolby":    postObj.label,
-        "Lagi":      `${lagObj.label}, ${calc.lagRows} ryada`,
-        "Fundament": fnd.label,
-        ...(calc.gateId !== "none" ? { "Vorota": `${gateObj.label}, ${calc.gateWidth} m` } : {}),
-        ...(calc.wicketId !== "none" ? { "Kalitka": wicketObj.label } : {}),
+        "Тип ограждения": OBJECT_LABELS[calc.objectType],
+        "Периметр":       `${calc.fenceLength} м`,
+        "Чистая длина":   `${netFenceLength.toFixed(1)} м`,
+        "Высота":         `${calc.fenceHeight} м`,
+        "Столбы":         postObj.label,
+        "Лаги":           `${lagObj.label}, ${calc.lagRows} ряда`,
+        "Фундамент":      fnd.label,
+        ...(calc.gateId !== "none"   ? { "Ворота":  `${gateObj.label}, ${calc.gateWidth} м × ${calc.gateCount} шт.` } : {}),
+        ...(calc.wicketId !== "none" ? { "Калитка": `${wicketObj.label} × ${calc.wicketCount} шт.` } : {}),
       };
 
   // ── СТРУКТУРИРОВАННЫЙ JSON ДЛЯ 1С / VBA ─────────────────────────
@@ -692,6 +752,39 @@ export default function Calculator() {
     setPdfLoading(true);
     try { await generatePDF(orderNum, calc.objectType, lineItems, total, kpParams); }
     finally { setPdfLoading(false); }
+  };
+
+  const handleSendMax = async () => {
+    if (!calc.clientPhone.trim()) {
+      alert("Укажите телефон в блоке «Данные для расчёта» — менеджер свяжется с вами в MAX.");
+      return;
+    }
+    setMaxLoading(true);
+    try {
+      const res = await sendLead({
+        order_num:   orderNum,
+        name:        calc.clientName || "—",
+        phone:       calc.clientPhone,
+        city:        calc.clientCity,
+        address:     calc.clientAddress,
+        object_type: OBJECT_LABELS[calc.objectType],
+        total_rub:   Math.round(total),
+        payload:     buildExportJSON(),
+      });
+      if (res?.ok) {
+        setMaxSent(true);
+        setTimeout(() => setMaxSent(false), 5000);
+        if (!res.delivered) {
+          alert("Заявка принята и сохранена. Менеджер свяжется с вами по телефону.");
+        }
+      } else {
+        alert("Не удалось отправить. Позвоните по телефону " + COMPANY.phone);
+      }
+    } catch {
+      alert("Ошибка отправки. Позвоните по телефону " + COMPANY.phone);
+    } finally {
+      setMaxLoading(false);
+    }
   };
 
   // ── JSX ─────────────────────────────────────────────────────────
@@ -1140,15 +1233,17 @@ export default function Calculator() {
               {pdfLoading ? "Генерация PDF..." : "Скачать КП в PDF"}
             </button>
 
-            <a
-              href={`https://wa.me/${COMPANY.phoneE164.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(
-                `Здравствуйте! Сделал расчёт на сайте.\n\nЗаказ: ${orderNum}\nТип: ${OBJECT_LABELS[calc.objectType]}\nПериметр: ${calc.fenceLength} м\nВысота: ${calc.fenceHeight} м\nИтого: ${fmt(total)}\n\nПрошу прислать точную смету.`
-              )}`}
-              target="_blank" rel="noopener noreferrer"
-              className="w-full py-3 rounded-xl text-sm flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 text-white font-oswald font-bold uppercase tracking-wide transition-all mb-2">
-              <Icon name="MessageCircle" size={16} />
-              Отправить смету в WhatsApp
-            </a>
+            <button
+              onClick={handleSendMax}
+              disabled={maxLoading}
+              className={`w-full py-3 rounded-xl text-sm flex items-center justify-center gap-2 font-oswald font-bold uppercase tracking-wide transition-all mb-2 disabled:opacity-60 ${
+                maxSent ? "bg-emerald-600 text-white" : "bg-[#2563eb] hover:bg-[#1d4fd1] text-white"
+              }`}
+              title="Отправить заявку менеджеру в мессенджер MAX">
+              <Icon name={maxLoading ? "Loader" : maxSent ? "Check" : "Send"} size={16}
+                className={maxLoading ? "animate-spin" : ""} />
+              {maxLoading ? "Отправляем в MAX..." : maxSent ? "Отправлено в MAX ✓" : "Отправить смету в MAX"}
+            </button>
 
             <button
               onClick={handleJSON}

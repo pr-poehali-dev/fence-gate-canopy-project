@@ -1,0 +1,29 @@
+{
+  "tests": [
+    {
+      "name": "Get public settings",
+      "method": "GET",
+      "path": "/?action=settings",
+      "expectedStatus": 200,
+      "expectedBody": {"items": "object"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Create lead",
+      "method": "POST",
+      "path": "/?action=lead",
+      "body": {
+        "order_num": "СГ-2026-TEST",
+        "name": "Тест",
+        "phone": "+79001234567",
+        "city": "Люберцы",
+        "object_type": "Профнастил",
+        "total_rub": 145000,
+        "payload": {"demo": true}
+      },
+      "expectedStatus": 200,
+      "expectedBody": {"ok": true},
+      "bodyMatcher": "partial"
+    }
+  ]
+}
