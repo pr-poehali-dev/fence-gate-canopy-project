@@ -437,6 +437,7 @@ interface CalcState {
   // Контактные данные клиента
   clientName:    string;
   clientPhone:   string;
+  clientEmail:   string;
   clientCity:    string;
   clientAddress: string;
 }
@@ -471,6 +472,7 @@ export default function Calculator() {
     canopyCoverId: "polycarb_4",
     clientName:    "",
     clientPhone:   "",
+    clientEmail:   "",
     clientCity:    "Москва",
     clientAddress: "",
   });
@@ -776,30 +778,44 @@ export default function Calculator() {
     setPdfLoading(true);
     setPdfDone(false);
     try {
-      await generatePDF(orderNum, calc.objectType, lineItems, total, kpParams);
+      // 1) Скачиваем PDF клиенту и параллельно получаем base64 для отправки
+      let pdfBase64 = "";
+      try {
+        await generatePDF(orderNum, calc.objectType, lineItems, total, kpParams);
+        const dataUri = await generatePDF(orderNum, calc.objectType, lineItems, total, kpParams, { returnBase64: true });
+        if (typeof dataUri === "string") pdfBase64 = dataUri;
+      } catch (e) {
+        console.warn("PDF base64 для отправки не получен", e);
+      }
       setPdfDone(true);
       setTimeout(() => setPdfDone(false), 6000);
 
-      // Фиксируем факт скачивания КП в журнал (даже без телефона)
+      // 2) Если есть телефон ИЛИ email клиента — сразу отправляем заявку + КП
+      //    исполнителю в MAX/email и копию клиенту (email/MAX)
+      const hasContacts = calc.clientPhone.trim() || calc.clientEmail.trim();
       try {
         await sendLead({
           order_num:   orderNum,
-          name:        calc.clientName || "Анонимный гость",
+          name:        calc.clientName || (hasContacts ? "—" : "Анонимный гость"),
           phone:       calc.clientPhone || "—",
+          email:       calc.clientEmail || "",
           city:        calc.clientCity || "",
           address:     calc.clientAddress || "",
-          object_type: `[КП скачано] ${OBJECT_LABELS[calc.objectType]}`,
+          object_type: hasContacts
+            ? OBJECT_LABELS[calc.objectType]
+            : `[КП скачано] ${OBJECT_LABELS[calc.objectType]}`,
           total_rub:   Math.round(total),
-          payload:     { ...buildExportJSON(), event: "kp_downloaded" },
+          payload:     { ...buildExportJSON(), event: hasContacts ? "kp_sent" : "kp_downloaded" },
+          pdf_base64:  hasContacts ? pdfBase64 : "",
         });
-      } catch { /* молчим — главное скачать PDF */ }
+      } catch { /* молчим — главное, что PDF скачался */ }
 
-      // Если телефон НЕ указан — предлагаем оставить контакт для перезвона
-      if (!calc.clientPhone.trim()) {
+      // 3) Если контакты не указаны — предлагаем оставить контакт через модалку
+      if (!hasContacts) {
         setTimeout(() => {
           lead.open({
             title: "Спасибо! КП скачано",
-            subtitle: "Оставьте телефон — менеджер уточнит детали и забронирует цены на 7 дней.",
+            subtitle: "Оставьте телефон или email — пришлём КП в PDF и забронируем цены на 7 дней.",
             source: `Калькулятор: КП скачано — ${OBJECT_LABELS[calc.objectType]}`,
             serviceHint: `${OBJECT_LABELS[calc.objectType]} — ${fmt(total)}`,
           });
@@ -825,20 +841,23 @@ export default function Calculator() {
     }
     setMaxLoading(true);
     try {
-      // 1) Генерируем PDF КП и получаем base64 — пойдёт в S3 и затем в кнопку MAX
+      // 1) Генерируем PDF КП и получаем base64 — пойдёт в S3, в MAX-кнопку и в email-вложение
       let pdfBase64 = "";
       try {
         const dataUri = await generatePDF(orderNum, calc.objectType, lineItems, total, kpParams, { returnBase64: true });
         if (typeof dataUri === "string") pdfBase64 = dataUri;
       } catch (e) {
-        console.warn("PDF для MAX не сгенерирован, отправим без него", e);
+        console.warn("PDF для отправки не сгенерирован", e);
       }
 
-      // 2) Отправляем заявку на бэкенд → MAX-бот с кнопками «Перезвонить» / «Открыть КП»
+      // 2) Отправляем заявку на бэкенд:
+      //    бэкенд сам пошлёт PDF в MAX-бот менеджеру (кнопка «Открыть КП»),
+      //    клиенту в MAX (если найден чат) и email-копии менеджеру и клиенту с PDF-вложением.
       const res = await sendLead({
         order_num:   orderNum,
         name:        calc.clientName || "—",
         phone:       calc.clientPhone,
+        email:       calc.clientEmail || "",
         city:        calc.clientCity,
         address:     calc.clientAddress,
         object_type: OBJECT_LABELS[calc.objectType],
@@ -848,10 +867,14 @@ export default function Calculator() {
       });
       if (res?.ok) {
         setMaxSent(true);
-        setTimeout(() => setMaxSent(false), 5000);
-        if (!res.delivered) {
-          alert("Заявка принята и сохранена. Менеджер свяжется с вами по телефону.");
-        }
+        setTimeout(() => setMaxSent(false), 8000);
+        const parts: string[] = [];
+        if (res.delivered) parts.push("в MAX менеджеру");
+        if (res.client_notified) parts.push("в MAX клиенту");
+        if (res.client_email_sent) parts.push("на email клиенту");
+        if (res.email_sent) parts.push("на email менеджеру");
+        const where = parts.length ? parts.join(", ") : "сохранена";
+        alert(`Заявка №${res.order_num || orderNum} принята.\nКП отправлено: ${where}.\nМенеджер свяжется в течение 15 минут.`);
       } else {
         alert("Не удалось отправить. Позвоните по телефону " + COMPANY.phone);
       }
@@ -1203,19 +1226,23 @@ export default function Calculator() {
               <Icon name="UserCheck" size={15} className="text-orange-400" />
               <label className="text-xs font-semibold text-orange-400 uppercase tracking-widest">Данные для расчёта (опционально)</label>
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <input type="text" placeholder="Ваше имя" value={calc.clientName}
                 onChange={e => set({ clientName: e.target.value })}
-                className="bg-[#1a1f2e] border border-[#1e2230] rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-orange-500/50" />
-              <input type="tel" placeholder="Телефон" value={calc.clientPhone}
+                className="bg-[#1a1f2e] border border-[#1e2230] rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-orange-500/50 w-full" />
+              <input type="tel" inputMode="tel" autoComplete="tel" placeholder="Телефон" value={calc.clientPhone}
                 onChange={e => set({ clientPhone: e.target.value })}
-                className="bg-[#1a1f2e] border border-[#1e2230] rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-orange-500/50" />
+                className="bg-[#1a1f2e] border border-[#1e2230] rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-orange-500/50 w-full" />
+              <input type="email" inputMode="email" autoComplete="email" placeholder="Email — пришлём КП в PDF"
+                value={calc.clientEmail}
+                onChange={e => set({ clientEmail: e.target.value })}
+                className="bg-[#1a1f2e] border border-[#1e2230] rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-orange-500/50 sm:col-span-2 w-full" />
               <input type="text" placeholder="Город (Люберцы, Истра…)" value={calc.clientCity}
                 onChange={e => set({ clientCity: e.target.value })}
-                className="bg-[#1a1f2e] border border-[#1e2230] rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-orange-500/50" />
+                className="bg-[#1a1f2e] border border-[#1e2230] rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-orange-500/50 w-full" />
               <input type="text" placeholder="Адрес объекта" value={calc.clientAddress}
                 onChange={e => set({ clientAddress: e.target.value })}
-                className="bg-[#1a1f2e] border border-[#1e2230] rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-orange-500/50" />
+                className="bg-[#1a1f2e] border border-[#1e2230] rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-orange-500/50 w-full" />
             </div>
           </div>
 

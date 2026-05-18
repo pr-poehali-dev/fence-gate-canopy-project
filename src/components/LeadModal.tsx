@@ -156,11 +156,16 @@ export default function LeadModal({
     bad ? "border-red-500/50 focus:border-red-500/70" : "border-[#1e2230] focus:border-orange-500/50";
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200"
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-2 sm:p-4 animate-in fade-in duration-200 overflow-y-auto"
       onClick={onClose}
-      style={{ background: "rgba(8,10,14,0.85)", backdropFilter: "blur(6px)" }}>
+      style={{
+        background: "rgba(8,10,14,0.85)",
+        backdropFilter: "blur(6px)",
+        paddingTop: "max(0.5rem, env(safe-area-inset-top))",
+        paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))",
+      }}>
       <div onClick={e => e.stopPropagation()}
-        className="bg-[#141720] border-2 border-orange-500/30 rounded-3xl w-full max-w-md shadow-2xl shadow-orange-500/10 relative max-h-[92vh] overflow-y-auto">
+        className="bg-[#141720] border-2 border-orange-500/30 rounded-t-3xl sm:rounded-3xl w-full max-w-md shadow-2xl shadow-orange-500/10 relative max-h-[95vh] sm:max-h-[92vh] overflow-y-auto my-auto">
         <button ref={closeBtnRef} onClick={onClose}
           className="absolute top-3 right-3 w-9 h-9 bg-[#1a1f2e] hover:bg-orange-500/15 rounded-full flex items-center justify-center text-white/50 hover:text-orange-400 transition-all z-10"
           aria-label="Закрыть">

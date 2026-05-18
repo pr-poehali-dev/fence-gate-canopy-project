@@ -98,7 +98,7 @@ export default function QuickQuoteForm({
     <form
       onSubmit={submit}
       noValidate
-      className="bg-[#141720]/95 backdrop-blur border border-orange-500/30 rounded-2xl p-5 sm:p-6 shadow-2xl"
+      className="bg-[#141720]/95 backdrop-blur border border-orange-500/30 rounded-2xl p-4 sm:p-5 md:p-6 shadow-2xl w-full max-w-full"
     >
       {title && (
         <div className="flex items-center gap-2.5 mb-4">

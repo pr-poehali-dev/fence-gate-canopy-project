@@ -118,6 +118,21 @@
   }
 }
 
+/* ── Защита форм от выхода за края экрана ─────────────────────────── */
+input,
+textarea,
+select {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+form {
+  max-width: 100%;
+}
+.product-card,
+.portfolio-item {
+  max-width: 100%;
+}
+
 /* ── Уважение к prefers-reduced-motion ───────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *,

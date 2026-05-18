@@ -182,8 +182,9 @@ def _find_client_chat_in_max(bot_token, phone, name=''):
     return ''
 
 
-def _notify_client_via_max(bot_token, client_chat_id, text):
-    """Шлёт клиенту приветственное сообщение в личку MAX (без inline-кнопок).
+def _notify_client_via_max(bot_token, client_chat_id, text, pdf_url=''):
+    """Шлёт клиенту приветственное сообщение в личку MAX.
+    Если задан pdf_url — прикрепляет inline-кнопку «📄 Открыть КП в PDF».
     Возвращает (ok, info)."""
     if not bot_token or not client_chat_id:
         return False, 'no_chat'
@@ -192,10 +193,18 @@ def _notify_client_via_max(bot_token, client_chat_id, text):
             cid_val = int(str(client_chat_id).strip())
         except Exception:
             cid_val = str(client_chat_id).strip()
+        payload = {'text': text, 'format': 'markdown'}
+        if pdf_url and pdf_url.startswith(('http://', 'https://')):
+            payload['attachments'] = [{
+                'type': 'inline_keyboard',
+                'payload': {'buttons': [[
+                    {'type': 'link', 'text': '📄 Открыть КП в PDF', 'url': pdf_url}
+                ]]}
+            }]
         status, data = _max_request(
             bot_token, 'POST', '/messages',
             params={'chat_id': cid_val},
-            json_body={'text': text, 'format': 'markdown'},
+            json_body=payload,
         )
         ok = 200 <= status < 300
         info = f'status={status}'
@@ -332,9 +341,12 @@ def _send_sms_smsru(phone, text):
 
 
 def _send_email_smtp(settings, subject, body_text, body_html='',
-                     to_addrs=None, force_enabled=False):
+                     to_addrs=None, force_enabled=False,
+                     pdf_base64='', pdf_filename=''):
     """Отправляет email через SMTP. to_addrs может быть list/str.
-    force_enabled=True позволяет отправить даже если notify_email_enabled=false (для тестов)."""
+    force_enabled=True позволяет отправить даже если notify_email_enabled=false (для тестов).
+    pdf_base64: если задан — будет прикреплён к письму как PDF-вложение.
+    pdf_filename: имя файла вложения (по умолчанию "КП.pdf")."""
     if not force_enabled and (settings.get('notify_email_enabled') or '').lower() not in ('true', '1', 'yes'):
         return False, 'email_disabled'
 
@@ -362,6 +374,7 @@ def _send_email_smtp(settings, subject, body_text, body_html='',
     try:
         import smtplib
         import ssl
+        import base64 as _b64
         from email.message import EmailMessage
         from email.utils import formataddr
 
@@ -372,6 +385,26 @@ def _send_email_smtp(settings, subject, body_text, body_html='',
         msg.set_content(body_text or '')
         if body_html:
             msg.add_alternative(body_html, subtype='html')
+
+        # ── PDF-вложение (опционально) ─────────────────────────────
+        if pdf_base64:
+            try:
+                raw_b64 = pdf_base64
+                if ',' in raw_b64:
+                    _, raw_b64 = raw_b64.split(',', 1)
+                pdf_bytes = _b64.b64decode(raw_b64)
+                fname = (pdf_filename or 'КП.pdf').strip() or 'КП.pdf'
+                if not fname.lower().endswith('.pdf'):
+                    fname += '.pdf'
+                msg.add_attachment(
+                    pdf_bytes,
+                    maintype='application',
+                    subtype='pdf',
+                    filename=fname,
+                )
+            except Exception as e:
+                # Не падаем — отправим письмо без вложения
+                print(f'PDF attach failed: {e}')
 
         if smtp_port == 465:
             ctx = ssl.create_default_context()
@@ -633,7 +666,7 @@ def handler(event: dict, context) -> dict:
                     )
                     notify_text = _render_template(tmpl_max_client, ctx)
                     client_max_ok, client_max_info = _notify_client_via_max(
-                        bot_token, client_chat_id, notify_text
+                        bot_token, client_chat_id, notify_text, pdf_url=pdf_url
                     )
                 else:
                     client_max_info = 'client_not_in_max'
@@ -657,6 +690,8 @@ def handler(event: dict, context) -> dict:
                     f'{"=" * 40}\n'
                     f'MAX менеджеру:    {"да" if delivered else "нет (" + str(max_info) + ")"}\n'
                     f'MAX клиенту:      {"да" if client_max_ok else "нет (" + str(client_max_info) + ")"}\n'
+                    + (f'КП (PDF): {pdf_url}\n' if pdf_url else '')
+                    + ('PDF КП приложен к письму.\n' if pdf_b64 else '')
                 )
                 html_body = (
                     f'<div style="font-family:Arial,sans-serif;max-width:600px">'
@@ -686,9 +721,13 @@ def handler(event: dict, context) -> dict:
                     settings.get('manager_emails'), settings.get('notify_email_to')
                 )
                 if recipients:
+                    # Прикрепляем PDF КП, если есть
+                    pdf_fname = f'KP-{order_num}.pdf' if order_num else 'КП.pdf'
                     mgr_email_ok, mgr_email_info = _send_email_smtp(
                         settings, subject, text_body, html_body, to_addrs=recipients,
                         force_enabled=True,
+                        pdf_base64=pdf_b64,
+                        pdf_filename=pdf_fname,
                     )
                 else:
                     mgr_email_info = 'no_recipients'
@@ -701,25 +740,37 @@ def handler(event: dict, context) -> dict:
                     settings.get('client_email_subject') or 'Ваша заявка №{order_num} принята — {company_name}',
                     ctx
                 )
-                html_c = _render_template(
-                    settings.get('client_email_html') or (
-                        '<p>Здравствуйте, <b>{name}</b>!</p>'
-                        '<p>Ваша заявка <b>№{order_num}</b> принята.</p>'
-                        '<p>Менеджер свяжется в течение 15 минут.</p>'
-                        '<p>Срочно: {company_phone}</p>'
-                    ),
-                    ctx
+                html_base = settings.get('client_email_html') or (
+                    '<p>Здравствуйте, <b>{name}</b>!</p>'
+                    '<p>Ваша заявка <b>№{order_num}</b> принята.</p>'
+                    '<p>Менеджер свяжется в течение 15 минут.</p>'
+                    '<p>Срочно: {company_phone}</p>'
                 )
+                if pdf_url:
+                    html_base += (
+                        f'<p style="margin-top:16px"><a href="{pdf_url}" '
+                        f'style="display:inline-block;background:#f97316;color:#fff;'
+                        f'padding:10px 18px;border-radius:8px;text-decoration:none;'
+                        f'font-weight:bold">📄 Открыть КП в PDF</a></p>'
+                    )
+                elif pdf_b64:
+                    html_base += '<p style="color:#666;font-size:13px">📎 Коммерческое предложение приложено к письму в формате PDF.</p>'
+                html_c = _render_template(html_base, ctx)
                 text_c = (
                     f'Здравствуйте, {ctx["name"]}!\n\n'
                     f'Ваша заявка №{ctx["order_num"]} принята.\n'
                     f'Менеджер свяжется в течение 15 минут.\n\n'
-                    f'Срочно: {company_phone}\n'
-                    f'— {company_name}'
+                    + (f'Коммерческое предложение (PDF): {pdf_url}\n\n' if pdf_url else '')
+                    + ('Файл КП приложен к этому письму.\n\n' if pdf_b64 else '')
+                    + f'Срочно: {company_phone}\n'
+                    + f'— {company_name}'
                 )
+                pdf_fname_cli = f'КП-{order_num}.pdf' if order_num else 'КП.pdf'
                 cli_email_ok, cli_email_info = _send_email_smtp(
                     settings, subj_c, text_c, html_c, to_addrs=[client_email],
                     force_enabled=True,
+                    pdf_base64=pdf_b64,
+                    pdf_filename=pdf_fname_cli,
                 )
 
             # ── 5) SMS клиенту через sms.ru ─────────────────────
