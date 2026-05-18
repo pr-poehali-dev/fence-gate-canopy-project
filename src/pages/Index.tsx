@@ -18,12 +18,11 @@ const IMGS = {
 
 const NAV_ITEMS = [
   { id: "home",       label: "Главная" },
+  { id: "advantages", label: "О нас" },
   { id: "products",   label: "Продукция" },
-  { id: "portfolio",  label: "Портфолио" },
-  { id: "services",   label: "Услуги" },
+  { id: "steps",      label: "Как работаем" },
   { id: "calculator", label: "Калькулятор" },
   { id: "delivery",   label: "Доставка" },
-  { id: "warranty",   label: "Гарантия" },
   { id: "contacts",   label: "Контакты" },
 ];
 
@@ -537,11 +536,19 @@ export default function Index() {
               ))}
             </div>
 
-            <div className="hidden lg:flex items-center gap-3">
-              <a href="tel:+78001234567" className="flex items-center gap-2 text-orange-400 font-oswald font-medium hover:text-orange-300 transition-colors text-sm">
-                <Icon name="Phone" size={15} />
-                8 800 123-45-67
-              </a>
+            <div className="hidden lg:flex items-center gap-4">
+              <div className="text-right leading-tight">
+                <a href="tel:+78001234567" className="flex items-center gap-1.5 text-orange-400 font-oswald font-medium hover:text-orange-300 transition-colors text-sm justify-end">
+                  <Icon name="Phone" size={14} />
+                  8 800 123-45-67
+                </a>
+                <div className="text-[10px] text-white/35 mt-0.5 flex items-center justify-end gap-1">
+                  <Icon name="Clock" size={10} /> Пн–Сб 8:00–20:00
+                </div>
+              </div>
+              <button className="btn-outline-orange px-4 py-2 rounded-lg text-xs" onClick={() => scrollTo("lead")}>
+                Заказать звонок
+              </button>
               <button className="btn-orange px-5 py-2 rounded-lg text-sm" onClick={() => scrollTo("calculator")}>
                 Рассчитать
               </button>
@@ -625,6 +632,93 @@ export default function Index() {
         </div>
       </section>
 
+      {/* ПОЧЕМУ ВЫБИРАЮТ НАС */}
+      <section id="advantages" className="py-24 bg-[#0a0c10]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-14 anim-ready">
+            <span className="section-tag">Преимущества</span>
+            <h2 className="font-oswald font-bold text-4xl sm:text-5xl text-white mb-3">
+              ПОЧЕМУ <span className="text-orange-400">ВЫБИРАЮТ НАС</span>
+            </h2>
+            <p className="text-white/50 max-w-xl mx-auto">Работаем напрямую с заводом — без посредников и скрытых наценок.</p>
+          </div>
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            {[
+              { icon: "Factory",     title: "Собственное производство",  desc: "Свой цех 2 400 м² и парк оборудования. Контроль качества на каждом этапе." },
+              { icon: "FileCheck",   title: "Гарантия по договору",      desc: "До 5 лет на конструкции. Договор, акт, чек — все официально." },
+              { icon: "Zap",         title: "Монтаж за 1 день",          desc: "Бригада приезжает с готовой секцией. Забор до 50 м — в день монтажа." },
+              { icon: "Ruler",       title: "Бесплатный замер",          desc: "Выезд инженера + проект и смета — 0 ₽. Без обязательств заказа." },
+              { icon: "BadgePercent", title: "Цена от производителя",     desc: "Прямые цены завода. Скидка 5% при заказе до конца месяца." },
+              { icon: "Truck",       title: "Доставка по всей РФ",       desc: "Свой автопарк по Москве и МО. По регионам — ТК с страхованием." },
+              { icon: "Award",       title: "1 200+ объектов",           desc: "С 2009 года. Частные дома, дачи, склады, школы, промзоны." },
+              { icon: "Headphones",  title: "Менеджер на связи",         desc: "Один человек ведёт ваш проект от замера до сдачи. Без перебросов." },
+            ].map(({ icon, title, desc }, i) => (
+              <div key={title}
+                className="group bg-[#141720] border border-[#1e2230] hover:border-orange-500/40 rounded-2xl p-5 sm:p-6 transition-all duration-300 hover:-translate-y-1 anim-ready"
+                style={{ transitionDelay: `${i * 0.05}s` }}>
+                <div className="w-12 h-12 bg-orange-500/10 group-hover:bg-orange-500/20 rounded-xl flex items-center justify-center mb-4 transition-all">
+                  <Icon name={icon} size={22} className="text-orange-400" />
+                </div>
+                <h3 className="font-oswald font-semibold text-base text-white mb-1.5 leading-tight">{title}</h3>
+                <p className="text-white/45 text-xs sm:text-sm leading-relaxed">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* СХЕМА РАБОТЫ */}
+      <section id="steps" className="py-24 relative grid-pattern">
+        <div className="absolute inset-0"
+          style={{ background: "radial-gradient(ellipse 60% 70% at 50% 50%, rgba(249,115,22,0.05) 0%, transparent 70%)" }} />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center mb-14 anim-ready">
+            <span className="section-tag">Схема работы</span>
+            <h2 className="font-oswald font-bold text-4xl sm:text-5xl text-white mb-3">
+              5 ШАГОВ ОТ ЗАЯВКИ <span className="text-orange-400">ДО ГОТОВОГО ЗАБОРА</span>
+            </h2>
+            <p className="text-white/50 max-w-xl mx-auto">Прозрачный процесс. Никаких сюрпризов и скрытых платежей.</p>
+          </div>
+
+          <div className="relative">
+            <div className="hidden lg:block absolute top-12 left-[10%] right-[10%] h-0.5 bg-gradient-to-r from-orange-500/0 via-orange-500/40 to-orange-500/0" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
+              {[
+                { num: "01", icon: "PhoneCall", title: "Заявка",         desc: "Звонок или форма на сайте. Уточняем задачу за 5 минут." },
+                { num: "02", icon: "Ruler",     title: "Замер",          desc: "Бесплатный выезд инженера в день обращения. Проект и смета." },
+                { num: "03", icon: "FileSignature", title: "Договор",   desc: "Фиксируем цену, сроки, материалы. Аванс 30%." },
+                { num: "04", icon: "Factory",   title: "Производство",   desc: "Изготовление секций на нашем заводе. 7–14 рабочих дней." },
+                { num: "05", icon: "CheckCheck", title: "Монтаж + акт",  desc: "Установка под ключ, уборка, акт сдачи-приёмки. Гарантия 5 лет." },
+              ].map(({ num, icon, title, desc }, i) => (
+                <div key={num}
+                  className="relative anim-ready bg-[#141720] border border-[#1e2230] hover:border-orange-500/40 rounded-2xl p-5 text-center transition-all duration-300 hover:-translate-y-2"
+                  style={{ transitionDelay: `${i * 0.1}s` }}>
+                  <div className="w-16 h-16 mx-auto mb-3 relative">
+                    <div className="absolute inset-0 bg-orange-500/10 rounded-full" />
+                    <div className="absolute inset-2 bg-[#0a0c10] border border-orange-500/30 rounded-full flex items-center justify-center">
+                      <Icon name={icon} size={20} className="text-orange-400" />
+                    </div>
+                  </div>
+                  <div className="font-oswald font-bold text-2xl text-orange-400 mb-1">{num}</div>
+                  <h3 className="font-oswald font-semibold text-base text-white mb-1.5">{title}</h3>
+                  <p className="text-white/45 text-xs leading-relaxed">{desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="text-center mt-10 anim-ready">
+            <button className="btn-orange px-8 py-4 rounded-xl text-base" onClick={() => scrollTo("lead")}>
+              <span className="flex items-center gap-2 justify-center">
+                <Icon name="ArrowRight" size={18} />
+                Начать с бесплатного замера
+              </span>
+            </button>
+          </div>
+        </div>
+      </section>
+
       {/* ПРОДУКЦИЯ */}
       <section id="products" className="py-24 bg-[#0a0c10]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -653,8 +747,9 @@ export default function Index() {
                   <p className="text-white/50 text-sm leading-relaxed mb-4">{desc}</p>
                   <div className="flex items-center justify-between">
                     <span className="text-orange-400 font-oswald font-bold text-lg">{price}</span>
-                    <button className="text-white/40 hover:text-orange-400 transition-colors text-sm flex items-center gap-1">
-                      Подробнее <Icon name="ArrowRight" size={14} />
+                    <button onClick={() => scrollTo("lead")}
+                      className="text-white/50 hover:text-orange-400 transition-all text-sm flex items-center gap-1 group/btn">
+                      Подробнее <Icon name="ArrowRight" size={14} className="group-hover/btn:translate-x-1 transition-transform" />
                     </button>
                   </div>
                 </div>
@@ -726,6 +821,98 @@ export default function Index() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* LEAD-ФОРМА: бесплатный расчёт */}
+      <section id="lead" className="py-20 relative overflow-hidden">
+        <div className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${IMGS.profnastil})`, opacity: 0.12 }} />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0d0f14] via-[#0d0f14]/95 to-[#0d0f14]/70" />
+        <div className="absolute inset-0"
+          style={{ background: "radial-gradient(circle at 80% 50%, rgba(249,115,22,0.15) 0%, transparent 60%)" }} />
+
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-10 items-center">
+
+            <div className="lg:col-span-3 anim-ready">
+              <span className="section-tag">Бесплатно</span>
+              <h2 className="font-oswald font-bold text-3xl sm:text-4xl lg:text-5xl text-white mb-4 leading-tight">
+                ОСТАВЬТЕ ЗАЯВКУ — И ПОЛУЧИТЕ<br />
+                <span className="text-orange-400">БЕСПЛАТНЫЙ РАСЧЁТ СМЕТЫ</span>
+              </h2>
+              <p className="text-white/60 text-lg mb-6 max-w-xl">
+                Перезвоним за 15 минут, бесплатно выедем на замер, привезём образцы материалов и составим точную смету. Без обязательств.
+              </p>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-8 max-w-xl">
+                {[
+                  { icon: "Clock",       text: "Звонок за 15 мин." },
+                  { icon: "Ruler",       text: "Замер бесплатно" },
+                  { icon: "FileText",    text: "Смета на email" },
+                  { icon: "ShieldCheck", text: "Гарантия 5 лет" },
+                  { icon: "BadgePercent", text: "Скидка 5%" },
+                  { icon: "Gift",        text: "Присыпка щебнем 🎁" },
+                ].map(({ icon, text }) => (
+                  <div key={text} className="flex items-center gap-2 text-sm text-white/70">
+                    <Icon name={icon} size={15} className="text-orange-400 flex-shrink-0" />
+                    {text}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="lg:col-span-2 anim-ready" style={{ transitionDelay: "0.15s" }}>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const fd = new FormData(e.currentTarget);
+                  alert(`Спасибо, ${fd.get("name") || "клиент"}! Перезвоним в течение 15 минут на ${fd.get("phone")}.`);
+                  (e.currentTarget as HTMLFormElement).reset();
+                }}
+                className="bg-[#141720]/95 backdrop-blur border-2 border-orange-500/30 rounded-3xl p-7 shadow-2xl shadow-orange-500/10">
+                <div className="flex items-center gap-2 mb-5">
+                  <div className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
+                  <span className="text-orange-400 text-xs font-medium uppercase tracking-wider">Свободных слотов на замер: 3</span>
+                </div>
+                <div className="font-oswald font-bold text-2xl text-white mb-1">Получить расчёт</div>
+                <p className="text-white/40 text-xs mb-5">Заполните 2 поля — менеджер свяжется в течение 15 минут</p>
+
+                <div className="space-y-3">
+                  <div className="relative">
+                    <Icon name="User" size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none" />
+                    <input
+                      name="name"
+                      type="text"
+                      required
+                      placeholder="Ваше имя"
+                      className="select-field !pl-11"
+                    />
+                  </div>
+                  <div className="relative">
+                    <Icon name="Phone" size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none" />
+                    <input
+                      name="phone"
+                      type="tel"
+                      required
+                      placeholder="+7 (___) ___-__-__"
+                      className="select-field !pl-11"
+                    />
+                  </div>
+                  <button type="submit" className="btn-orange w-full py-4 rounded-xl text-base group">
+                    <span className="flex items-center gap-2 justify-center">
+                      Отправить заявку
+                      <Icon name="ArrowRight" size={18} className="group-hover:translate-x-1 transition-transform" />
+                    </span>
+                  </button>
+                  <p className="text-white/30 text-[11px] text-center leading-relaxed">
+                    Нажимая кнопку, вы соглашаетесь<br />
+                    с <button type="button" className="text-orange-400/70 hover:text-orange-400 underline">политикой конфиденциальности</button>
+                  </p>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       </section>
@@ -942,26 +1129,124 @@ export default function Index() {
       </section>
 
       {/* FOOTER */}
-      <footer className="border-t border-[#1e2230] py-10">
+      <footer className="border-t border-[#1e2230] bg-[#0a0c10] pt-14 pb-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-7 h-7 bg-orange-500 rounded-lg flex items-center justify-center">
-                <Icon name="Fence" size={15} className="text-gray-900" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-10">
+
+            {/* Лого + о компании */}
+            <div>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-9 h-9 bg-orange-500 rounded-lg flex items-center justify-center">
+                  <Icon name="Fence" size={18} className="text-gray-900" />
+                </div>
+                <div>
+                  <div className="font-oswald font-bold text-white text-lg tracking-wider">СТАЛЬ<span className="text-orange-400">ГРУПП</span></div>
+                  <div className="text-[10px] text-white/30 tracking-widest">ПРОИЗВОДСТВО С 2009</div>
+                </div>
               </div>
-              <div className="font-oswald font-bold text-white">СТАЛЬ<span className="text-orange-400">ГРУПП</span></div>
+              <p className="text-white/40 text-sm leading-relaxed mb-4">
+                Производим и устанавливаем заборы, ворота, навесы и беседки под ключ. 1 200+ сданных объектов по всей России.
+              </p>
+              <div className="flex gap-2">
+                {[
+                  { icon: "MessageCircle", label: "WhatsApp", href: "https://wa.me/78001234567" },
+                  { icon: "Send",          label: "Telegram", href: "https://t.me/stalgrupp" },
+                  { icon: "Instagram",     label: "Instagram", href: "#" },
+                ].map(({ icon, label, href }) => (
+                  <a key={label} href={href} target="_blank" rel="noopener noreferrer"
+                    className="w-9 h-9 bg-[#141720] border border-[#1e2230] hover:border-orange-500/50 hover:bg-orange-500/10 rounded-lg flex items-center justify-center transition-all group"
+                    aria-label={label}>
+                    <Icon name={icon} size={15} className="text-white/50 group-hover:text-orange-400 transition-colors" />
+                  </a>
+                ))}
+              </div>
             </div>
-            <div className="text-white/25 text-xs text-center">
-              © 2009–2026 СтальГрупп. Производство металлических заборов, ворот и навесов.
+
+            {/* Навигация */}
+            <div>
+              <div className="font-oswald font-semibold text-white text-sm uppercase tracking-wider mb-4">Разделы</div>
+              <ul className="space-y-2">
+                {NAV_ITEMS.map(({ id, label }) => (
+                  <li key={id}>
+                    <button onClick={() => scrollTo(id)}
+                      className="text-white/40 hover:text-orange-400 text-sm transition-colors">
+                      {label}
+                    </button>
+                  </li>
+                ))}
+              </ul>
             </div>
-            <div className="flex gap-4">
-              {["Политика", "Реквизиты"].map(item => (
-                <button key={item} className="text-white/30 hover:text-white/60 text-xs transition-colors">{item}</button>
+
+            {/* Контакты + производство */}
+            <div>
+              <div className="font-oswald font-semibold text-white text-sm uppercase tracking-wider mb-4">Контакты</div>
+              <ul className="space-y-3">
+                <li className="flex items-start gap-2.5 text-sm">
+                  <Icon name="Phone" size={15} className="text-orange-400 flex-shrink-0 mt-0.5" />
+                  <a href="tel:+78001234567" className="text-white/70 hover:text-orange-400 transition-colors">8 800 123-45-67</a>
+                </li>
+                <li className="flex items-start gap-2.5 text-sm">
+                  <Icon name="Mail" size={15} className="text-orange-400 flex-shrink-0 mt-0.5" />
+                  <a href="mailto:info@stalgrupp.ru" className="text-white/70 hover:text-orange-400 transition-colors">info@stalgrupp.ru</a>
+                </li>
+                <li className="flex items-start gap-2.5 text-sm">
+                  <Icon name="MapPin" size={15} className="text-orange-400 flex-shrink-0 mt-0.5" />
+                  <div className="text-white/70">
+                    Производство:<br />
+                    <span className="text-white/40 text-xs">Москва, ул. Промышленная, 12<br />цех 2 400 м²</span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-2.5 text-sm">
+                  <Icon name="Clock" size={15} className="text-orange-400 flex-shrink-0 mt-0.5" />
+                  <div className="text-white/70">
+                    Пн–Сб: 8:00 – 20:00<br />
+                    <span className="text-white/40 text-xs">Вс — по предварительной записи</span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            {/* CTA блок */}
+            <div>
+              <div className="font-oswald font-semibold text-white text-sm uppercase tracking-wider mb-4">Нужна помощь?</div>
+              <div className="bg-[#141720] border border-orange-500/20 rounded-2xl p-5">
+                <div className="text-white text-sm font-medium mb-1">Не нашли нужное?</div>
+                <div className="text-white/40 text-xs mb-4">Перезвоним за 15 минут, ответим на любые вопросы и бесплатно посчитаем смету.</div>
+                <button onClick={() => scrollTo("lead")}
+                  className="btn-orange w-full py-3 rounded-xl text-sm flex items-center justify-center gap-2">
+                  <Icon name="PhoneCall" size={15} />
+                  Заказать звонок
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Нижняя полоса */}
+          <div className="border-t border-[#1e2230] pt-6 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+            <div className="text-white/30 text-xs">
+              © 2009–2026 ООО «СтальГрупп». Все права защищены. <br className="sm:hidden" />
+              <span className="text-white/20">ИНН 7715000000 · ОГРН 1097746000000</span>
+            </div>
+            <div className="flex flex-wrap gap-x-5 gap-y-2">
+              {[
+                "Политика конфиденциальности",
+                "Договор-оферта",
+                "Реквизиты",
+                "Карта сайта",
+              ].map(item => (
+                <button key={item} className="text-white/35 hover:text-orange-400 text-xs transition-colors">{item}</button>
               ))}
             </div>
           </div>
         </div>
       </footer>
+
+      {/* Мобильная плавающая кнопка звонка */}
+      <a href="tel:+78001234567"
+        className="lg:hidden fixed bottom-5 right-5 z-40 w-14 h-14 bg-orange-500 hover:bg-orange-400 rounded-full shadow-2xl shadow-orange-500/40 flex items-center justify-center animate-pulse"
+        aria-label="Позвонить">
+        <Icon name="Phone" size={22} className="text-gray-900" />
+      </a>
     </div>
   );
 }
