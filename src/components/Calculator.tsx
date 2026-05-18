@@ -463,6 +463,7 @@ export default function Calculator() {
   const [showKP, setShowKP] = useState(false);
   const [orderNum] = useState(() => nextOrderNumber());
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfDone, setPdfDone] = useState(false);
   const [maxLoading, setMaxLoading] = useState(false);
   const [maxSent, setMaxSent] = useState(false);
   const kpRef = useRef<HTMLDivElement>(null);
@@ -758,8 +759,43 @@ export default function Calculator() {
 
   const handlePDF = async () => {
     setPdfLoading(true);
-    try { await generatePDF(orderNum, calc.objectType, lineItems, total, kpParams); }
-    finally { setPdfLoading(false); }
+    setPdfDone(false);
+    try {
+      // Если телефон не указан — открываем модалку для сбора контакта,
+      // а PDF скачается сразу. Менеджер получит уведомление «КП скачано».
+      await generatePDF(orderNum, calc.objectType, lineItems, total, kpParams);
+      setPdfDone(true);
+      setTimeout(() => setPdfDone(false), 6000);
+
+      // Фиксируем факт скачивания КП в журнал (даже без телефона —
+      // тогда заявка пойдёт без MAX, но останется в админке).
+      try {
+        await sendLead({
+          order_num:   orderNum,
+          name:        calc.clientName || "Анонимный гость",
+          phone:       calc.clientPhone || "—",
+          city:        calc.clientCity || "",
+          address:     calc.clientAddress || "",
+          object_type: `[КП скачано] ${OBJECT_LABELS[calc.objectType]}`,
+          total_rub:   Math.round(total),
+          payload:     { ...buildExportJSON(), event: "kp_downloaded" },
+        });
+      } catch { /* молчим — главное скачать PDF */ }
+
+      // Если телефон НЕ указан — предлагаем оставить контакт для перезвона
+      if (!calc.clientPhone.trim()) {
+        setTimeout(() => {
+          lead.open({
+            title: "Спасибо! КП скачано",
+            subtitle: "Оставьте телефон — менеджер уточнит детали и забронирует цены на 7 дней.",
+            source: `Калькулятор: КП скачано — ${OBJECT_LABELS[calc.objectType]}`,
+            serviceHint: `${OBJECT_LABELS[calc.objectType]} — ${fmt(total)}`,
+          });
+        }, 800);
+      }
+    } finally {
+      setPdfLoading(false);
+    }
   };
 
   const handleSendMax = async () => {
@@ -1253,9 +1289,12 @@ export default function Calculator() {
             <button
               onClick={handlePDF}
               disabled={pdfLoading}
-              className="w-full py-3 rounded-xl text-sm flex items-center justify-center gap-2 bg-red-600 hover:bg-red-500 text-white font-oswald font-bold uppercase tracking-wide transition-all disabled:opacity-60 mb-2">
-              <Icon name={pdfLoading ? "Loader" : "FileDown"} size={16} className={pdfLoading ? "animate-spin" : ""} />
-              {pdfLoading ? "Генерация PDF..." : "Скачать КП в PDF"}
+              className={`w-full py-3 rounded-xl text-sm flex items-center justify-center gap-2 font-oswald font-bold uppercase tracking-wide transition-all disabled:opacity-60 mb-2 ${
+                pdfDone ? "bg-emerald-600 text-white" : "bg-red-600 hover:bg-red-500 text-white"
+              }`}>
+              <Icon name={pdfLoading ? "Loader" : pdfDone ? "Check" : "FileDown"} size={16}
+                className={pdfLoading ? "animate-spin" : ""} />
+              {pdfLoading ? "Готовим PDF..." : pdfDone ? "PDF скачан ✓" : "Скачать КП в PDF"}
             </button>
 
             <button

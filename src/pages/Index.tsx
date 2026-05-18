@@ -5,6 +5,8 @@ import Calculator from "@/components/Calculator";
 import ContactForm from "@/components/ContactForm";
 import { COMPANY } from "@/lib/company";
 import { useLeadModal } from "@/hooks/useLeadModal";
+import { generatePriceListPDF } from "@/lib/priceListPDF";
+import { sendLead } from "@/lib/api";
 
 // ── Изображения ─────────────────────────────────────────────────────────────
 const IMGS = {
@@ -528,6 +530,38 @@ export default function Index() {
   };
 
   const lead = useLeadModal();
+  const [priceLoading, setPriceLoading] = useState(false);
+  const [priceDone, setPriceDone] = useState(false);
+
+  const downloadPriceList = async (source: string) => {
+    if (priceLoading) return;
+    setPriceLoading(true);
+    setPriceDone(false);
+    try {
+      const ok = await generatePriceListPDF();
+      if (ok) {
+        setPriceDone(true);
+        setTimeout(() => setPriceDone(false), 5000);
+        // Фоном фиксируем событие (без MAX, без телефона — лид-маркер)
+        try {
+          await sendLead({
+            order_num:   `КАТАЛОГ-${Date.now().toString().slice(-6)}`,
+            name:        "Анонимный гость",
+            phone:       "—",
+            city:        "",
+            address:     "",
+            object_type: `[Прайс PDF] ${source}`,
+            total_rub:   0,
+            payload:     { event: "pricelist_downloaded", source, page_url: window.location.href },
+          });
+        } catch { /* молчим */ }
+      } else {
+        alert("Не удалось сформировать прайс. Позвоните " + COMPANY.phone);
+      }
+    } finally {
+      setPriceLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen" style={{ background: "var(--dark-bg)" }}>
@@ -628,7 +662,7 @@ export default function Index() {
             Производство и монтаж металлических ограждений, ворот, навесов и беседок любой сложности. Собственный завод, гарантия качества, доставка по всей России.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
             <button className="btn-orange px-8 py-4 rounded-xl text-base w-full sm:w-auto" onClick={() => scrollTo("calculator")}>
               <span className="flex items-center gap-2 justify-center">
                 <Icon name="Calculator" size={18} />
@@ -637,6 +671,28 @@ export default function Index() {
             </button>
             <button className="btn-outline-orange px-8 py-4 rounded-xl text-base w-full sm:w-auto" onClick={() => scrollTo("portfolio")}>
               Смотреть работы
+            </button>
+          </div>
+
+          {/* Быстрая кнопка скачивания прайс-листа */}
+          <div className="flex justify-center mb-16">
+            <button onClick={() => downloadPriceList("Главная: hero")}
+              disabled={priceLoading}
+              className={`group inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs sm:text-sm border transition-all disabled:opacity-60 ${
+                priceDone
+                  ? "border-green-500/40 bg-green-500/10 text-green-300"
+                  : "border-orange-500/30 hover:border-orange-500/60 bg-[#141720] hover:bg-orange-500/5 text-white/80 hover:text-orange-400"
+              }`}>
+              <Icon name={priceLoading ? "Loader" : priceDone ? "Check" : "Download"} size={14}
+                className={priceLoading ? "animate-spin" : ""} />
+              {priceLoading
+                ? "Формируем PDF..."
+                : priceDone
+                  ? "Прайс-лист скачан ✓"
+                  : "Скачать прайс-лист 2026 в PDF"}
+              {!priceLoading && !priceDone && (
+                <span className="text-orange-400 font-bold ml-1 group-hover:translate-x-0.5 transition-transform">→</span>
+              )}
             </button>
           </div>
 
@@ -805,7 +861,10 @@ export default function Index() {
                 НАШИ <span className="text-orange-400">РАБОТЫ</span>
               </h2>
             </div>
-            <button className="btn-outline-orange px-6 py-3 rounded-xl text-sm anim-ready">Все проекты</button>
+            <Link to="/reviews" className="btn-outline-orange px-6 py-3 rounded-xl text-sm anim-ready inline-flex items-center gap-2">
+              <Icon name="Images" size={15} />
+              Все проекты и отзывы
+            </Link>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import { useLeadModal } from "@/hooks/useLeadModal";
+import { generatePriceListPDF } from "@/lib/priceListPDF";
+import { sendLead } from "@/lib/api";
 
 // ─────────────────────────────────────────────────────────────────
 // ТИПЫ ДАННЫХ ШАБЛОНА
@@ -111,6 +113,35 @@ export default function ServicePage(p: ServiceProps) {
 
   const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
   const lead = useLeadModal({ source: `Услуга: ${p.breadcrumb}` });
+  const [priceLoading, setPriceLoading] = useState(false);
+  const [priceDone, setPriceDone] = useState(false);
+
+  const downloadPrice = async () => {
+    if (priceLoading) return;
+    setPriceLoading(true);
+    setPriceDone(false);
+    try {
+      const ok = await generatePriceListPDF();
+      if (ok) {
+        setPriceDone(true);
+        setTimeout(() => setPriceDone(false), 5000);
+        try {
+          await sendLead({
+            order_num:   `КАТАЛОГ-${Date.now().toString().slice(-6)}`,
+            name:        "Анонимный гость",
+            phone:       "—",
+            city:        "",
+            address:     "",
+            object_type: `[Прайс PDF] Услуга: ${p.breadcrumb}`,
+            total_rub:   0,
+            payload:     { event: "pricelist_downloaded", service: p.breadcrumb },
+          });
+        } catch { /* молчим */ }
+      }
+    } finally {
+      setPriceLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen" style={{ background: "var(--dark-bg)" }}>
@@ -596,14 +627,20 @@ export default function ServicePage(p: ServiceProps) {
                       <Icon name="ArrowRight" size={18} className="group-hover:translate-x-1 transition-transform" />
                     </span>
                   </button>
-                  <button onClick={() => lead.open({
-                      title: "Скачать прайс на email",
-                      source: `Услуга: ${p.breadcrumb} (прайс PDF)`,
-                      subtitle: "Пришлём полный прайс-лист по этой услуге на ваш телефон в WhatsApp/MAX.",
-                    })}
-                    className="btn-outline-orange w-full py-3 rounded-xl text-xs flex items-center justify-center gap-2">
-                    <Icon name="Download" size={14} />
-                    Получить полный прайс
+                  <button onClick={downloadPrice}
+                    disabled={priceLoading}
+                    className={`w-full py-3 rounded-xl text-xs flex items-center justify-center gap-2 border transition-all disabled:opacity-60 ${
+                      priceDone
+                        ? "border-green-500/40 bg-green-500/10 text-green-300"
+                        : "btn-outline-orange"
+                    }`}>
+                    <Icon name={priceLoading ? "Loader" : priceDone ? "Check" : "Download"} size={14}
+                      className={priceLoading ? "animate-spin" : ""} />
+                    {priceLoading
+                      ? "Формируем PDF..."
+                      : priceDone
+                        ? "Прайс скачан ✓"
+                        : "Скачать прайс PDF"}
                   </button>
                   <p className="text-white/30 text-[11px] text-center">
                     Согласие с <button type="button" className="text-orange-400/70 hover:text-orange-400 underline">политикой</button>
