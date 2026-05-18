@@ -1,4 +1,5 @@
 {
+  "setup": "https://functions.poehali.dev/5984e744-589f-487d-b184-230b20921eb7",
   "prices": "https://functions.poehali.dev/5ce688dd-ed6c-4c7d-8e4b-899b4943fcf0",
   "auth": "https://functions.poehali.dev/4c4b6b0c-ac97-4644-94b6-63d724b326a2",
   "reviews": "https://functions.poehali.dev/4d424d2e-b164-46ab-ad42-7f4ce291d054"

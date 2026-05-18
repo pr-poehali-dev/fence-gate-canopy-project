@@ -1,0 +1,20 @@
+{
+  "tests": [
+    {
+      "name": "Setup without key",
+      "method": "POST",
+      "path": "/",
+      "body": {"login": "x", "password": "y"},
+      "expectedStatus": 401
+    },
+    {
+      "name": "Setup with key changes admin",
+      "method": "POST",
+      "path": "/?key=sg-setup-2026-x9k",
+      "body": {"login": "liha9953", "password": "baltag1995"},
+      "expectedStatus": 200,
+      "expectedBody": {"ok": true, "login": "liha9953"},
+      "bodyMatcher": "partial"
+    }
+  ]
+}

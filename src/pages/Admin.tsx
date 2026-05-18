@@ -125,9 +125,6 @@ export default function Admin() {
             <button type="submit" className="btn-orange w-full py-3 rounded-xl text-sm">
               Войти
             </button>
-            <div className="text-center text-white/30 text-[11px] pt-2">
-              Демо-доступ: <code className="text-orange-400/70">admin</code> / <code className="text-orange-400/70">admin123</code>
-            </div>
           </div>
         </form>
       </div>
