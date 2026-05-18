@@ -19,20 +19,34 @@ export function usePageContent(pageSlug: string) {
   const [loaded, setLoaded] = useState<boolean>(() => _cache.has(pageSlug));
 
   useEffect(() => {
-    if (_cache.has(pageSlug)) {
-      setData(_cache.get(pageSlug)!);
-      setLoaded(true);
-      return;
-    }
     let alive = true;
-    const inflight = _inflight.get(pageSlug)
-      || fetchPageContent(pageSlug).then(d => { _cache.set(pageSlug, d); return d; });
-    _inflight.set(pageSlug, inflight);
-    inflight
-      .then(d => { if (alive) { setData(d); setLoaded(true); } })
-      .catch(() => { if (alive) setLoaded(true); })
-      .finally(() => _inflight.delete(pageSlug));
-    return () => { alive = false; };
+    const load = (force = false) => {
+      if (!force && _cache.has(pageSlug)) {
+        setData(_cache.get(pageSlug)!);
+        setLoaded(true);
+        return;
+      }
+      const promise = (!force && _inflight.get(pageSlug))
+        || fetchPageContent(pageSlug).then(d => { _cache.set(pageSlug, d); return d; });
+      _inflight.set(pageSlug, promise);
+      promise
+        .then(d => { if (alive) { setData(d); setLoaded(true); } })
+        .catch(() => { if (alive) setLoaded(true); })
+        .finally(() => _inflight.delete(pageSlug));
+    };
+    load();
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail || {};
+      if (!detail.page || detail.page === pageSlug) {
+        _cache.delete(pageSlug);
+        load(true);
+      }
+    };
+    window.addEventListener("cms:invalidate", handler);
+    return () => {
+      alive = false;
+      window.removeEventListener("cms:invalidate", handler);
+    };
   }, [pageSlug]);
 
   /** Возвращает значение блока или fallback. */

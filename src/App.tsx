@@ -14,6 +14,7 @@ import ErpLogin from "./pages/ErpLogin";
 import ErpDashboard from "./pages/ErpDashboard";
 import ErpEmployees from "./pages/ErpEmployees";
 import DynamicFavicon from "./components/DynamicFavicon";
+import AdminEditBar from "./components/AdminEditBar";
 import MaxSetup from "./pages/MaxSetup";
 import Privacy from "./pages/Privacy";
 import Shtaketnik from "./pages/services/Shtaketnik";
@@ -37,6 +38,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <DynamicFavicon />
+        <AdminEditBar />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/reviews" element={<Reviews />} />

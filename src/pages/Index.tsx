@@ -9,6 +9,8 @@ import { useLeadModal } from "@/hooks/useLeadModal";
 import { generatePriceListPDF } from "@/lib/priceListPDF";
 import { sendLead } from "@/lib/api";
 import { usePageContent } from "@/hooks/usePageContent";
+import EditableBgPhoto from "@/components/EditableBgPhoto";
+import { EditableText } from "@/components/InlineEditor";
 
 // ── Изображения ─────────────────────────────────────────────────────────────
 const IMGS = {
@@ -639,6 +641,7 @@ export default function Index() {
 
       {/* HERO */}
       <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden grid-pattern">
+        <EditableBgPhoto page="home" blockKey="hero_image" label="Заменить фон Hero" />
         <div className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url(${cms("hero_image", IMGS.hero)})`, opacity: 0.18 }} />
         <div className="absolute inset-0 bg-gradient-to-b from-[#0d0f14] via-transparent to-[#0d0f14]" />
@@ -648,29 +651,32 @@ export default function Index() {
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/30 rounded-full px-4 py-2 mb-8">
             <div className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
-            <span className="text-orange-400 text-sm font-medium">
-              {cms("hero_badge", "Производство с 2009 года · 15 лет опыта")}
-            </span>
+            <EditableText
+              page="home" blockKey="hero_badge"
+              value={cms("hero_badge")}
+              fallback="Производство с 2009 года · 15 лет опыта"
+              as="span"
+              className="text-orange-400 text-sm font-medium"
+            />
           </div>
 
-          {cms("hero_title") ? (
-            <h1 className="font-oswald font-bold text-5xl sm:text-6xl lg:text-8xl leading-none mb-6 tracking-tight"
-              dangerouslySetInnerHTML={{ __html: cms("hero_title") }} />
-          ) : (
-            <h1 className="font-oswald font-bold text-5xl sm:text-6xl lg:text-8xl leading-none mb-6 tracking-tight">
-              ЗАБОРЫ, ВОРОТА<br />
-              <span className="text-orange-400">НАВЕСЫ И КОВКА</span>
-            </h1>
-          )}
+          <EditableText
+            page="home" blockKey="hero_title"
+            value={cms("hero_title")}
+            html
+            as="h1"
+            className="font-oswald font-bold text-5xl sm:text-6xl lg:text-8xl leading-none mb-6 tracking-tight"
+            fallback={<>ЗАБОРЫ, ВОРОТА<br /><span className="text-orange-400">НАВЕСЫ И КОВКА</span></>}
+          />
 
-          {cms("hero_subtitle") ? (
-            <div className="text-white/60 text-lg sm:text-xl max-w-2xl mx-auto mb-10 leading-relaxed prose prose-invert prose-p:my-0"
-              dangerouslySetInnerHTML={{ __html: cms("hero_subtitle") }} />
-          ) : (
-            <p className="text-white/60 text-lg sm:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
-              Производство и монтаж металлических ограждений, ворот, навесов и беседок любой сложности. Собственный завод, гарантия качества, доставка по всей России.
-            </p>
-          )}
+          <EditableText
+            page="home" blockKey="hero_subtitle"
+            value={cms("hero_subtitle")}
+            html
+            as="div"
+            className="text-white/60 text-lg sm:text-xl max-w-2xl mx-auto mb-10 leading-relaxed prose prose-invert prose-p:my-0"
+            fallback="Производство и монтаж металлических ограждений, ворот, навесов и беседок любой сложности. Собственный завод, гарантия качества, доставка по всей России."
+          />
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
             <button className="btn-orange px-8 py-4 rounded-xl text-base w-full sm:w-auto" onClick={() => scrollTo("calculator")}>

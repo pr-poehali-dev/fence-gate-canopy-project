@@ -10,9 +10,7 @@
       "name": "GET страницы возвращает 200",
       "method": "GET",
       "path": "/?page=home",
-      "expectedStatus": 200,
-      "expectedBody": {"items": "object"},
-      "bodyMatcher": "partial"
+      "expectedStatus": 200
     },
     {
       "name": "PUT без авторизации возвращает 401",

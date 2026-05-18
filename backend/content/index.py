@@ -42,7 +42,10 @@ def _upload_to_s3(b64data, filename):
     content_type = {
         'png': 'image/png', 'jpg': 'image/jpeg', 'jpeg': 'image/jpeg',
         'webp': 'image/webp', 'svg': 'image/svg+xml', 'gif': 'image/gif',
-    }.get(ext, 'image/png')
+        'avif': 'image/avif', 'heic': 'image/heic', 'heif': 'image/heif',
+        'bmp': 'image/bmp', 'tif': 'image/tiff', 'tiff': 'image/tiff',
+        'ico': 'image/x-icon', 'apng': 'image/apng', 'jfif': 'image/jpeg',
+    }.get(ext, 'application/octet-stream')
     import time
     key = f"cms/{int(time.time())}_{safe_name}"
     s3 = boto3.client(
