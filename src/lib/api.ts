@@ -5,6 +5,7 @@ export const API = {
   reviews: "https://functions.poehali.dev/4d424d2e-b164-46ab-ad42-7f4ce291d054",
   bot:     "https://functions.poehali.dev/88f39f73-7b49-4be2-9331-cd25cf22e4d6",
   content: "https://functions.poehali.dev/b32babe3-8a20-4ca6-807a-2a27e30e1da9",
+  erp:     "https://functions.poehali.dev/ef34ae34-f37a-4ee9-90e9-0cd540fa5b63",
 };
 
 export interface PriceItem {
@@ -143,6 +144,13 @@ export interface SiteSettings {
   company_phone?: string;
   company_email?: string;
   company_name?: string;
+  // CRM webhook
+  crm_webhook_enabled?: string;
+  crm_webhook_url?: string;
+  crm_webhook_url_set?: boolean;
+  crm_webhook_type?: string;
+  crm_webhook_secret?: string;
+  crm_webhook_secret_set?: boolean;
 }
 
 export async function fetchSettings(adminMode = false): Promise<SiteSettings> {

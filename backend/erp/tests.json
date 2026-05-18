@@ -1,0 +1,17 @@
+{
+  "tests": [
+    {
+      "name": "ERP без авторизации",
+      "method": "GET",
+      "path": "/?action=me",
+      "expectedStatus": 401
+    },
+    {
+      "name": "ERP login без данных",
+      "method": "POST",
+      "path": "/?action=login",
+      "body": {},
+      "expectedStatus": 400
+    }
+  ]
+}

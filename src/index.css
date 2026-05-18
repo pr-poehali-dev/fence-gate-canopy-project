@@ -234,6 +234,25 @@ input[type="range"]::-webkit-slider-thumb:hover {
   box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
 }
 
+/* ERP form inputs */
+.erp-input {
+  width: 100%;
+  background: #0d1017;
+  border: 1px solid #1e2230;
+  color: white;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.erp-input::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+}
+.erp-input:focus {
+  border-color: rgba(249, 115, 22, 0.5);
+}
+
 .portfolio-item {
   position: relative;
   overflow: hidden;

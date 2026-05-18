@@ -90,6 +90,11 @@ export default function Admin() {
         { key: "company_phone",         value: settings.company_phone || "" },
         { key: "company_email",         value: settings.company_email || "" },
         { key: "company_name",          value: settings.company_name || "" },
+        // CRM webhook
+        { key: "crm_webhook_enabled",   value: settings.crm_webhook_enabled || "false" },
+        { key: "crm_webhook_type",      value: settings.crm_webhook_type || "generic" },
+        { key: "crm_webhook_url",       value: settings.crm_webhook_url || "" },
+        { key: "crm_webhook_secret",    value: settings.crm_webhook_secret || "" },
       ];
       await saveSettings(items);
       setSettingsDirty(false);
@@ -274,6 +279,9 @@ export default function Admin() {
             </Link>
             <Link to="/admin/content" className="text-purple-300/90 hover:text-purple-300 text-xs flex items-center gap-1 px-2.5 py-1 border border-purple-500/30 hover:border-purple-500/60 rounded-lg transition-all">
               <Icon name="FileEdit" size={13} /> Контент
+            </Link>
+            <Link to="/erp" className="text-cyan-300/90 hover:text-cyan-300 text-xs flex items-center gap-1 px-2.5 py-1 border border-cyan-500/30 hover:border-cyan-500/60 rounded-lg transition-all">
+              <Icon name="Building2" size={13} /> ERP
             </Link>
             <Link to="/" className="text-white/40 hover:text-orange-400 text-xs flex items-center gap-1">
               <Icon name="ExternalLink" size={13} /> Сайт
@@ -664,6 +672,41 @@ export default function Admin() {
                     className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none" />
                 </div>
 
+                {/* Авто-пресеты SMTP популярных провайдеров */}
+                <div>
+                  <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
+                    Быстрая настройка по провайдеру
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { label: "Яндекс", host: "smtp.yandex.ru",   port: "465", url: "https://id.yandex.ru/security/app-passwords" },
+                      { label: "Mail.ru", host: "smtp.mail.ru",    port: "465", url: "https://account.mail.ru/user/2-step-auth/passwords/" },
+                      { label: "Gmail",  host: "smtp.gmail.com",   port: "465", url: "https://myaccount.google.com/apppasswords" },
+                      { label: "Rambler",host: "smtp.rambler.ru",  port: "465" },
+                      { label: "Outlook",host: "smtp-mail.outlook.com", port: "587" },
+                    ].map(p => (
+                      <button key={p.host} type="button"
+                        onClick={() => {
+                          onSettingChange("smtp_host", p.host);
+                          onSettingChange("smtp_port", p.port);
+                        }}
+                        className="text-xs px-3 py-1.5 bg-[#0d1017] hover:bg-orange-500/10 border border-[#1e2230] hover:border-orange-500/40 text-white/70 hover:text-orange-300 rounded-lg transition-colors flex items-center gap-1.5">
+                        <Icon name="Zap" size={11} /> {p.label}
+                        {p.url && (
+                          <a href={p.url} target="_blank" rel="noopener noreferrer"
+                            onClick={ev => ev.stopPropagation()}
+                            className="text-white/40 hover:text-orange-300" title="Получить пароль приложения">
+                            <Icon name="ExternalLink" size={10} />
+                          </a>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="text-[11px] text-white/35 mt-1.5">
+                    Жмите кнопку — заполнятся сервер и порт. Иконка <Icon name="ExternalLink" size={10} className="inline" /> ведёт на страницу создания «пароля приложения».
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="sm:col-span-2">
                     <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">SMTP-сервер</label>
@@ -822,6 +865,89 @@ export default function Admin() {
                     {smsTestResult}
                   </span>
                 )}
+              </div>
+            </div>
+
+            {/* CRM-интеграция */}
+            <div className="bg-[#141720] border border-[#1e2230] rounded-2xl p-6 mb-5">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-10 h-10 bg-emerald-500/15 border border-emerald-500/30 rounded-xl flex items-center justify-center">
+                  <Icon name="Zap" size={20} className="text-emerald-400" />
+                </div>
+                <div>
+                  <div className="font-oswald font-bold text-white text-lg">Интеграция с CRM</div>
+                  <div className="text-white/40 text-xs">Дублирование заявок в amoCRM, Bitrix24 или любой webhook</div>
+                </div>
+                <div className="ml-auto">
+                  <label className="inline-flex items-center gap-2 cursor-pointer text-xs">
+                    <input type="checkbox"
+                      checked={(settings.crm_webhook_enabled || "false") === "true"}
+                      onChange={e => onSettingChange("crm_webhook_enabled", e.target.checked ? "true" : "false")}
+                      className="w-4 h-4 accent-orange-500" />
+                    <span className="text-white/60">Включено</span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
+                    Тип CRM
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { v: "generic",  t: "Любая (JSON)", d: "Произвольный webhook" },
+                      { v: "amocrm",   t: "amoCRM",       d: "Leads API" },
+                      { v: "bitrix24", t: "Bitrix24",     d: "crm.lead.add" },
+                    ].map(opt => (
+                      <button key={opt.v} type="button"
+                        onClick={() => onSettingChange("crm_webhook_type", opt.v)}
+                        className={`text-left px-3 py-2.5 rounded-lg border text-sm transition-colors ${
+                          (settings.crm_webhook_type || "generic") === opt.v
+                            ? "bg-emerald-500/10 border-emerald-500/40 text-emerald-200"
+                            : "bg-[#0d1017] border-[#1e2230] text-white/70 hover:border-emerald-500/30"
+                        }`}>
+                        <div className="font-semibold">{opt.t}</div>
+                        <div className="text-[11px] text-white/40">{opt.d}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
+                    Webhook URL
+                  </label>
+                  <input type="text"
+                    value={settings.crm_webhook_url || ""}
+                    onChange={e => onSettingChange("crm_webhook_url", e.target.value)}
+                    placeholder={settings.crm_webhook_url_set
+                      ? "•••••• URL сохранён, введите чтобы заменить"
+                      : "https://your-crm.com/webhook/leads"}
+                    className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none font-mono" />
+                  <div className="text-[11px] text-white/35 mt-1.5">
+                    {(settings.crm_webhook_type || "generic") === "amocrm" &&
+                      <>amoCRM: <code className="text-orange-400/80">https://your-domain.amocrm.ru/api/v4/leads</code> + Bearer-токен через секретное поле ниже.</>}
+                    {(settings.crm_webhook_type || "generic") === "bitrix24" &&
+                      <>Bitrix24: входящий webhook вида <code className="text-orange-400/80">https://your-portal.bitrix24.ru/rest/USER_ID/CODE/crm.lead.add.json</code></>}
+                    {(settings.crm_webhook_type || "generic") === "generic" &&
+                      <>Любой URL — заявка отправится POST-запросом с JSON-телом.</>}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
+                    Секретный заголовок (опционально)
+                  </label>
+                  <input type="text"
+                    value={settings.crm_webhook_secret || ""}
+                    onChange={e => onSettingChange("crm_webhook_secret", e.target.value)}
+                    placeholder={settings.crm_webhook_secret_set ? "•••••• секрет сохранён" : "Bearer abc123 или любой токен"}
+                    className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none font-mono" />
+                  <div className="text-[11px] text-white/35 mt-1.5">
+                    Будет отправлен как <code>X-Webhook-Secret</code> — ваша CRM сможет проверять подлинность.
+                  </div>
+                </div>
               </div>
             </div>
 

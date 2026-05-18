@@ -97,15 +97,11 @@ def _send_to_max(bot_token, chat_id, text, phone='', pdf_url=''):
     if not chat_id:
         return False, 'no_chat_id'
     try:
+        # MAX поддерживает в inline_keyboard ТОЛЬКО http/https-ссылки.
+        # tel: ссылки вызывают 400 — поэтому телефон уже включаем в текст
+        # (там он кликабелен), а в кнопках оставляем только PDF КП.
         buttons = []
-        if phone:
-            digits = ''.join(ch for ch in phone if ch.isdigit() or ch == '+')
-            if digits and not digits.startswith('+'):
-                digits = '+' + digits
-            buttons.append([
-                {"type": "link", "text": f"📞 Перезвонить {phone}", "url": f"tel:{digits}"}
-            ])
-        if pdf_url:
+        if pdf_url and pdf_url.startswith(('http://', 'https://')):
             buttons.append([
                 {"type": "link", "text": "📄 Открыть КП в PDF", "url": pdf_url}
             ])
@@ -210,6 +206,77 @@ def _notify_client_via_max(bot_token, client_chat_id, text):
         return ok, info
     except Exception as e:
         return False, f'exception: {e}'
+
+
+def _send_crm_webhook(settings, lead_data):
+    """Отправляет данные заявки на webhook CRM (amoCRM/Bitrix24/generic).
+    Возвращает (ok, info)."""
+    if (settings.get('crm_webhook_enabled') or '').lower() not in ('true', '1', 'yes'):
+        return False, 'disabled'
+    url = (settings.get('crm_webhook_url') or '').strip()
+    if not url or not url.startswith(('http://', 'https://')):
+        return False, 'no_url'
+    wtype = (settings.get('crm_webhook_type') or 'generic').lower()
+    secret = (settings.get('crm_webhook_secret') or '').strip()
+
+    # Формат payload зависит от типа CRM
+    if wtype == 'amocrm':
+        # https://www.amocrm.ru/developers/content/crm_platform/leads-api
+        payload = {
+            'add': [{
+                'name': lead_data.get('object_type') or 'Заявка с сайта',
+                'price': int(lead_data.get('total_rub') or 0),
+                'custom_fields_values': [
+                    {'field_code': 'PHONE', 'values': [{'value': lead_data.get('phone'), 'enum_code': 'WORK'}]},
+                    {'field_code': 'EMAIL', 'values': [{'value': lead_data.get('email') or ''}]},
+                ],
+                '_embedded': {
+                    'contacts': [{
+                        'first_name': lead_data.get('name'),
+                        'custom_fields_values': [
+                            {'field_code': 'PHONE', 'values': [{'value': lead_data.get('phone'), 'enum_code': 'WORK'}]}
+                        ]
+                    }],
+                    'tags': [{'name': 'Сайт'}],
+                },
+            }]
+        }
+    elif wtype == 'bitrix24':
+        # Bitrix24 inbound webhook: crm.lead.add
+        payload = {
+            'fields': {
+                'TITLE':   f'Заявка №{lead_data.get("order_num")} — {lead_data.get("object_type")}',
+                'NAME':    lead_data.get('name'),
+                'PHONE':   [{'VALUE': lead_data.get('phone'), 'VALUE_TYPE': 'WORK'}],
+                'EMAIL':   [{'VALUE': lead_data.get('email') or '', 'VALUE_TYPE': 'WORK'}],
+                'ADDRESS': lead_data.get('address') or '',
+                'ADDRESS_CITY':    lead_data.get('city') or '',
+                'OPPORTUNITY':     int(lead_data.get('total_rub') or 0),
+                'COMMENTS':        lead_data.get('object_type') or '',
+                'SOURCE_ID':       'WEB',
+                'STATUS_ID':       'NEW',
+            }
+        }
+    else:
+        # generic — отправляем как есть
+        payload = lead_data
+
+    try:
+        body = json.dumps(payload, ensure_ascii=False).encode('utf-8')
+        hdrs = {
+            'Content-Type': 'application/json; charset=utf-8',
+            'Accept': 'application/json',
+            'User-Agent': 'StalgrupSite/1.0',
+        }
+        if secret:
+            hdrs['X-Webhook-Secret'] = secret
+        req = urllib.request.Request(url, data=body, headers=hdrs, method='POST')
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            return (200 <= resp.status < 300), f'status={resp.status}'
+    except urllib.error.HTTPError as e:
+        return False, f'http_{e.code}'
+    except Exception as e:
+        return False, f'error: {e}'[:200]
 
 
 def _render_template(tmpl, ctx):
@@ -385,7 +452,8 @@ def handler(event: dict, context) -> dict:
         # Секретные ключи: всегда маскируются. В админке отдаём пустую
         # строку + флаг {key}_set, чтобы UI знал — заполнено или нет.
         SECRET_KEYS = {'max_bot_token', 'smtp_password', 'smtp_user',
-                       'notify_email_to', 'manager_emails'}
+                       'notify_email_to', 'manager_emails',
+                       'crm_webhook_url', 'crm_webhook_secret'}
         # Эти ключи никогда не отдаём в публичных настройках сайта
         PRIVATE_KEYS = SECRET_KEYS | {
             'max_chat_id', 'manager_max_chat_id',
@@ -397,6 +465,7 @@ def handler(event: dict, context) -> dict:
             'manager_max_template', 'manager_email_subject',
             'client_email_subject', 'client_email_html',
             'client_sms_template',
+            'crm_webhook_enabled', 'crm_webhook_type',
         }
 
         if action == 'settings':
@@ -663,6 +732,23 @@ def handler(event: dict, context) -> dict:
                 sms_text = _render_template(sms_tmpl, ctx)
                 sms_ok, sms_info = _send_sms_smsru(phone, sms_text)
 
+            # ── 6) CRM webhook ──────────────────────────────────
+            crm_ok, crm_info = False, 'skipped'
+            if not is_event:
+                lead_for_crm = {
+                    'order_num':   order_num,
+                    'name':        name,
+                    'phone':       phone,
+                    'email':       client_email,
+                    'city':        city,
+                    'address':     address,
+                    'object_type': object_type,
+                    'total_rub':   total,
+                    'source':      'website',
+                    'page_url':    (payload or {}).get('page_url', '') if isinstance(payload, dict) else '',
+                }
+                crm_ok, crm_info = _send_crm_webhook(settings, lead_for_crm)
+
             # Сохраняем флаги доставки в БД
             try:
                 with conn.cursor() as cur:
@@ -692,6 +778,8 @@ def handler(event: dict, context) -> dict:
                         'client_email_info': cli_email_info,
                         'client_sms_sent': sms_ok,
                         'client_sms_info': sms_info,
+                        'crm_sent': crm_ok,
+                        'crm_info': crm_info,
                     }, default=str)}
 
         # ── СПИСОК ЗАЯВОК ─────────────────────────────────────────

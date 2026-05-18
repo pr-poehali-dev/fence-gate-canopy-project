@@ -10,6 +10,9 @@ import Reviews from "./pages/Reviews";
 import Admin from "./pages/Admin";
 import AdminLeads from "./pages/AdminLeads";
 import AdminContent from "./pages/AdminContent";
+import ErpLogin from "./pages/ErpLogin";
+import ErpDashboard from "./pages/ErpDashboard";
+import ErpEmployees from "./pages/ErpEmployees";
 import MaxSetup from "./pages/MaxSetup";
 import Privacy from "./pages/Privacy";
 import Shtaketnik from "./pages/services/Shtaketnik";
@@ -38,6 +41,9 @@ const App = () => (
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/leads" element={<AdminLeads />} />
           <Route path="/admin/content" element={<AdminContent />} />
+          <Route path="/erp/login" element={<ErpLogin />} />
+          <Route path="/erp" element={<ErpDashboard />} />
+          <Route path="/erp/employees" element={<ErpEmployees />} />
           <Route path="/max-setup" element={<MaxSetup />} />
           <Route path="/help/max" element={<MaxSetup />} />
           <Route path="/privacy" element={<Privacy />} />
