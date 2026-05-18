@@ -143,7 +143,17 @@ export interface LeadPayload {
   pdf_base64?: string;
 }
 
-export async function sendLead(p: LeadPayload) {
+export interface LeadResponse {
+  ok: boolean;
+  id?: number;
+  order_num?: string;
+  delivered?: boolean;
+  sms_sent?: boolean;
+  sms_info?: string;
+  error?: string;
+}
+
+export async function sendLead(p: LeadPayload): Promise<LeadResponse> {
   const r = await fetch(`${API.bot}?action=lead`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

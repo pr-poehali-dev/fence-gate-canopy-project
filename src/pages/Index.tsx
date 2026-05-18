@@ -434,7 +434,12 @@ function CalculatorLegacy() {
               </div>
             </div>
 
-            <button className="btn-orange w-full py-4 rounded-xl text-base mb-3">
+            <button onClick={() => lead.open({
+                title: "Заказать бесплатный замер",
+                subtitle: "Замерщик приедет в удобное время, согласует материалы и зафиксирует точную цену.",
+                source: "Главная: блок калькулятор — Замер",
+              })}
+              className="btn-orange w-full py-4 rounded-xl text-base mb-3">
               Заказать бесплатный замер
             </button>
             <button
@@ -1367,14 +1372,29 @@ export default function Index() {
               © 2009–2026 {COMPANY.shortName}. Все права защищены.
             </div>
             <div className="flex flex-wrap gap-x-5 gap-y-2">
-              {[
-                "Политика конфиденциальности",
-                "Договор-оферта",
-                "Реквизиты",
-                "Карта сайта",
-              ].map(item => (
-                <button key={item} className="text-white/35 hover:text-orange-400 text-xs transition-colors">{item}</button>
-              ))}
+              <Link to="/privacy" className="text-white/35 hover:text-orange-400 text-xs transition-colors">
+                Политика конфиденциальности
+              </Link>
+              <button onClick={() => lead.open({
+                  title: "Запросить договор-оферту",
+                  subtitle: "Пришлём типовой договор на ваш WhatsApp/Email для ознакомления.",
+                  source: "Footer: Договор-оферта",
+                })}
+                className="text-white/35 hover:text-orange-400 text-xs transition-colors">
+                Договор-оферта
+              </button>
+              <button onClick={() => alert(
+                  `ИП Балтаг А. В.\nИНН: ${COMPANY.inn}\n` +
+                  `Адрес: ${COMPANY.legalAddress}\n` +
+                  `Телефон: ${COMPANY.phone}\nEmail: ${COMPANY.email}`
+                )}
+                className="text-white/35 hover:text-orange-400 text-xs transition-colors">
+                Реквизиты
+              </button>
+              <button onClick={() => scrollTo("hero")}
+                className="text-white/35 hover:text-orange-400 text-xs transition-colors">
+                Карта сайта
+              </button>
             </div>
           </div>
         </div>

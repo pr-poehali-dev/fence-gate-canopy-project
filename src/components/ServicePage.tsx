@@ -643,7 +643,7 @@ export default function ServicePage(p: ServiceProps) {
                         : "Скачать прайс PDF"}
                   </button>
                   <p className="text-white/30 text-[11px] text-center">
-                    Согласие с <button type="button" className="text-orange-400/70 hover:text-orange-400 underline">политикой</button>
+                    Согласие с <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-orange-400/70 hover:text-orange-400 underline">политикой</a>
                   </p>
                 </div>
               </div>

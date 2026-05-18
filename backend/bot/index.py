@@ -78,11 +78,13 @@ def _max_get(bot_token, path, params=None):
 
 
 def _send_to_max(bot_token, chat_id, text, phone='', pdf_url=''):
-    """Отправка сообщения через MAX Messenger Bot API с inline-кнопками.
-    Кнопки: «Перезвонить» (tel:) и «Открыть КП в PDF» (link).
+    """Отправка сообщения через MAX Messenger Bot API.
+    Возвращает (ok, info_text) — info попадает в логи и в ответ API.
     """
-    if not bot_token or not chat_id:
-        return False
+    if not bot_token:
+        return False, 'no_token'
+    if not chat_id:
+        return False, 'no_chat_id'
     try:
         buttons = []
         if phone:
@@ -102,19 +104,77 @@ def _send_to_max(bot_token, chat_id, text, phone='', pdf_url=''):
                 "type": "inline_keyboard",
                 "payload": {"buttons": buttons}
             }]
-        # chat_id передаём числом, если возможно (новые API строго требуют int)
+        # chat_id новые API принимают как число
         try:
             cid_val = int(str(chat_id).strip())
         except Exception:
             cid_val = str(chat_id).strip()
-        status, _ = _max_request(
+        status, data = _max_request(
             bot_token, 'POST', '/messages',
             params={'chat_id': cid_val},
             json_body=payload,
         )
-        return 200 <= status < 300
-    except Exception:
-        return False
+        ok = 200 <= status < 300
+        info = f'status={status}'
+        if isinstance(data, dict):
+            err_code = data.get('code') or data.get('error') or ''
+            err_msg = data.get('message') or data.get('description') or ''
+            if err_code or err_msg:
+                info = f'{info} code={err_code} msg={err_msg}'
+        # печатаем в лог для отладки
+        print(f'[MAX] send chat_id={cid_val}: {info}', flush=True)
+        return ok, info
+    except Exception as e:
+        return False, f'exception: {e}'
+
+
+def _normalize_phone_ru(phone):
+    """Приводит телефон РФ к виду 79991234567 (11 цифр, без +). Возвращает '' если не получилось."""
+    if not phone:
+        return ''
+    digits = ''.join(ch for ch in str(phone) if ch.isdigit())
+    if not digits:
+        return ''
+    if len(digits) == 11 and digits[0] == '8':
+        digits = '7' + digits[1:]
+    if len(digits) == 10:
+        digits = '7' + digits
+    if len(digits) == 11 and digits[0] == '7':
+        return digits
+    return ''
+
+
+def _send_sms_to_client(phone, text):
+    """Отправляет SMS клиенту через sms.ru. Возвращает (ok, info).
+    Если SMSRU_API_ID не задан или номер некорректный — тихо возвращает (False, причина).
+    """
+    api_id = os.environ.get('SMSRU_API_ID', '').strip()
+    if not api_id:
+        return False, 'no_api_id'
+    num = _normalize_phone_ru(phone)
+    if not num:
+        return False, 'bad_phone'
+    try:
+        qs = urllib.parse.urlencode({
+            'api_id': api_id,
+            'to':     num,
+            'msg':    text,
+            'json':   '1',
+        })
+        url = 'https://sms.ru/sms/send?' + qs
+        req = urllib.request.Request(url, headers={'Accept': 'application/json'})
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            raw = resp.read().decode('utf-8') or '{}'
+            try:
+                data = json.loads(raw)
+            except Exception:
+                data = {'raw': raw}
+            status = (data.get('status') or '').upper()
+            if status == 'OK':
+                return True, data
+            return False, data
+    except Exception as e:
+        return False, {'error': str(e)}
 
 
 def _upload_pdf_to_s3(b64data: str, order_num: str) -> str:
@@ -260,9 +320,12 @@ def handler(event: dict, context) -> dict:
                     "────────────────"
                 )
 
-                delivered = _send_to_max(
-                    bot_token, chat_id, txt, phone=phone, pdf_url=pdf_url
-                ) if bot_token and chat_id else False
+                if bot_token and chat_id:
+                    delivered, max_info = _send_to_max(
+                        bot_token, chat_id, txt, phone=phone, pdf_url=pdf_url
+                    )
+                else:
+                    delivered, max_info = False, 'no_settings'
 
                 safe_name = name.replace("'", "''")
                 safe_phone = phone.replace("'", "''")
@@ -281,8 +344,40 @@ def handler(event: dict, context) -> dict:
                 lead_id = cur.fetchone()[0]
                 conn.commit()
 
+            # ── SMS-уведомление клиенту с номером заявки ─────────
+            sms_ok = False
+            sms_info = ''
+            is_event = (object_type or '').startswith('[')  # [КП скачано], [Прайс PDF] — без SMS
+            if not is_event and phone and phone not in ('—', '-'):
+                short_phone = (settings.get('phone_short')
+                               or settings.get('company_phone')
+                               or '8 800 123-45-67')
+                sms_text = (
+                    f"СтальГрупп: заявка №{order_num or '—'} принята. "
+                    f"Менеджер свяжется в течение 10 минут. "
+                    f"Срочно? {short_phone}"
+                )
+                sms_ok, sms_info = _send_sms_to_client(phone, sms_text)
+                # Если в БД есть колонка sms_sent — обновим (опционально)
+                try:
+                    with conn.cursor() as cur:
+                        cur.execute(
+                            f"UPDATE leads SET sms_sent={sms_ok} WHERE id={lead_id}"
+                        )
+                        conn.commit()
+                except Exception:
+                    pass  # колонки может не быть — игнорируем
+
             return {'statusCode': 200, 'headers': cors,
-                    'body': json.dumps({'ok': True, 'id': lead_id, 'delivered': delivered})}
+                    'body': json.dumps({
+                        'ok': True,
+                        'id': lead_id,
+                        'order_num': order_num,
+                        'delivered': delivered,
+                        'max_info': max_info,
+                        'sms_sent': sms_ok,
+                        'sms_info': sms_info if not sms_ok else 'sent',
+                    }, default=str)}
 
         # ── СПИСОК ЗАЯВОК ─────────────────────────────────────────
         if action == 'leads' and method == 'GET':
@@ -388,17 +483,21 @@ def handler(event: dict, context) -> dict:
                     f"💰 Сумма: *{total_fmt} ₽*\n"
                     "────────────────"
                 )
-                delivered = _send_to_max(
-                    bot_token, chat_id, txt,
-                    phone=phone or '', pdf_url=pdf_url
-                ) if bot_token and chat_id else False
+                if bot_token and chat_id:
+                    delivered, max_info = _send_to_max(
+                        bot_token, chat_id, txt,
+                        phone=phone or '', pdf_url=pdf_url
+                    )
+                else:
+                    delivered, max_info = False, 'no_settings'
 
                 cur.execute(
                     f"UPDATE leads SET delivered_to_max={delivered} WHERE id={lead_id}"
                 )
                 conn.commit()
             return {'statusCode': 200, 'headers': cors,
-                    'body': json.dumps({'ok': True, 'delivered': delivered})}
+                    'body': json.dumps({'ok': True, 'delivered': delivered,
+                                         'max_info': max_info}, default=str)}
 
         # ── АВТОПОИСК CHAT_ID (по обновлениям и подпискам) ────────
         if action == 'chats' and method == 'GET':
@@ -510,7 +609,7 @@ def handler(event: dict, context) -> dict:
             if not bot_token or not chat_id:
                 return {'statusCode': 200, 'headers': cors,
                         'body': json.dumps({'ok': False, 'error': 'no_token_or_chat'})}
-            ok = _send_to_max(
+            ok, info = _send_to_max(
                 bot_token, chat_id,
                 "✅ *Тест соединения*\n────────────────\n"
                 "Бот СтальГрупп подключён к этому чату.\n"
@@ -518,7 +617,7 @@ def handler(event: dict, context) -> dict:
                 phone='', pdf_url=''
             )
             return {'statusCode': 200, 'headers': cors,
-                    'body': json.dumps({'ok': bool(ok)})}
+                    'body': json.dumps({'ok': bool(ok), 'info': info}, default=str)}
 
         return {'statusCode': 400, 'headers': cors,
                 'body': json.dumps({'error': 'unknown_action_or_method'})}

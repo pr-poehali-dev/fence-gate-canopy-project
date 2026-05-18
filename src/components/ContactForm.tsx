@@ -11,6 +11,8 @@ export default function ContactForm() {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [err, setErr] = useState("");
+  const [sentOrder, setSentOrder] = useState("");
+  const [sentSms, setSentSms] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,6 +32,8 @@ export default function ContactForm() {
       });
       if (res?.ok) {
         setSent(true);
+        setSentOrder(res.order_num || orderNum);
+        setSentSms(Boolean(res.sms_sent));
         setName(""); setPhone(""); setEmail(""); setTask("");
       } else {
         setErr("Не удалось отправить. Позвоните " + COMPANY.phone);
@@ -47,8 +51,24 @@ export default function ContactForm() {
         <div className="w-16 h-16 bg-green-500/15 border border-green-500/40 rounded-full flex items-center justify-center mx-auto mb-4">
           <Icon name="CheckCircle2" size={32} className="text-green-400" />
         </div>
-        <div className="font-oswald font-bold text-2xl text-white mb-2">Заявка отправлена!</div>
-        <p className="text-white/55 text-sm">Менеджер свяжется в течение 15 минут.</p>
+        <div className="font-oswald font-bold text-2xl text-white mb-2">Заявка принята!</div>
+        {sentOrder && (
+          <div className="bg-[#0d1017] border border-orange-500/30 rounded-xl px-4 py-3 mb-4 inline-block">
+            <div className="text-[10px] text-white/40 uppercase tracking-widest mb-1">Номер заявки</div>
+            <div className="font-mono font-bold text-orange-400 text-base">{sentOrder}</div>
+          </div>
+        )}
+        <p className="text-white/55 text-sm mb-3">Менеджер свяжется в течение 15 минут.</p>
+        {sentSms ? (
+          <div className="bg-green-500/10 border border-green-500/30 rounded-xl px-3 py-2 text-xs text-green-300 inline-flex items-center gap-1.5">
+            <Icon name="MessageSquare" size={13} />
+            Копия с номером заявки отправлена SMS
+          </div>
+        ) : (
+          <div className="text-[11px] text-white/35">
+            Сохраните номер заявки — он понадобится при звонке
+          </div>
+        )}
       </div>
     );
   }

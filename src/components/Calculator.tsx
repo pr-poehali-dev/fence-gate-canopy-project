@@ -134,40 +134,55 @@ function fmt(n: number) {
 let _ptSansRegularB64: string | null = null;
 let _ptSansBoldB64: string | null = null;
 
-async function _loadFont(url: string): Promise<string> {
-  const resp = await fetch(url);
-  const buf  = await resp.arrayBuffer();
-  // ArrayBuffer → base64
-  let bin = "";
-  const bytes = new Uint8Array(buf);
-  const chunk = 0x8000;
-  for (let i = 0; i < bytes.length; i += chunk) {
-    bin += String.fromCharCode.apply(
-      null,
-      Array.from(bytes.subarray(i, i + chunk)) as unknown as number[]
-    );
+async function _loadFont(url: string, timeoutMs = 4500): Promise<string> {
+  const ctrl = new AbortController();
+  const tid = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const resp = await fetch(url, { signal: ctrl.signal, mode: "cors" });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const buf  = await resp.arrayBuffer();
+    let bin = "";
+    const bytes = new Uint8Array(buf);
+    const chunk = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunk) {
+      bin += String.fromCharCode.apply(
+        null,
+        Array.from(bytes.subarray(i, i + chunk)) as unknown as number[]
+      );
+    }
+    return btoa(bin);
+  } finally {
+    clearTimeout(tid);
   }
-  return btoa(bin);
 }
 
-async function _ensureFonts() {
-  if (_ptSansRegularB64 && _ptSansBoldB64) return;
-  // Шрифт PT Sans с поддержкой кириллицы (Google Fonts через jsdelivr)
-  const regUrl  = "https://cdn.jsdelivr.net/npm/@fontsource/pt-sans@5.0.12/files/pt-sans-cyrillic-400-normal.woff";
-  const boldUrl = "https://cdn.jsdelivr.net/npm/@fontsource/pt-sans@5.0.12/files/pt-sans-cyrillic-700-normal.woff";
-  // jsPDF поддерживает только TTF — берём TTF-исходник из gstatic (PT Sans)
-  const ttfReg  = "https://fonts.gstatic.com/s/ptsans/v17/jizaRExUiTo99u79D0KExcOPIDU.ttf";
-  const ttfBold = "https://fonts.gstatic.com/s/ptsans/v17/jizfRExUiTo99u79B_mh4OmnLD0Z4zM.ttf";
-  try {
-    const [r, b] = await Promise.all([_loadFont(ttfReg), _loadFont(ttfBold)]);
-    _ptSansRegularB64 = r;
-    _ptSansBoldB64 = b;
-  } catch {
-    // fallback на woff (хуже, но лучше чем ничего)
-    const [r, b] = await Promise.all([_loadFont(regUrl), _loadFont(boldUrl)]);
-    _ptSansRegularB64 = r;
-    _ptSansBoldB64 = b;
+// Несколько источников TTF-шрифта с поддержкой кириллицы. Главное —
+// все они отдают корректный CORS-заголовок. Если все упадут — PDF
+// сгенерится встроенным шрифтом jsPDF (английский), но всё равно скачается.
+const FONT_SOURCES: Array<{ reg: string; bold: string }> = [
+  {
+    reg:  "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/ptsans/PT_Sans-Web-Regular.ttf",
+    bold: "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/ptsans/PT_Sans-Web-Bold.ttf",
+  },
+  {
+    reg:  "https://raw.githubusercontent.com/google/fonts/main/ofl/ptsans/PT_Sans-Web-Regular.ttf",
+    bold: "https://raw.githubusercontent.com/google/fonts/main/ofl/ptsans/PT_Sans-Web-Bold.ttf",
+  },
+];
+
+async function _ensureFonts(): Promise<boolean> {
+  if (_ptSansRegularB64 && _ptSansBoldB64) return true;
+  for (const src of FONT_SOURCES) {
+    try {
+      const [r, b] = await Promise.all([_loadFont(src.reg), _loadFont(src.bold)]);
+      _ptSansRegularB64 = r;
+      _ptSansBoldB64 = b;
+      return true;
+    } catch (e) {
+      console.warn("PDF: источник шрифта не доступен, пробуем следующий:", e);
+    }
   }
+  return false;
 }
 
 async function generatePDF(
@@ -761,14 +776,11 @@ export default function Calculator() {
     setPdfLoading(true);
     setPdfDone(false);
     try {
-      // Если телефон не указан — открываем модалку для сбора контакта,
-      // а PDF скачается сразу. Менеджер получит уведомление «КП скачано».
       await generatePDF(orderNum, calc.objectType, lineItems, total, kpParams);
       setPdfDone(true);
       setTimeout(() => setPdfDone(false), 6000);
 
-      // Фиксируем факт скачивания КП в журнал (даже без телефона —
-      // тогда заявка пойдёт без MAX, но останется в админке).
+      // Фиксируем факт скачивания КП в журнал (даже без телефона)
       try {
         await sendLead({
           order_num:   orderNum,
@@ -793,6 +805,14 @@ export default function Calculator() {
           });
         }, 800);
       }
+    } catch (e) {
+      console.error("Ошибка генерации PDF:", e);
+      const msg = e instanceof Error ? e.message : String(e);
+      alert(
+        "Не удалось сформировать КП в PDF.\n\n" +
+        "Причина: " + msg + "\n\n" +
+        "Позвоните " + COMPANY.phone + " — менеджер пришлёт КП в WhatsApp/MAX вручную."
+      );
     } finally {
       setPdfLoading(false);
     }
