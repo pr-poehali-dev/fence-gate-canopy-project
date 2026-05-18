@@ -1,0 +1,21 @@
+{
+  "tests": [
+    {
+      "name": "Get approved reviews",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {"items": "array"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Submit new review (moderation)",
+      "method": "POST",
+      "path": "/",
+      "body": {"name": "Test", "city": "Москва", "rating": 5, "text": "Хорошо сделали", "service": "Профнастил"},
+      "expectedStatus": 200,
+      "expectedBody": {"ok": true, "moderation": true},
+      "bodyMatcher": "partial"
+    }
+  ]
+}

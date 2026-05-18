@@ -1,0 +1,12 @@
+{
+  "tests": [
+    {
+      "name": "Get prices list",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {"items": "array"},
+      "bodyMatcher": "partial"
+    }
+  ]
+}

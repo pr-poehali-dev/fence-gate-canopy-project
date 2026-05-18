@@ -20,25 +20,26 @@ const IMGS = {
 
 const NAV_ITEMS = [
   { id: "home",       label: "Главная" },
-  { id: "advantages", label: "О нас" },
-  { id: "products",   label: "Продукция" },
-  { id: "steps",      label: "Как работаем" },
+  { id: "products",   label: "Услуги" },
   { id: "calculator", label: "Калькулятор" },
+  { id: "steps",      label: "Этапы" },
   { id: "delivery",   label: "Доставка" },
   { id: "contacts",   label: "Контакты" },
 ];
 
 // ── Продукция ────────────────────────────────────────────────────────────────
 const PRODUCTS: { img: string; title: string; desc: string; price: string; badge: string | null; href?: string }[] = [
-  { img: IMGS.profnastil, title: "Профнастил", desc: "Оцинкованный С8/С10/МП20, покрытие полиэстер или пурал. Срок службы 25+ лет.", price: "от 1 100 ₽/м²", badge: "Хит", href: "/services/profnastil" },
-  { img: IMGS.euro,       title: "Евроштакетник", desc: "Двусторонний металлический штакетник. Пропускает свет, современный дизайн.", price: "от 2 100 ₽/м²", badge: null, href: "/services/shtaketnik" },
-  { img: IMGS.gates,      title: "Откатные ворота", desc: "Консольные откатные ворота под автоматику. Любое наполнение, до 8 м проёма.", price: "от 42 000 ₽", badge: null, href: "/services/otkatnye-vorota" },
-  { img: IMGS.canopy,     title: "Навесы и беседки", desc: "Арочные, двухскатные, односкатные. Поликарбонат и профнастил. Под ключ.", price: "от 3 200 ₽/м²", badge: null, href: "/services/navesy" },
-  { img: IMGS.kovka,      title: "Ковка художественная", desc: "Горячая и холодная ковка по индивидуальным эскизам. Антикоррозийная обработка.", price: "от 4 500 ₽/м²", badge: "Премиум" },
-  { img: IMGS.mesh3d,     title: "3D-сетка сварная", desc: "Прутки Ø4–6 мм, ячейка 50×200 мм. Антивандальные, для промышленных объектов.", price: "от 1 600 ₽/м²", badge: null },
-  { img: IMGS.gazebo,     title: "Беседки и пергола", desc: "Металлические беседки, перголы, зоны отдыха. Под ключ с кровлей.", price: "от 35 000 ₽", badge: null },
-  { img: IMGS.foundation, title: "Фундаменты", desc: "Ленточный, столбчатый, бутование, бетонирование. Основа долговечного забора.", price: "от 650 ₽/м.п.", badge: null },
-  { img: IMGS.profnastil, title: "Сетка-рабица", desc: "Оцинкованная Ø2 мм или с ПВХ-покрытием. Быстрый монтаж, дачный вариант.", price: "от 550 ₽/м²", badge: "Эконом" },
+  { img: IMGS.profnastil, title: "Профнастил",          desc: "Оцинкованный С8/С10/МП20, покрытие полиэстер или пурал. Срок службы 25+ лет.",       price: "от 2 800 ₽/м.п.", badge: "Хит",     href: "/services/profnastil" },
+  { img: IMGS.euro,       title: "Евроштакетник",       desc: "Двусторонний металлический штакетник. Пропускает свет, современный дизайн.",         price: "от 3 400 ₽/м.п.", badge: null,      href: "/services/shtaketnik" },
+  { img: IMGS.gates,      title: "Откатные ворота",     desc: "Консольные откатные ворота под автоматику. Любое наполнение, до 8 м проёма.",        price: "от 75 000 ₽",     badge: null,      href: "/services/otkatnye-vorota" },
+  { img: IMGS.gates,      title: "Распашные ворота",    desc: "1–2 створки на петлях. Бюджет, надёжность, готовность к автоматике.",                 price: "от 42 000 ₽",     badge: null,      href: "/services/raspashnye-vorota" },
+  { img: IMGS.canopy,     title: "Навесы для авто",     desc: "Арочные, двухскатные, односкатные. Поликарбонат и профнастил. Под ключ.",            price: "от 3 200 ₽/м²",  badge: null,      href: "/services/navesy" },
+  { img: IMGS.kovka,      title: "Ковка художественная", desc: "Горячая и холодная ковка по индивидуальным эскизам. Антикоррозийная обработка.",     price: "от 5 500 ₽/м.п.", badge: "Премиум", href: "/services/kovka" },
+  { img: IMGS.mesh3d,     title: "3D-сетка сварная",    desc: "Прутки Ø4–6 мм, ячейка 50×200 мм. Антивандальные, для частных домов и КП.",          price: "от 1 900 ₽/м.п.", badge: null,      href: "/services/3d-setka" },
+  { img: IMGS.gazebo,     title: "Беседки и пергола",   desc: "Металлические беседки 3×3 / 4×4 / 6×4 м. С мангалом, кровлей, освещением.",          price: "от 85 000 ₽",     badge: null,      href: "/services/besedki" },
+  { img: IMGS.profnastil, title: "Калитки металлические", desc: "В тон забора: профнастил, штакетник, ковка. С врезным замком и петлями.",         price: "от 9 500 ₽",      badge: null,      href: "/services/kalitki" },
+  { img: IMGS.foundation, title: "Фундаменты под забор", desc: "Бутование, бетонирование, винтовые сваи, ленточный. Подбор по типу грунта.",        price: "от 650 ₽/м.п.",   badge: null,      href: "/services/fundamenty" },
+  { img: IMGS.profnastil, title: "Сетка-рабица",         desc: "Оцинкованная Ø2 мм или с ПВХ-покрытием. Быстрый монтаж, дачный вариант.",            price: "от 950 ₽/м.п.",   badge: "Эконом",  href: "/services/setka-rabitsa" },
 ];
 
 const SERVICES = [
@@ -551,6 +552,9 @@ export default function Index() {
             </div>
 
             <div className="hidden lg:flex items-center gap-4">
+              <Link to="/reviews" className="text-white/60 hover:text-orange-400 text-sm flex items-center gap-1.5 transition-colors">
+                <Icon name="Star" size={14} className="text-orange-400" /> Отзывы
+              </Link>
               <div className="text-right leading-tight">
                 <a href="tel:+78001234567" className="flex items-center gap-1.5 text-orange-400 font-oswald font-medium hover:text-orange-300 transition-colors text-sm justify-end">
                   <Icon name="Phone" size={14} />
@@ -1183,18 +1187,26 @@ export default function Index() {
               </div>
             </div>
 
-            {/* Навигация */}
+            {/* Навигация по услугам */}
             <div>
-              <div className="font-oswald font-semibold text-white text-sm uppercase tracking-wider mb-4">Разделы</div>
-              <ul className="space-y-2">
-                {NAV_ITEMS.map(({ id, label }) => (
-                  <li key={id}>
-                    <button onClick={() => scrollTo(id)}
-                      className="text-white/40 hover:text-orange-400 text-sm transition-colors">
-                      {label}
-                    </button>
-                  </li>
-                ))}
+              <div className="font-oswald font-semibold text-white text-sm uppercase tracking-wider mb-4">Услуги</div>
+              <ul className="space-y-2 text-sm">
+                <li><Link to="/services/profnastil"        className="text-white/40 hover:text-orange-400 transition-colors">Заборы из профнастила</Link></li>
+                <li><Link to="/services/shtaketnik"        className="text-white/40 hover:text-orange-400 transition-colors">Евроштакетник</Link></li>
+                <li><Link to="/services/3d-setka"          className="text-white/40 hover:text-orange-400 transition-colors">3D-сетка</Link></li>
+                <li><Link to="/services/kovka"             className="text-white/40 hover:text-orange-400 transition-colors">Художественная ковка</Link></li>
+                <li><Link to="/services/setka-rabitsa"     className="text-white/40 hover:text-orange-400 transition-colors">Сетка-рабица</Link></li>
+                <li><Link to="/services/otkatnye-vorota"   className="text-white/40 hover:text-orange-400 transition-colors">Откатные ворота</Link></li>
+                <li><Link to="/services/raspashnye-vorota" className="text-white/40 hover:text-orange-400 transition-colors">Распашные ворота</Link></li>
+                <li><Link to="/services/kalitki"           className="text-white/40 hover:text-orange-400 transition-colors">Калитки</Link></li>
+                <li><Link to="/services/navesy"            className="text-white/40 hover:text-orange-400 transition-colors">Навесы</Link></li>
+                <li><Link to="/services/besedki"           className="text-white/40 hover:text-orange-400 transition-colors">Беседки и пергола</Link></li>
+                <li><Link to="/services/fundamenty"        className="text-white/40 hover:text-orange-400 transition-colors">Фундаменты</Link></li>
+                <li className="pt-2 border-t border-[#1e2230]">
+                  <Link to="/reviews" className="text-orange-400 hover:text-orange-300 transition-colors flex items-center gap-1">
+                    <Icon name="Star" size={12} /> Отзывы клиентов
+                  </Link>
+                </li>
               </ul>
             </div>
 

@@ -1,0 +1,20 @@
+{
+  "tests": [
+    {
+      "name": "Login wrong creds",
+      "method": "POST",
+      "path": "/?action=login",
+      "body": {"login": "nobody", "password": "wrong"},
+      "expectedStatus": 401
+    },
+    {
+      "name": "Login admin",
+      "method": "POST",
+      "path": "/?action=login",
+      "body": {"login": "admin", "password": "stalgrupp2026"},
+      "expectedStatus": 200,
+      "expectedBody": {"token": "string"},
+      "bodyMatcher": "partial"
+    }
+  ]
+}

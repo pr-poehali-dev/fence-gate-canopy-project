@@ -25,13 +25,13 @@ const LAG_OPTIONS = [
 ] as const;
 type LagId = typeof LAG_OPTIONS[number]["id"];
 
-// Профлист (цена за м²)
+// Профлист (цена за м², рынок МО 2026)
 const PROFLIST_OPTIONS = [
-  { id: "C8",   label: "С8",   height_mm: 8,  priceM2: 320, desc: "Лёгкий, горизонт. и вертик." },
-  { id: "C10",  label: "С10",  height_mm: 10, priceM2: 360, desc: "Самый популярный для забора" },
-  { id: "C20",  label: "С20",  height_mm: 20, priceM2: 420, desc: "Жёсткий, промышленный" },
-  { id: "MP20", label: "МП20", height_mm: 20, priceM2: 450, desc: "С-образный, повышенная жёсткость" },
-  { id: "HC35", label: "НС35", height_mm: 35, priceM2: 520, desc: "Несущий, ворота, промзона" },
+  { id: "C8",   label: "С8",   height_mm: 8,  priceM2: 720,  desc: "Лёгкий, горизонт. и вертик." },
+  { id: "C10",  label: "С10",  height_mm: 10, priceM2: 850,  desc: "Самый популярный для забора" },
+  { id: "C20",  label: "С20",  height_mm: 20, priceM2: 980,  desc: "Жёсткий, промышленный" },
+  { id: "MP20", label: "МП20", height_mm: 20, priceM2: 1050, desc: "С-образный, повышенная жёсткость" },
+  { id: "HC35", label: "НС35", height_mm: 35, priceM2: 1240, desc: "Несущий, ворота, промзона" },
 ] as const;
 type ProflistId = typeof PROFLIST_OPTIONS[number]["id"];
 
@@ -81,20 +81,20 @@ const FOUND_OPTIONS = [
 ] as const;
 type FoundId = typeof FOUND_OPTIONS[number]["id"];
 
-// Ворота
+// Ворота (рынок МО 2026)
 const GATE_OPTIONS = [
   { id: "none",        label: "Без ворот",   base: 0,     perM: 0,    desc: "" },
-  { id: "otkatnye",    label: "Откатные",    base: 42000, perM: 3200, desc: "Консоль, до 8 м" },
-  { id: "raspashnye",  label: "Распашные",   base: 26000, perM: 2400, desc: "1 или 2 створки" },
-  { id: "sektcionnye", label: "Секционные",  base: 55000, perM: 4500, desc: "Подъёмные, гараж" },
+  { id: "otkatnye",    label: "Откатные",    base: 75000, perM: 5500, desc: "Консоль, до 8 м" },
+  { id: "raspashnye",  label: "Распашные",   base: 42000, perM: 3800, desc: "1 или 2 створки" },
+  { id: "sektcionnye", label: "Секционные",  base: 88000, perM: 6500, desc: "Подъёмные, гараж" },
 ] as const;
 type GateId = typeof GATE_OPTIONS[number]["id"];
 
 const WICKET_OPTIONS = [
   { id: "none",     label: "Нет",        price: 0 },
-  { id: "standard", label: "Стандарт",   price: 8500 },
-  { id: "kovka",    label: "Кованая",    price: 18000 },
-  { id: "auto",     label: "Авто-замок", price: 12000 },
+  { id: "standard", label: "Стандарт",   price: 9500 },
+  { id: "kovka",    label: "Кованая",    price: 19500 },
+  { id: "auto",     label: "Авто-замок", price: 14500 },
 ] as const;
 type WicketId = typeof WICKET_OPTIONS[number]["id"];
 
@@ -1139,6 +1139,16 @@ export default function Calculator() {
               <Icon name={pdfLoading ? "Loader" : "FileDown"} size={16} className={pdfLoading ? "animate-spin" : ""} />
               {pdfLoading ? "Генерация PDF..." : "Скачать КП в PDF"}
             </button>
+
+            <a
+              href={`https://wa.me/${COMPANY.phoneE164.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(
+                `Здравствуйте! Сделал расчёт на сайте.\n\nЗаказ: ${orderNum}\nТип: ${OBJECT_LABELS[calc.objectType]}\nПериметр: ${calc.fenceLength} м\nВысота: ${calc.fenceHeight} м\nИтого: ${fmt(total)}\n\nПрошу прислать точную смету.`
+              )}`}
+              target="_blank" rel="noopener noreferrer"
+              className="w-full py-3 rounded-xl text-sm flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 text-white font-oswald font-bold uppercase tracking-wide transition-all mb-2">
+              <Icon name="MessageCircle" size={16} />
+              Отправить смету в WhatsApp
+            </a>
 
             <button
               onClick={handleJSON}
