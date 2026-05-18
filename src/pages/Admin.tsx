@@ -182,6 +182,9 @@ export default function Admin() {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <Link to="/admin/leads" className="text-orange-400/90 hover:text-orange-400 text-xs flex items-center gap-1 px-2.5 py-1 border border-orange-500/30 hover:border-orange-500/60 rounded-lg transition-all">
+              <Icon name="Inbox" size={13} /> Заявки
+            </Link>
             <Link to="/" className="text-white/40 hover:text-orange-400 text-xs flex items-center gap-1">
               <Icon name="ExternalLink" size={13} /> Сайт
             </Link>

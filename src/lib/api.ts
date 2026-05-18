@@ -151,3 +151,54 @@ export async function sendLead(p: LeadPayload) {
   });
   return r.json();
 }
+
+// ───────────────── Журнал заявок ─────────────────
+export interface LeadItem {
+  id: number;
+  order_num: string | null;
+  name: string | null;
+  phone: string | null;
+  city: string | null;
+  address: string | null;
+  object_type: string | null;
+  total_rub: number;
+  delivered_to_max: boolean;
+  created_at: string | null;
+}
+
+export interface LeadsResponse {
+  items: LeadItem[];
+  stats: { total: number; delivered: number; sum_rub: number };
+}
+
+export interface LeadsFilter {
+  from?: string;       // YYYY-MM-DD
+  to?: string;         // YYYY-MM-DD
+  status?: "all" | "delivered" | "failed";
+  limit?: number;
+}
+
+export async function fetchLeads(f: LeadsFilter = {}): Promise<LeadsResponse> {
+  const params = new URLSearchParams({ action: "leads" });
+  if (f.from) params.set("from", f.from);
+  if (f.to) params.set("to", f.to);
+  if (f.status && f.status !== "all") params.set("status", f.status);
+  if (f.limit) params.set("limit", String(f.limit));
+  const r = await fetch(`${API.bot}?${params}`, {
+    headers: { "X-Auth-Token": adminToken.get() },
+  });
+  const d = await r.json();
+  return {
+    items: d.items || [],
+    stats: d.stats || { total: 0, delivered: 0, sum_rub: 0 },
+  };
+}
+
+export async function resendLead(id: number) {
+  const r = await fetch(`${API.bot}?action=resend`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Auth-Token": adminToken.get() },
+    body: JSON.stringify({ id }),
+  });
+  return r.json();
+}

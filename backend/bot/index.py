@@ -226,6 +226,122 @@ def handler(event: dict, context) -> dict:
             return {'statusCode': 200, 'headers': cors,
                     'body': json.dumps({'ok': True, 'id': lead_id, 'delivered': delivered})}
 
+        # ── СПИСОК ЗАЯВОК ─────────────────────────────────────────
+        if action == 'leads' and method == 'GET':
+            if not _auth_ok(event.get('headers'), conn):
+                return {'statusCode': 401, 'headers': cors,
+                        'body': json.dumps({'error': 'unauthorized'})}
+            date_from = qp.get('from')  # YYYY-MM-DD
+            date_to = qp.get('to')      # YYYY-MM-DD
+            status_f = qp.get('status') or 'all'  # all|delivered|failed
+            try:
+                limit = min(int(qp.get('limit') or 200), 500)
+            except Exception:
+                limit = 200
+
+            where = ['1=1']
+            if date_from:
+                safe = ''.join(ch for ch in date_from if ch.isdigit() or ch == '-')[:10]
+                if safe:
+                    where.append(f"created_at >= '{safe}'::date")
+            if date_to:
+                safe = ''.join(ch for ch in date_to if ch.isdigit() or ch == '-')[:10]
+                if safe:
+                    where.append(f"created_at < ('{safe}'::date + INTERVAL '1 day')")
+            if status_f == 'delivered':
+                where.append("delivered_to_max = TRUE")
+            elif status_f == 'failed':
+                where.append("delivered_to_max = FALSE")
+
+            sql = (
+                "SELECT id, order_num, name, phone, city, address, object_type, "
+                "total_rub, delivered_to_max, created_at "
+                f"FROM leads WHERE {' AND '.join(where)} "
+                f"ORDER BY created_at DESC LIMIT {limit}"
+            )
+            with conn.cursor() as cur:
+                cur.execute(sql)
+                rows = cur.fetchall()
+                items = [{
+                    'id': r[0], 'order_num': r[1], 'name': r[2], 'phone': r[3],
+                    'city': r[4], 'address': r[5], 'object_type': r[6],
+                    'total_rub': float(r[7] or 0),
+                    'delivered_to_max': r[8],
+                    'created_at': r[9].isoformat() if r[9] else None,
+                } for r in rows]
+                cur.execute(
+                    f"SELECT COUNT(*), "
+                    f"COUNT(*) FILTER (WHERE delivered_to_max=TRUE), "
+                    f"COALESCE(SUM(total_rub),0) "
+                    f"FROM leads WHERE {' AND '.join(where)}"
+                )
+                st = cur.fetchone()
+                stats = {
+                    'total': st[0] if st else 0,
+                    'delivered': st[1] if st else 0,
+                    'sum_rub': float(st[2] or 0) if st else 0,
+                }
+            return {'statusCode': 200, 'headers': cors,
+                    'body': json.dumps({'items': items, 'stats': stats})}
+
+        # ── ПОВТОРНАЯ ОТПРАВКА ЗАЯВКИ В MAX ───────────────────────
+        if action == 'resend' and method == 'POST':
+            if not _auth_ok(event.get('headers'), conn):
+                return {'statusCode': 401, 'headers': cors,
+                        'body': json.dumps({'error': 'unauthorized'})}
+            body = json.loads(event.get('body') or '{}')
+            try:
+                lead_id = int(body.get('id') or 0)
+            except Exception:
+                lead_id = 0
+            if not lead_id:
+                return {'statusCode': 400, 'headers': cors,
+                        'body': json.dumps({'error': 'id_required'})}
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT order_num,name,phone,city,address,object_type,total_rub,payload_json "
+                    f"FROM leads WHERE id={lead_id}"
+                )
+                row = cur.fetchone()
+                if not row:
+                    return {'statusCode': 404, 'headers': cors,
+                            'body': json.dumps({'error': 'lead_not_found'})}
+                order_num, name, phone, city, address, object_type, total, payload = row
+
+                cur.execute("SELECT key,value FROM site_settings")
+                settings = {r[0]: r[1] for r in cur.fetchall()}
+                bot_token = settings.get('max_bot_token') or ''
+                chat_id = settings.get('max_chat_id') or ''
+
+                pdf_url = ''
+                if isinstance(payload, dict):
+                    pdf_url = payload.get('pdf_url') or ''
+
+                total_fmt = ('{:,}'.format(int(total or 0))).replace(',', ' ')
+                txt = (
+                    "🔁 *ПОВТОРНАЯ ОТПРАВКА — СтальГрупп*\n"
+                    "────────────────\n"
+                    f"📋 № заказа: `{order_num or '—'}`\n"
+                    f"👤 Имя: *{name or '—'}*\n"
+                    f"📱 Телефон: *{phone or '—'}*\n"
+                    f"📍 Город: {city or '—'}\n"
+                    f"🏠 Адрес: {address or '—'}\n"
+                    f"🔧 Тип: {object_type or '—'}\n"
+                    f"💰 Сумма: *{total_fmt} ₽*\n"
+                    "────────────────"
+                )
+                delivered = _send_to_max(
+                    bot_token, chat_id, txt,
+                    phone=phone or '', pdf_url=pdf_url
+                ) if bot_token and chat_id else False
+
+                cur.execute(
+                    f"UPDATE leads SET delivered_to_max={delivered} WHERE id={lead_id}"
+                )
+                conn.commit()
+            return {'statusCode': 200, 'headers': cors,
+                    'body': json.dumps({'ok': True, 'delivered': delivered})}
+
         return {'statusCode': 400, 'headers': cors,
                 'body': json.dumps({'error': 'unknown_action_or_method'})}
     finally:

@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Reviews from "./pages/Reviews";
 import Admin from "./pages/Admin";
+import AdminLeads from "./pages/AdminLeads";
 import Shtaketnik from "./pages/services/Shtaketnik";
 import Profnastil from "./pages/services/Profnastil";
 import Otkatnye from "./pages/services/Otkatnye";
@@ -32,6 +33,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/reviews" element={<Reviews />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/admin/leads" element={<AdminLeads />} />
 
           {/* Услуги — отдельные страницы */}
           <Route path="/services/profnastil"     element={<Profnastil />} />
