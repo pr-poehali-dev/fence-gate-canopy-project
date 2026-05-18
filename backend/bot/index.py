@@ -144,37 +144,112 @@ def _normalize_phone_ru(phone):
     return ''
 
 
-def _send_sms_to_client(phone, text):
-    """Отправляет SMS клиенту через sms.ru. Возвращает (ok, info).
-    Если SMSRU_API_ID не задан или номер некорректный — тихо возвращает (False, причина).
-    """
-    api_id = os.environ.get('SMSRU_API_ID', '').strip()
-    if not api_id:
-        return False, 'no_api_id'
-    num = _normalize_phone_ru(phone)
-    if not num:
-        return False, 'bad_phone'
+def _find_client_chat_in_max(bot_token, phone, name=''):
+    """Ищет личный чат клиента с ботом в MAX по совпадению телефона/имени
+    в недавних входящих сообщениях боту. Возвращает chat_id (str) или ''.
+    Сценарий: клиент написал боту хоть раз — мы можем ему ответить."""
+    if not bot_token:
+        return ''
+    norm_phone = _normalize_phone_ru(phone)
+    name_lc = (name or '').strip().lower()
     try:
-        qs = urllib.parse.urlencode({
-            'api_id': api_id,
-            'to':     num,
-            'msg':    text,
-            'json':   '1',
-        })
-        url = 'https://sms.ru/sms/send?' + qs
-        req = urllib.request.Request(url, headers={'Accept': 'application/json'})
-        with urllib.request.urlopen(req, timeout=8) as resp:
-            raw = resp.read().decode('utf-8') or '{}'
-            try:
-                data = json.loads(raw)
-            except Exception:
-                data = {'raw': raw}
-            status = (data.get('status') or '').upper()
-            if status == 'OK':
-                return True, data
-            return False, data
+        ups = _max_get(bot_token, '/updates', {'limit': 100, 'types': 'message_created'})
+        for u in (ups.get('updates') or []):
+            msg = u.get('message') or {}
+            sender = msg.get('sender') or {}
+            recipient = msg.get('recipient') or {}
+            # Совпадение по нормализованному телефону (если MAX отдаёт)
+            sender_phone = _normalize_phone_ru(sender.get('phone') or '')
+            if norm_phone and sender_phone and sender_phone == norm_phone:
+                cid = recipient.get('chat_id') or sender.get('user_id')
+                if cid:
+                    return str(cid)
+            # Совпадение по имени (fallback)
+            sender_name = (sender.get('name') or sender.get('first_name') or '').strip().lower()
+            if name_lc and sender_name and name_lc in sender_name:
+                cid = recipient.get('chat_id') or sender.get('user_id')
+                if cid:
+                    return str(cid)
+    except Exception:
+        pass
+    return ''
+
+
+def _notify_client_via_max(bot_token, client_chat_id, text):
+    """Шлёт клиенту приветственное сообщение в личку MAX (без inline-кнопок).
+    Возвращает (ok, info)."""
+    if not bot_token or not client_chat_id:
+        return False, 'no_chat'
+    try:
+        try:
+            cid_val = int(str(client_chat_id).strip())
+        except Exception:
+            cid_val = str(client_chat_id).strip()
+        status, data = _max_request(
+            bot_token, 'POST', '/messages',
+            params={'chat_id': cid_val},
+            json_body={'text': text, 'format': 'markdown'},
+        )
+        ok = 200 <= status < 300
+        info = f'status={status}'
+        if isinstance(data, dict):
+            err = data.get('code') or data.get('message') or ''
+            if err:
+                info += f' err={err}'
+        return ok, info
     except Exception as e:
-        return False, {'error': str(e)}
+        return False, f'exception: {e}'
+
+
+def _send_email_smtp(settings, subject, body_text, body_html=''):
+    """Отправляет email через SMTP с параметрами из site_settings.
+    settings — dict из site_settings. Возвращает (ok, info)."""
+    if (settings.get('notify_email_enabled') or '').lower() not in ('true', '1', 'yes'):
+        return False, 'email_disabled'
+    to_addr = (settings.get('notify_email_to') or '').strip()
+    smtp_host = (settings.get('smtp_host') or '').strip()
+    smtp_user = (settings.get('smtp_user') or '').strip()
+    smtp_pass = (settings.get('smtp_password') or '').strip()
+    if not to_addr or not smtp_host or not smtp_user or not smtp_pass:
+        return False, 'smtp_not_configured'
+    try:
+        smtp_port = int(settings.get('smtp_port') or '465')
+    except Exception:
+        smtp_port = 465
+    from_name = (settings.get('smtp_from_name') or 'СтальГрупп').strip()
+
+    try:
+        import smtplib
+        import ssl
+        from email.message import EmailMessage
+        from email.utils import formataddr
+
+        msg = EmailMessage()
+        msg['Subject'] = subject
+        msg['From'] = formataddr((from_name, smtp_user))
+        msg['To'] = to_addr
+        msg.set_content(body_text)
+        if body_html:
+            msg.add_alternative(body_html, subtype='html')
+
+        if smtp_port == 465:
+            ctx = ssl.create_default_context()
+            with smtplib.SMTP_SSL(smtp_host, smtp_port, context=ctx, timeout=10) as srv:
+                srv.login(smtp_user, smtp_pass)
+                srv.send_message(msg)
+        else:
+            with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as srv:
+                srv.ehlo()
+                try:
+                    srv.starttls(context=ssl.create_default_context())
+                    srv.ehlo()
+                except Exception:
+                    pass
+                srv.login(smtp_user, smtp_pass)
+                srv.send_message(msg)
+        return True, 'sent'
+    except Exception as e:
+        return False, f'smtp_error: {e}'
 
 
 def _upload_pdf_to_s3(b64data: str, order_num: str) -> str:
@@ -233,6 +308,18 @@ def handler(event: dict, context) -> dict:
 
     try:
         # ── НАСТРОЙКИ ──────────────────────────────────────────────
+        # Секретные ключи: всегда маскируются в ответах. В админке
+        # отдаём пустую строку — пользователь видит, заполнено или нет.
+        SECRET_KEYS = {'max_bot_token', 'smtp_password', 'smtp_user',
+                       'notify_email_to'}
+        # Эти ключи никогда не отдаём в публичных настройках сайта
+        PRIVATE_KEYS = SECRET_KEYS | {
+            'max_chat_id', 'manager_max_chat_id',
+            'smtp_host', 'smtp_port', 'smtp_from_name',
+            'notify_email_enabled', 'notify_client_via_max',
+            'client_notify_text',
+        }
+
         if action == 'settings':
             if method == 'GET':
                 admin_mode = qp.get('admin') == '1'
@@ -243,19 +330,27 @@ def handler(event: dict, context) -> dict:
                     with conn.cursor() as cur:
                         cur.execute("SELECT key, value FROM site_settings ORDER BY key")
                         rows = cur.fetchall()
-                        items = {r[0]: r[1] for r in rows}
+                    items = {}
+                    flags = {}
+                    for k, v in rows:
+                        if k in SECRET_KEYS:
+                            # отдаём пустую строку, но флаг заполнено/нет
+                            items[k] = ''
+                            flags[k + '_set'] = bool(v and v.strip())
+                        else:
+                            items[k] = v
+                    items.update(flags)
                     return {'statusCode': 200, 'headers': cors,
                             'body': json.dumps({'items': items})}
 
                 with conn.cursor() as cur:
-                    cur.execute(
-                        "SELECT key, value FROM site_settings WHERE key NOT IN ('max_bot_token')"
-                    )
+                    cur.execute("SELECT key, value FROM site_settings")
                     rows = cur.fetchall()
-                    items = {r[0]: r[1] for r in rows}
-                    cur.execute("SELECT (value <> '') FROM site_settings WHERE key='max_bot_token'")
-                    r2 = cur.fetchone()
-                    items['max_bot_active'] = bool(r2 and r2[0])
+                items = {k: v for k, v in rows if k not in PRIVATE_KEYS}
+                # флаги для фронта (есть ли активный бот)
+                items['max_bot_active'] = any(
+                    k == 'max_bot_token' and v and v.strip() for k, v in rows
+                )
                 return {'statusCode': 200, 'headers': cors,
                         'body': json.dumps({'items': items})}
 
@@ -270,6 +365,10 @@ def handler(event: dict, context) -> dict:
                         k = (it.get('key') or '').replace("'", "''")[:64]
                         v = (it.get('value') or '').replace("'", "''")[:4000]
                         if not k:
+                            continue
+                        # для секретных полей: пустое значение НЕ затирает
+                        # уже сохранённое (иначе админка с маской «••••» сломала бы)
+                        if k in SECRET_KEYS and not v:
                             continue
                         cur.execute(
                             f"INSERT INTO site_settings(key,value,updated_at) "
@@ -344,29 +443,89 @@ def handler(event: dict, context) -> dict:
                 lead_id = cur.fetchone()[0]
                 conn.commit()
 
-            # ── SMS-уведомление клиенту с номером заявки ─────────
-            sms_ok = False
-            sms_info = ''
-            is_event = (object_type or '').startswith('[')  # [КП скачано], [Прайс PDF] — без SMS
-            if not is_event and phone and phone not in ('—', '-'):
-                short_phone = (settings.get('phone_short')
-                               or settings.get('company_phone')
-                               or '8 800 123-45-67')
-                sms_text = (
-                    f"СтальГрупп: заявка №{order_num or '—'} принята. "
-                    f"Менеджер свяжется в течение 10 минут. "
-                    f"Срочно? {short_phone}"
+            is_event = (object_type or '').startswith('[')  # [КП скачано], [Прайс PDF] — без уведомлений
+            company_phone = settings.get('company_phone') or '8 800 123-45-67'
+            company_name  = settings.get('company_name')  or 'СтальГрупп'
+
+            # ── Уведомление клиенту в MAX-боте (если бот знает клиента) ──
+            client_ok = False
+            client_info = 'skipped'
+            client_chat_id = ''
+            if (not is_event and phone and phone not in ('—', '-') and bot_token
+                    and (settings.get('notify_client_via_max') or 'true').lower() in ('true', '1', 'yes')):
+                client_chat_id = _find_client_chat_in_max(bot_token, phone, name)
+                if client_chat_id:
+                    tmpl = settings.get('client_notify_text') or (
+                        '🟧 *{company_name}*\n'
+                        'Ваша заявка *№{order_num}* принята!\n\n'
+                        'Менеджер свяжется в течение 10 минут.\n'
+                        'Срочно? {company_phone}'
+                    )
+                    notify_text = (tmpl
+                        .replace('{order_num}', order_num or '—')
+                        .replace('{company_phone}', company_phone)
+                        .replace('{company_name}', company_name)
+                        .replace('{name}', name or 'клиент')
+                    )
+                    client_ok, client_info = _notify_client_via_max(
+                        bot_token, client_chat_id, notify_text
+                    )
+                else:
+                    client_info = 'client_not_in_max'
+
+            # ── Email-дублирование менеджеру ─────────────────────
+            email_ok = False
+            email_info = 'skipped'
+            if not is_event:
+                total_fmt2 = ('{:,}'.format(int(total))).replace(',', ' ')
+                subject = f'[Заявка №{order_num}] {object_type or "СтальГрупп"}'
+                text_body = (
+                    f'Новая заявка с сайта {company_name}\n'
+                    f'{"=" * 40}\n'
+                    f'Номер заявки: {order_num or "—"}\n'
+                    f'Имя:          {name or "—"}\n'
+                    f'Телефон:      {phone or "—"}\n'
+                    f'Город:        {city or "—"}\n'
+                    f'Адрес:        {address or "—"}\n'
+                    f'Тип/услуга:   {object_type or "—"}\n'
+                    f'Сумма:        {total_fmt2} ₽\n'
+                    f'{"=" * 40}\n'
+                    f'Доставлено в MAX:   {"да" if delivered else "нет (" + str(max_info) + ")"}\n'
+                    f'Уведомление клиенту: {"да" if client_ok else "нет (" + str(client_info) + ")"}\n'
                 )
-                sms_ok, sms_info = _send_sms_to_client(phone, sms_text)
-                # Если в БД есть колонка sms_sent — обновим (опционально)
-                try:
-                    with conn.cursor() as cur:
-                        cur.execute(
-                            f"UPDATE leads SET sms_sent={sms_ok} WHERE id={lead_id}"
-                        )
-                        conn.commit()
-                except Exception:
-                    pass  # колонки может не быть — игнорируем
+                html_body = (
+                    f'<div style="font-family:Arial,sans-serif;max-width:600px">'
+                    f'<div style="background:#f97316;color:#fff;padding:16px;border-radius:8px 8px 0 0">'
+                    f'<h2 style="margin:0">🔔 Новая заявка</h2>'
+                    f'<div style="opacity:.9;font-size:13px">{company_name}</div>'
+                    f'</div>'
+                    f'<div style="border:1px solid #eee;border-top:0;padding:20px;border-radius:0 0 8px 8px">'
+                    f'<table style="width:100%;font-size:14px;border-collapse:collapse">'
+                    f'<tr><td style="padding:6px 0;color:#888">№ заявки</td><td><b>{order_num}</b></td></tr>'
+                    f'<tr><td style="padding:6px 0;color:#888">Имя</td><td><b>{name or "—"}</b></td></tr>'
+                    f'<tr><td style="padding:6px 0;color:#888">Телефон</td><td><a href="tel:{phone}"><b>{phone or "—"}</b></a></td></tr>'
+                    f'<tr><td style="padding:6px 0;color:#888">Город</td><td>{city or "—"}</td></tr>'
+                    f'<tr><td style="padding:6px 0;color:#888">Адрес</td><td>{address or "—"}</td></tr>'
+                    f'<tr><td style="padding:6px 0;color:#888">Тип/услуга</td><td>{object_type or "—"}</td></tr>'
+                    f'<tr><td style="padding:6px 0;color:#888">Сумма</td><td style="color:#f97316"><b>{total_fmt2} ₽</b></td></tr>'
+                    f'</table>'
+                    f'<div style="margin-top:16px;font-size:12px;color:#888">'
+                    f'MAX: {"✅ доставлено" if delivered else "❌ " + str(max_info)} · '
+                    f'Уведомление клиенту: {"✅" if client_ok else "❌ " + str(client_info)}'
+                    f'</div>'
+                    f'</div></div>'
+                )
+                email_ok, email_info = _send_email_smtp(settings, subject, text_body, html_body)
+
+            # Сохраняем флаги доставки в БД (sms_sent теперь означает "уведомлён в MAX")
+            try:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        f"UPDATE leads SET sms_sent={client_ok} WHERE id={lead_id}"
+                    )
+                    conn.commit()
+            except Exception:
+                pass
 
             return {'statusCode': 200, 'headers': cors,
                     'body': json.dumps({
@@ -375,8 +534,10 @@ def handler(event: dict, context) -> dict:
                         'order_num': order_num,
                         'delivered': delivered,
                         'max_info': max_info,
-                        'sms_sent': sms_ok,
-                        'sms_info': sms_info if not sms_ok else 'sent',
+                        'client_notified': client_ok,
+                        'client_info': client_info,
+                        'email_sent': email_ok,
+                        'email_info': email_info,
                     }, default=str)}
 
         # ── СПИСОК ЗАЯВОК ─────────────────────────────────────────
@@ -615,6 +776,28 @@ def handler(event: dict, context) -> dict:
                 "Бот СтальГрупп подключён к этому чату.\n"
                 "Заявки с сайта будут приходить сюда автоматически.",
                 phone='', pdf_url=''
+            )
+            return {'statusCode': 200, 'headers': cors,
+                    'body': json.dumps({'ok': bool(ok), 'info': info}, default=str)}
+
+        # ── ТЕСТОВОЕ EMAIL-СООБЩЕНИЕ МЕНЕДЖЕРУ ────────────────────
+        if action == 'test_email' and method == 'POST':
+            if not _auth_ok(event.get('headers'), conn):
+                return {'statusCode': 401, 'headers': cors,
+                        'body': json.dumps({'error': 'unauthorized'})}
+            with conn.cursor() as cur:
+                cur.execute("SELECT key,value FROM site_settings")
+                settings = {r[0]: r[1] for r in cur.fetchall()}
+            # принудительно включаем для теста (минуя флаг)
+            forced = dict(settings)
+            forced['notify_email_enabled'] = 'true'
+            ok, info = _send_email_smtp(
+                forced,
+                '[Тест] СтальГрупп: проверка email-уведомлений',
+                'Это тестовое письмо подтверждает, что SMTP-настройки указаны верно. '
+                'Заявки с сайта будут приходить на этот адрес автоматически.',
+                '<div style="font-family:Arial,sans-serif"><h2 style="color:#f97316">✅ Тест SMTP пройден</h2>'
+                '<p>SMTP-настройки указаны верно. Заявки будут приходить сюда.</p></div>'
             )
             return {'statusCode': 200, 'headers': cors,
                     'body': json.dumps({'ok': bool(ok), 'info': info}, default=str)}

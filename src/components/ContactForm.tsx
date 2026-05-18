@@ -12,7 +12,7 @@ export default function ContactForm() {
   const [sent, setSent] = useState(false);
   const [err, setErr] = useState("");
   const [sentOrder, setSentOrder] = useState("");
-  const [sentSms, setSentSms] = useState(false);
+  const [sentNotified, setSentNotified] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,7 +33,7 @@ export default function ContactForm() {
       if (res?.ok) {
         setSent(true);
         setSentOrder(res.order_num || orderNum);
-        setSentSms(Boolean(res.sms_sent));
+        setSentNotified(Boolean(res.client_notified));
         setName(""); setPhone(""); setEmail(""); setTask("");
       } else {
         setErr("Не удалось отправить. Позвоните " + COMPANY.phone);
@@ -59,10 +59,10 @@ export default function ContactForm() {
           </div>
         )}
         <p className="text-white/55 text-sm mb-3">Менеджер свяжется в течение 15 минут.</p>
-        {sentSms ? (
+        {sentNotified ? (
           <div className="bg-green-500/10 border border-green-500/30 rounded-xl px-3 py-2 text-xs text-green-300 inline-flex items-center gap-1.5">
-            <Icon name="MessageSquare" size={13} />
-            Копия с номером заявки отправлена SMS
+            <Icon name="MessageCircle" size={13} />
+            Подтверждение отправлено вам в MAX-боте
           </div>
         ) : (
           <div className="text-[11px] text-white/35">

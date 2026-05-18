@@ -107,9 +107,29 @@ export async function deleteReview(id: number) {
 
 // ───────────────── Настройки и заявки ─────────────────
 export interface SiteSettings {
+  // MAX-бот
   max_bot_token?: string;
+  max_bot_token_set?: boolean;
   max_chat_id?: string;
   max_bot_active?: boolean;
+  manager_max_chat_id?: string;
+  notify_client_via_max?: string;   // 'true' / 'false'
+  client_notify_text?: string;
+  // Email
+  notify_email_enabled?: string;
+  notify_email_to?: string;
+  notify_email_to_set?: boolean;
+  smtp_host?: string;
+  smtp_port?: string;
+  smtp_user?: string;
+  smtp_user_set?: boolean;
+  smtp_password?: string;
+  smtp_password_set?: boolean;
+  smtp_from_name?: string;
+  // Компания
+  company_phone?: string;
+  company_email?: string;
+  company_name?: string;
 }
 
 export async function fetchSettings(adminMode = false): Promise<SiteSettings> {
@@ -148,8 +168,11 @@ export interface LeadResponse {
   id?: number;
   order_num?: string;
   delivered?: boolean;
-  sms_sent?: boolean;
-  sms_info?: string;
+  max_info?: string;
+  client_notified?: boolean;
+  client_info?: string;
+  email_sent?: boolean;
+  email_info?: string;
   error?: string;
 }
 
@@ -158,6 +181,15 @@ export async function sendLead(p: LeadPayload): Promise<LeadResponse> {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(p),
+  });
+  return r.json();
+}
+
+// Тестовое email-сообщение менеджеру (проверка SMTP)
+export async function testEmail() {
+  const r = await fetch(`${API.bot}?action=test_email`, {
+    method: "POST",
+    headers: { "X-Auth-Token": adminToken.get() },
   });
   return r.json();
 }

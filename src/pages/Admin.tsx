@@ -5,7 +5,7 @@ import MaxChatPicker from "@/components/MaxChatPicker";
 import {
   fetchPrices, fetchReviews, loginAdmin, verifyAdmin,
   updatePrices, moderateReview, deleteReview, adminToken,
-  fetchSettings, saveSettings,
+  fetchSettings, saveSettings, testEmail,
   PriceItem, ReviewItem, SiteSettings,
 } from "@/lib/api";
 
@@ -32,6 +32,8 @@ export default function Admin() {
   const [settingsSaving, setSettingsSaving] = useState(false);
   const [settingsSaved, setSettingsSaved] = useState(false);
   const [chatPickerOpen, setChatPickerOpen] = useState(false);
+  const [emailTesting, setEmailTesting] = useState(false);
+  const [emailTestResult, setEmailTestResult] = useState("");
 
   useEffect(() => {
     document.title = "Админ-панель — СтальГрупп";
@@ -60,8 +62,23 @@ export default function Admin() {
     setSettingsSaving(true);
     try {
       const items = [
-        { key: "max_bot_token", value: settings.max_bot_token || "" },
-        { key: "max_chat_id",   value: settings.max_chat_id   || "" },
+        // MAX-бот
+        { key: "max_bot_token",         value: settings.max_bot_token || "" },
+        { key: "max_chat_id",           value: settings.max_chat_id   || "" },
+        { key: "notify_client_via_max", value: settings.notify_client_via_max || "true" },
+        { key: "client_notify_text",    value: settings.client_notify_text || "" },
+        // Email
+        { key: "notify_email_enabled",  value: settings.notify_email_enabled || "false" },
+        { key: "notify_email_to",       value: settings.notify_email_to || "" },
+        { key: "smtp_host",             value: settings.smtp_host || "" },
+        { key: "smtp_port",             value: settings.smtp_port || "465" },
+        { key: "smtp_user",             value: settings.smtp_user || "" },
+        { key: "smtp_password",         value: settings.smtp_password || "" },
+        { key: "smtp_from_name",        value: settings.smtp_from_name || "" },
+        // Компания
+        { key: "company_phone",         value: settings.company_phone || "" },
+        { key: "company_email",         value: settings.company_email || "" },
+        { key: "company_name",          value: settings.company_name || "" },
       ];
       await saveSettings(items);
       setSettingsDirty(false);
@@ -70,6 +87,24 @@ export default function Admin() {
       await loadSettings();
     } finally {
       setSettingsSaving(false);
+    }
+  };
+
+  const doTestEmail = async () => {
+    setEmailTesting(true);
+    setEmailTestResult("");
+    try {
+      // Сначала сохраним текущие настройки, иначе тест пойдёт со старыми
+      await saveSettingsHandler();
+      const r = await testEmail();
+      setEmailTestResult(r?.ok
+        ? "✅ Письмо отправлено! Проверьте почту."
+        : `❌ ${r?.info || "Не удалось отправить"}`);
+      setTimeout(() => setEmailTestResult(""), 10000);
+    } catch {
+      setEmailTestResult("❌ Ошибка сети");
+    } finally {
+      setEmailTesting(false);
     }
   };
 
@@ -361,7 +396,7 @@ export default function Admin() {
                   <div className="text-white/40 text-xs">Заявки из калькулятора будут приходить в указанный чат</div>
                 </div>
                 <div className="ml-auto">
-                  {settings.max_bot_token && settings.max_chat_id ? (
+                  {(settings.max_bot_token_set || settings.max_bot_token) && settings.max_chat_id ? (
                     <span className="text-[10px] uppercase tracking-wider bg-green-500/15 text-green-400 px-2 py-1 rounded">Подключён</span>
                   ) : (
                     <span className="text-[10px] uppercase tracking-wider bg-orange-500/15 text-orange-400 px-2 py-1 rounded">Не настроен</span>
@@ -378,7 +413,9 @@ export default function Admin() {
                     type="text"
                     value={settings.max_bot_token || ""}
                     onChange={e => onSettingChange("max_bot_token", e.target.value)}
-                    placeholder="Например: HMAC.eyJ0eXAiOiJKV1QiLCJh..."
+                    placeholder={settings.max_bot_token_set
+                      ? "•••••• токен сохранён, введите новый чтобы заменить"
+                      : "Например: HMAC.eyJ0eXAiOiJKV1QiLCJh..."}
                     className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none font-mono" />
                   <div className="text-[11px] text-white/35 mt-1.5 leading-relaxed">
                     Получите токен в боте <a href="https://max.ru/MasterBot" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline">@MasterBot</a> мессенджера MAX
@@ -419,22 +456,211 @@ export default function Admin() {
                   }}
                 />
 
-                <div className="pt-3 flex items-center gap-3">
-                  <button onClick={saveSettingsHandler}
-                    disabled={!settingsDirty || settingsSaving}
-                    className="btn-orange px-6 py-2.5 rounded-xl text-sm disabled:opacity-40">
-                    <span className="flex items-center gap-2">
-                      <Icon name={settingsSaving ? "Loader" : "Save"} size={15} className={settingsSaving ? "animate-spin" : ""} />
-                      {settingsSaving ? "Сохранение..." : "Сохранить настройки"}
-                    </span>
+              </div>
+            </div>
+
+            {/* Уведомление клиенту в MAX */}
+            <div className="bg-[#141720] border border-[#1e2230] rounded-2xl p-6 mb-5">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-10 h-10 bg-purple-500/15 border border-purple-500/30 rounded-xl flex items-center justify-center">
+                  <Icon name="MessageCircle" size={20} className="text-purple-400" />
+                </div>
+                <div>
+                  <div className="font-oswald font-bold text-white text-lg">Уведомление клиенту в MAX</div>
+                  <div className="text-white/40 text-xs">Если клиент уже писал боту — пришлём ему номер заявки в личку</div>
+                </div>
+                <div className="ml-auto">
+                  <label className="inline-flex items-center gap-2 cursor-pointer text-xs">
+                    <input type="checkbox"
+                      checked={(settings.notify_client_via_max || "true") === "true"}
+                      onChange={e => onSettingChange("notify_client_via_max", e.target.checked ? "true" : "false")}
+                      className="w-4 h-4 accent-orange-500" />
+                    <span className="text-white/60">Включено</span>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
+                  Шаблон сообщения клиенту
+                </label>
+                <textarea
+                  value={settings.client_notify_text || ""}
+                  onChange={e => onSettingChange("client_notify_text", e.target.value)}
+                  rows={4}
+                  placeholder="СтальГрупп: ваша заявка №{order_num} принята! ..."
+                  className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none font-mono resize-none" />
+                <div className="text-[11px] text-white/35 mt-1.5 leading-relaxed">
+                  Подстановки: <code className="text-orange-400/80">{"{order_num}"}</code> — номер заявки,{" "}
+                  <code className="text-orange-400/80">{"{company_phone}"}</code> — телефон,{" "}
+                  <code className="text-orange-400/80">{"{company_name}"}</code> — название,{" "}
+                  <code className="text-orange-400/80">{"{name}"}</code> — имя клиента
+                </div>
+              </div>
+            </div>
+
+            {/* Email-уведомления */}
+            <div className="bg-[#141720] border border-[#1e2230] rounded-2xl p-6 mb-5">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-10 h-10 bg-cyan-500/15 border border-cyan-500/30 rounded-xl flex items-center justify-center">
+                  <Icon name="Mail" size={20} className="text-cyan-400" />
+                </div>
+                <div>
+                  <div className="font-oswald font-bold text-white text-lg">Дубль на email менеджеру</div>
+                  <div className="text-white/40 text-xs">Каждая заявка приходит письмом — на случай если MAX-бот спит</div>
+                </div>
+                <div className="ml-auto">
+                  <label className="inline-flex items-center gap-2 cursor-pointer text-xs">
+                    <input type="checkbox"
+                      checked={(settings.notify_email_enabled || "false") === "true"}
+                      onChange={e => onSettingChange("notify_email_enabled", e.target.checked ? "true" : "false")}
+                      className="w-4 h-4 accent-orange-500" />
+                    <span className="text-white/60">Включено</span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
+                    Email получателя (куда слать заявки)
+                  </label>
+                  <input type="email"
+                    value={settings.notify_email_to || ""}
+                    onChange={e => onSettingChange("notify_email_to", e.target.value)}
+                    placeholder={settings.notify_email_to_set ? "•••••• email сохранён" : "manager@stalgrupp.ru"}
+                    className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none" />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">SMTP-сервер</label>
+                    <input type="text"
+                      value={settings.smtp_host || ""}
+                      onChange={e => onSettingChange("smtp_host", e.target.value)}
+                      placeholder="smtp.yandex.ru"
+                      className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none font-mono" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">Порт</label>
+                    <input type="text"
+                      value={settings.smtp_port || ""}
+                      onChange={e => onSettingChange("smtp_port", e.target.value)}
+                      placeholder="465"
+                      className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none font-mono" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
+                    SMTP-логин (обычно email)
+                  </label>
+                  <input type="text"
+                    value={settings.smtp_user || ""}
+                    onChange={e => onSettingChange("smtp_user", e.target.value)}
+                    placeholder={settings.smtp_user_set ? "•••••• логин сохранён" : "noreply@stalgrupp.ru"}
+                    className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none font-mono" />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
+                    SMTP-пароль (или пароль приложения)
+                  </label>
+                  <input type="password"
+                    value={settings.smtp_password || ""}
+                    onChange={e => onSettingChange("smtp_password", e.target.value)}
+                    placeholder={settings.smtp_password_set ? "•••••• пароль сохранён, введите новый чтобы заменить" : "Введите пароль"}
+                    className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none font-mono" />
+                  <div className="text-[11px] text-white/35 mt-1.5">
+                    Для Yandex/Mail.ru/Gmail используйте <b>пароль приложения</b> (не основной).
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
+                    Имя отправителя
+                  </label>
+                  <input type="text"
+                    value={settings.smtp_from_name || ""}
+                    onChange={e => onSettingChange("smtp_from_name", e.target.value)}
+                    placeholder="СтальГрупп — заявки с сайта"
+                    className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none" />
+                </div>
+
+                <div className="pt-2 flex items-center gap-3 flex-wrap">
+                  <button type="button" onClick={doTestEmail}
+                    disabled={emailTesting}
+                    className="text-xs px-4 py-2 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 hover:border-cyan-500/50 rounded-lg transition-all flex items-center gap-1.5 disabled:opacity-40">
+                    <Icon name={emailTesting ? "Loader" : "Send"} size={13} className={emailTesting ? "animate-spin" : ""} />
+                    {emailTesting ? "Отправляем..." : "Отправить тестовое письмо"}
                   </button>
-                  {settingsSaved && (
-                    <span className="text-green-400 text-xs flex items-center gap-1">
-                      <Icon name="CheckCircle2" size={14} /> Сохранено
+                  {emailTestResult && (
+                    <span className={`text-xs ${emailTestResult.startsWith("✅") ? "text-green-400" : "text-red-400"}`}>
+                      {emailTestResult}
                     </span>
                   )}
                 </div>
               </div>
+            </div>
+
+            {/* Реквизиты компании */}
+            <div className="bg-[#141720] border border-[#1e2230] rounded-2xl p-6 mb-5">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-10 h-10 bg-orange-500/15 border border-orange-500/30 rounded-xl flex items-center justify-center">
+                  <Icon name="Building2" size={20} className="text-orange-400" />
+                </div>
+                <div>
+                  <div className="font-oswald font-bold text-white text-lg">Реквизиты компании</div>
+                  <div className="text-white/40 text-xs">Подставляются в SMS, email, шаблоны уведомлений</div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">Название</label>
+                  <input type="text"
+                    value={settings.company_name || ""}
+                    onChange={e => onSettingChange("company_name", e.target.value)}
+                    placeholder="СтальГрупп"
+                    className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">Телефон</label>
+                  <input type="tel"
+                    value={settings.company_phone || ""}
+                    onChange={e => onSettingChange("company_phone", e.target.value)}
+                    placeholder="8 800 123-45-67"
+                    className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none" />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">Email компании</label>
+                  <input type="email"
+                    value={settings.company_email || ""}
+                    onChange={e => onSettingChange("company_email", e.target.value)}
+                    placeholder="info@stalgrupp.ru"
+                    className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none" />
+                </div>
+              </div>
+            </div>
+
+            {/* Глобальная кнопка сохранения */}
+            <div className="bg-[#141720] border border-orange-500/30 rounded-2xl p-5 mb-5 flex items-center gap-4 flex-wrap sticky bottom-4 z-10 shadow-xl shadow-orange-500/10">
+              <button onClick={saveSettingsHandler}
+                disabled={!settingsDirty || settingsSaving}
+                className="btn-orange px-6 py-2.5 rounded-xl text-sm disabled:opacity-40">
+                <span className="flex items-center gap-2">
+                  <Icon name={settingsSaving ? "Loader" : "Save"} size={15} className={settingsSaving ? "animate-spin" : ""} />
+                  {settingsSaving ? "Сохранение..." : "Сохранить все настройки"}
+                </span>
+              </button>
+              {settingsSaved && (
+                <span className="text-green-400 text-xs flex items-center gap-1">
+                  <Icon name="CheckCircle2" size={14} /> Сохранено
+                </span>
+              )}
+              {settingsDirty && !settingsSaved && (
+                <span className="text-orange-400/70 text-xs">Есть несохранённые изменения</span>
+              )}
             </div>
 
             {/* Инструкция */}
