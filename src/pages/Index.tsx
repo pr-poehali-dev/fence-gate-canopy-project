@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import Calculator from "@/components/Calculator";
+import { COMPANY } from "@/lib/company";
 
 // ── Изображения ─────────────────────────────────────────────────────────────
 const IMGS = {
@@ -50,12 +51,12 @@ const SERVICES = [
 ];
 
 const PORTFOLIO_ITEMS = [
-  { title: "Кованые ворота в Подмосковье",       tag: "Ворота",       img: IMGS.kovka },
-  { title: "Профнастил С10, 120 м, Красногорск", tag: "Забор",        img: IMGS.profnastil },
-  { title: "3D-ограждение складского комплекса", tag: "Промышленный", img: IMGS.mesh3d },
-  { title: "Откатные ворота с приводом FAAC",    tag: "Автоматика",   img: IMGS.gates },
-  { title: "Навес для автомобиля, Истра",        tag: "Навес",        img: IMGS.canopy },
-  { title: "Беседка + забор евроштакетник",      tag: "Под ключ",     img: IMGS.gazebo },
+  { title: "Кованые ворота, Люберцы",                  tag: "Ворота",       img: IMGS.kovka },
+  { title: "Профнастил С10, 120 м, Чапаевка",          tag: "Забор",        img: IMGS.profnastil },
+  { title: "3D-ограждение склада в Астрецово",         tag: "Промышленный", img: IMGS.mesh3d },
+  { title: "Откатные ворота FAAC, КП «Назарьево»",     tag: "Автоматика",   img: IMGS.gates },
+  { title: "Навес для авто 36 м², Реутов",             tag: "Навес",        img: IMGS.canopy },
+  { title: "Евроштакетник + беседка, Балашиха",        tag: "Под ключ",     img: IMGS.gazebo },
 ];
 
 /*REMOVE_START*/
@@ -505,6 +506,18 @@ function useScrollReveal() {
 export default function Index() {
   const [menuOpen, setMenuOpen] = useState(false);
   useScrollReveal();
+
+  // SEO: гео-зависимые мета-теги для Москвы и МО
+  useEffect(() => {
+    document.title = "СтальГрупп — заборы, ворота, навесы под ключ в Москве и МО | ИП Балтаг А. В.";
+    const setMeta = (name: string, content: string) => {
+      let m = document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement | null;
+      if (!m) { m = document.createElement("meta"); m.name = name; document.head.appendChild(m); }
+      m.content = content;
+    };
+    setMeta("description", "Производство и монтаж заборов из профнастила и евроштакетника, откатных ворот, навесов в Москве и Подмосковье. Работаем в Люберцах, Чапаевке, Астрецово, Назарьево, Реутове, Балашихе. Гарантия 5 лет, бесплатный замер.");
+    setMeta("keywords", "забор под ключ Москва, забор Люберцы, забор Чапаевка, забор Астрецово, забор Назарьево, откатные ворота Подмосковье, навес для авто МО, евроштакетник цена, профнастил забор");
+  }, []);
 
   const scrollTo = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
@@ -1201,7 +1214,7 @@ export default function Index() {
                   <Icon name="MapPin" size={15} className="text-orange-400 flex-shrink-0 mt-0.5" />
                   <div className="text-white/70">
                     Производство:<br />
-                    <span className="text-white/40 text-xs">Москва, ул. Промышленная, 12<br />цех 2 400 м²</span>
+                    <span className="text-white/40 text-xs">{COMPANY.factoryAddress}</span>
                   </div>
                 </li>
                 <li className="flex items-start gap-2.5 text-sm">
@@ -1229,11 +1242,45 @@ export default function Index() {
             </div>
           </div>
 
+          {/* Гео-строка для SEO */}
+          <div className="border-t border-[#1e2230] pt-5 mb-5">
+            <div className="text-[11px] text-white/30 leading-relaxed">
+              <span className="text-orange-400/70 font-medium uppercase tracking-wider mr-2">География работ:</span>
+              Работаем по Москве и Московской области — {COMPANY.geo.join(" · ")} и другие населённые пункты МО. Выезд замерщика бесплатный в день обращения.
+            </div>
+          </div>
+
+          {/* Реквизиты ИП Балтаг */}
+          <div className="border-t border-[#1e2230] pt-5 mb-5 bg-[#0d1017] rounded-xl p-4 -mx-1">
+            <div className="text-[11px] font-bold text-orange-400 uppercase tracking-wider mb-3">Реквизиты</div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-2 text-[11px] text-white/55">
+              <div>
+                <div className="text-white/30">Наименование</div>
+                <div className="text-white/80">{COMPANY.legalName}</div>
+              </div>
+              <div>
+                <div className="text-white/30">ИНН</div>
+                <div className="text-white/80 font-mono">{COMPANY.inn}</div>
+              </div>
+              <div>
+                <div className="text-white/30">ОГРНИП</div>
+                <div className="text-white/80 font-mono">{COMPANY.ogrnip}</div>
+              </div>
+              <div>
+                <div className="text-white/30">Банк</div>
+                <div className="text-white/80">{COMPANY.bankName}, БИК {COMPANY.bik}</div>
+              </div>
+              <div className="sm:col-span-2 lg:col-span-4">
+                <div className="text-white/30">Юр. адрес</div>
+                <div className="text-white/80">{COMPANY.legalAddress}</div>
+              </div>
+            </div>
+          </div>
+
           {/* Нижняя полоса */}
           <div className="border-t border-[#1e2230] pt-6 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
             <div className="text-white/30 text-xs">
-              © 2009–2026 ООО «СтальГрупп». Все права защищены. <br className="sm:hidden" />
-              <span className="text-white/20">ИНН 7715000000 · ОГРН 1097746000000</span>
+              © 2009–2026 {COMPANY.shortName}. Все права защищены.
             </div>
             <div className="flex flex-wrap gap-x-5 gap-y-2">
               {[

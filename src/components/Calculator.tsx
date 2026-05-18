@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import Icon from "@/components/ui/icon";
+import { COMPANY } from "@/lib/company";
 
 // ─────────────────────────────────────────────────────────────────
 // СПРАВОЧНИКИ КОМПЛЕКТУЮЩИХ (рыночные цены РФ 2026)
@@ -155,20 +156,23 @@ async function generatePDF(
 
   const tr = (t: string) => safeText(t);
 
-  // Шапка
+  // ── Шапка с реквизитами ──
   doc.setFillColor(249, 115, 22);
-  doc.rect(0, 0, W, 28, "F");
+  doc.rect(0, 0, W, 32, "F");
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(20);
   doc.setFont("helvetica", "bold");
-  doc.text("STAL'GRUPP", M, 13);
+  doc.text("STAL'GRUPP", M, 12);
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
-  doc.text("Proizvodstvo metallicheskikh ograzhdeniy", M, 20);
-  doc.text("+7 800 123-45-67  |  info@stalgrupp.ru", W - M, 13, { align: "right" });
-  doc.text("Moskva, ul. Promyshlennaya, 12", W - M, 20, { align: "right" });
+  doc.text(tr("IP Baltag Aleksey Vasilevich"), M, 18);
+  doc.setFontSize(8);
+  doc.text(tr(`INN ${COMPANY.inn}  *  OGRNIP ${COMPANY.ogrnip}`), M, 24);
+  doc.text(tr(`Tel: ${COMPANY.phone}`), W - M, 12, { align: "right" });
+  doc.text(tr(`Email: ${COMPANY.email}`), W - M, 18, { align: "right" });
+  doc.text(tr(`Sayt: ${COMPANY.site}`), W - M, 24, { align: "right" });
 
-  y = 36;
+  y = 40;
   // Заголовок КП
   doc.setTextColor(30, 30, 30);
   doc.setFontSize(16);
@@ -262,21 +266,62 @@ async function generatePDF(
   const conditions = [
     "* Predvaritelnyy raschet. Tochnaya stoimost opredelyaetsya posle zamera (+/- 5-15%).",
     "* Garantiya na konstruktsii: 5 let. Na pokrasku: 3 goda. Na montazh: 2 goda.",
-    "* Srok izgotovleniya: 7-14 rabochikh dney. KP deystivtelno 30 dney.",
-    "* Besplatnyy vyezd zamershchika v den obrashcheniya.",
+    "* Srok izgotovleniya: 7-14 rabochikh dney. KP deystvitelno 30 dney.",
+    "* Besplatnyy vyezd zamershchika v den obrashcheniya po Moskve i MO.",
+    "* Geografiya: Lyubertsy, Chapaevka, Astretsovo, Nazarevo, Reutov, Balashikha, Mytishchi i dr.",
   ];
   for (const line of conditions) {
-    if (y > 275) break;
+    if (y > 250) break;
     doc.text(line, M, y);
     y += 5;
   }
 
-  // Нижний колонтитул
-  doc.setFillColor(30, 30, 35);
-  doc.rect(0, 285, W, 12, "F");
-  doc.setFontSize(8);
-  doc.setTextColor(200, 200, 200);
-  doc.text("STAL'GRUPP | 8 800 123-45-67 | info@stalgrupp.ru | Moskva", W / 2, 292, { align: "center" });
+  y += 3;
+  // Блок с банковскими реквизитами
+  if (y < 245) {
+    doc.setDrawColor(220, 220, 220);
+    doc.setLineWidth(0.3);
+    doc.rect(M, y, CW, 26);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(60, 60, 60);
+    doc.text(tr("REKVIZITY ISPOLNITELYA"), M + 3, y + 5);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7.5);
+    doc.setTextColor(80, 80, 80);
+    doc.text(tr(`${COMPANY.legalName}`), M + 3, y + 10);
+    doc.text(tr(`INN: ${COMPANY.inn}  *  OGRNIP: ${COMPANY.ogrnip}  *  OKPO: ${COMPANY.okpo}`), M + 3, y + 14);
+    doc.text(tr(`Yur. adres: ${COMPANY.legalAddress}`), M + 3, y + 18);
+    doc.text(tr(`Bank: ${COMPANY.bankName}  *  BIK: ${COMPANY.bik}`), M + 3, y + 22);
+    doc.text(tr(`R/s: ${COMPANY.bankAccount}  *  K/s: ${COMPANY.corrAccount}`), M + 3, y + 26 - 0.5);
+    y += 30;
+  }
+
+  // Подпись
+  if (y < 270) {
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(60, 60, 60);
+    doc.text(tr("Ispolnitel: IP Baltag A. V.  ______________________"), M, y + 4);
+    doc.setFontSize(7);
+    doc.setTextColor(140, 140, 140);
+    doc.text("M.P.", W - M - 25, y + 4);
+  }
+
+  // ── Нижний колонтитул на всех страницах ──
+  const pageCount = doc.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFillColor(30, 30, 35);
+    doc.rect(0, 285, W, 12, "F");
+    doc.setFontSize(7.5);
+    doc.setTextColor(200, 200, 200);
+    doc.text(tr(`IP Baltag A. V.  *  INN ${COMPANY.inn}  *  ${COMPANY.phone}  *  ${COMPANY.email}`), W / 2, 290, { align: "center" });
+    doc.setFontSize(7);
+    doc.setTextColor(160, 160, 160);
+    doc.text(tr(`Str. ${i} / ${pageCount}`), W - M, 294, { align: "right" });
+    doc.text(tr(`${COMPANY.legalAddress}`), M, 294);
+  }
 
   doc.save(`KP_StalGrupp_${orderNum}.pdf`);
 }
@@ -304,14 +349,22 @@ interface CalcState {
   coatingId:     CoatingId;
   foundId:       FoundId;
   gateId:        GateId;
-  gateWidth:     number;
+  gateCount:     number;   // кол-во ворот в периметре
+  gateWidth:     number;   // ширина одних ворот
   wicketId:      WicketId;
+  wicketCount:   number;   // кол-во калиток
+  wicketWidth:   number;   // ширина калитки
   automation:    boolean;
   painting:      boolean;
   installation:  boolean;
   canopyType:    CanopyTypeId;
   canopyArea:    number;
   canopyCoverId: CanopyCoverId;
+  // Контактные данные клиента
+  clientName:    string;
+  clientPhone:   string;
+  clientCity:    string;
+  clientAddress: string;
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -331,14 +384,21 @@ export default function Calculator() {
     coatingId:     "polyester",
     foundId:       "betonirovanie",
     gateId:        "none",
+    gateCount:     1,
     gateWidth:     4,
     wicketId:      "none",
+    wicketCount:   1,
+    wicketWidth:   1,
     automation:    false,
     painting:      false,
     installation:  true,
     canopyType:    "односкат",
     canopyArea:    20,
     canopyCoverId: "polycarb_4",
+    clientName:    "",
+    clientPhone:   "",
+    clientCity:    "Москва",
+    clientAddress: "",
   });
 
   const [showKP, setShowKP] = useState(false);
@@ -353,44 +413,61 @@ export default function Calculator() {
   const hasFence = !isCanopy;
 
   // ── Расчёт ──────────────────────────────────────────────────────
-  const fenceArea    = calc.fenceLength * calc.fenceHeight;
-  const postCount    = hasFence ? Math.ceil(calc.fenceLength / 2.5) + 1 : 0;
-  const postHeight   = calc.fenceHeight + 1.2; // вкопанная часть
-  const postObj      = POST_OPTIONS.find(p => p.id === calc.postId)!;
-  const postCost     = postCount * postObj.pricePerPost * Math.ceil(postHeight / 3) * 1; // 1 пост = 1 труба 3м
+  // Ширина проёмов вычитается из периметра — забор не идёт в этих местах
+  const gatesTotalWidth   = calc.gateId   !== "none" ? calc.gateCount   * calc.gateWidth   : 0;
+  const wicketsTotalWidth = calc.wicketId !== "none" ? calc.wicketCount * calc.wicketWidth : 0;
+  const openingsWidth     = gatesTotalWidth + wicketsTotalWidth;
 
-  const lagObj       = LAG_OPTIONS.find(l => l.id === calc.lagId)!;
-  const lagTotalM    = hasFence ? calc.fenceLength * calc.lagRows : 0;
-  const lagCost      = lagTotalM * lagObj.pricePerM;
+  // Чистая длина "глухой" части забора
+  const netFenceLength    = Math.max(0, calc.fenceLength - openingsWidth);
+  const fenceArea         = netFenceLength * calc.fenceHeight;
+
+  // Столбы рассчитываются от чистой длины + добавляются опорные на каждое ворота/калитку (×2 шт.)
+  const fenceSpans        = netFenceLength > 0 ? Math.ceil(netFenceLength / 2.5) : 0;
+  const openingPosts      = (calc.gateId   !== "none" ? calc.gateCount   * 2 : 0)
+                          + (calc.wicketId !== "none" ? calc.wicketCount * 2 : 0);
+  const postCount         = hasFence ? fenceSpans + 1 + openingPosts : 0;
+  const postHeight        = calc.fenceHeight + 1.2; // вкопанная часть
+  const postObj           = POST_OPTIONS.find(p => p.id === calc.postId)!;
+  const postCost          = postCount * postObj.pricePerPost * Math.ceil(postHeight / 3);
+
+  const lagObj            = LAG_OPTIONS.find(l => l.id === calc.lagId)!;
+  const lagTotalM         = hasFence ? netFenceLength * calc.lagRows : 0;
+  const lagCost           = lagTotalM * lagObj.pricePerM;
 
   // Наполнение
   let fillingCost = 0;
   let fillingLabel = "";
+  let fillingQty: string = "";
   if (isProf) {
-    const pl     = PROFLIST_OPTIONS.find(p => p.id === calc.proflistId)!;
-    const coat   = COATING_OPTIONS.find(c => c.id === calc.coatingId)!;
+    const pl      = PROFLIST_OPTIONS.find(p => p.id === calc.proflistId)!;
+    const coat    = COATING_OPTIONS.find(c => c.id === calc.coatingId)!;
     const priceM2 = pl.priceM2 * (1 + coat.surcharge);
-    fillingCost  = fenceArea * priceM2;
-    fillingLabel = `Профлист ${pl.label} (${coat.label})`;
+    fillingCost   = fenceArea * priceM2;
+    fillingLabel  = `Профлист ${pl.label} (${coat.label})`;
+    fillingQty    = `${fenceArea.toFixed(1)} м²`;
   } else if (isShtak) {
-    const sh     = SHTAK_OPTIONS.find(s => s.id === calc.shtakId)!;
-    const coat   = COATING_OPTIONS.find(c => c.id === calc.coatingId)!;
-    // штакетник: кол-во планок на м ширины с учётом зазора
-    const plankW = 0.1; // ~100мм
+    const sh        = SHTAK_OPTIONS.find(s => s.id === calc.shtakId)!;
+    const coat      = COATING_OPTIONS.find(c => c.id === calc.coatingId)!;
+    const plankW    = 0.1; // ~100мм
     const planksPerM = Math.floor(1 / (plankW + calc.shtakGap / 100));
-    const totalPlanks = Math.ceil(calc.fenceLength * planksPerM);
+    const totalPlanks = Math.ceil(netFenceLength * planksPerM);
     const pricePerPlank = sh.pricePerM * calc.fenceHeight * (1 + coat.surcharge);
     fillingCost  = totalPlanks * pricePerPlank;
     fillingLabel = `Штакетник ${sh.label} ${totalPlanks} шт.`;
+    fillingQty   = `${totalPlanks} шт.`;
   } else if (calc.objectType === "3d") {
     fillingCost  = fenceArea * 1600;
     fillingLabel = "3D-сетка сварная";
+    fillingQty   = `${fenceArea.toFixed(1)} м²`;
   } else if (calc.objectType === "kovka") {
     fillingCost  = fenceArea * 4500;
     fillingLabel = "Ковка художественная";
+    fillingQty   = `${fenceArea.toFixed(1)} м²`;
   } else if (calc.objectType === "setka") {
     fillingCost  = fenceArea * 550;
     fillingLabel = "Сетка-рабица оцинкованная";
+    fillingQty   = `${fenceArea.toFixed(1)} м²`;
   }
 
   // Навес
@@ -405,13 +482,14 @@ export default function Calculator() {
   const fnd     = FOUND_OPTIONS.find(f => f.id === calc.foundId)!;
   const foundCost = isCanopy ? 0 : fnd.gift ? 0 : fnd.perPost > 0 ? postCount * fnd.perPost : calc.fenceLength * fnd.perM;
 
-  // Ворота
-  const gateObj  = GATE_OPTIONS.find(g => g.id === calc.gateId)!;
-  const gateCost = gateObj.base + (calc.gateId !== "none" ? calc.gateWidth * gateObj.perM : 0);
+  // Ворота (несколько штук)
+  const gateObj    = GATE_OPTIONS.find(g => g.id === calc.gateId)!;
+  const oneGateCost = calc.gateId !== "none" ? gateObj.base + calc.gateWidth * gateObj.perM : 0;
+  const gateCost    = oneGateCost * (calc.gateId !== "none" ? calc.gateCount : 0);
 
-  // Калитка
+  // Калитка (несколько штук)
   const wicketObj  = WICKET_OPTIONS.find(w => w.id === calc.wicketId)!;
-  const wicketCost = wicketObj.price;
+  const wicketCost = wicketObj.price * (calc.wicketId !== "none" ? calc.wicketCount : 0);
 
   // Монтаж, покраска, автоматика
   const matSum      = (hasFence ? postCost + lagCost + fillingCost : canopyCost) + gateCost + wicketCost;
@@ -425,16 +503,16 @@ export default function Calculator() {
   const lineItems: LineItem[] = isCanopy ? [
     { label: `Навес ${CANOPY_TYPES.find(c=>c.id===calc.canopyType)!.label} (${calc.canopyArea} м²)`, value: canopyCost, qty: `${calc.canopyArea} м²`, unitPrice: CANOPY_TYPES.find(c=>c.id===calc.canopyType)!.priceM2 },
   ] : [
-    { label: `Столбы ${postObj.label} — ${postCount} шт. × ${Math.ceil(postHeight/3)} шт.`, value: postCost, qty: `${postCount} шт.`, unitPrice: postObj.pricePerPost },
-    { label: `Лаги ${lagObj.label} — ${lagTotalM} м.п. (${calc.lagRows} ряда)`, value: lagCost, qty: `${lagTotalM} м`, unitPrice: lagObj.pricePerM },
-    { label: fillingLabel + ` (${fenceArea} м²)`, value: fillingCost, qty: `${fenceArea} м²`, unitPrice: Math.round(fillingCost / fenceArea) },
+    { label: `Столбы ${postObj.label} — заглубление ${(calc.fenceHeight * 0.6 + 0.6).toFixed(1)} м`, value: postCost, qty: `${postCount} шт.`, unitPrice: postObj.pricePerPost * Math.ceil(postHeight/3) },
+    { label: `Лаги ${lagObj.label} (${calc.lagRows} ряда), сварка MIG/MAG`, value: lagCost, qty: `${lagTotalM.toFixed(1)} м.п.`, unitPrice: lagObj.pricePerM },
+    { label: fillingLabel, value: fillingCost, qty: fillingQty, unitPrice: fenceArea > 0 ? Math.round(fillingCost / fenceArea) : 0 },
   ];
-  if (foundCost > 0) lineItems.push({ label: `Фундамент: ${fnd.label}`, value: foundCost, qty: fnd.perPost > 0 ? `${postCount} столб.` : `${calc.fenceLength} м`, unitPrice: fnd.perPost > 0 ? fnd.perPost : fnd.perM });
+  if (foundCost > 0) lineItems.push({ label: `Фундамент: ${fnd.label}`, value: foundCost, qty: fnd.perPost > 0 ? `${postCount} столб.` : `${netFenceLength.toFixed(1)} м`, unitPrice: fnd.perPost > 0 ? fnd.perPost : fnd.perM });
   if (fnd.gift && !isCanopy) lineItems.push({ label: "Присыпка щебнем 🎁 — В ПОДАРОК", value: 0 });
-  if (gateCost > 0) lineItems.push({ label: `${gateObj.label} ворота (${calc.gateWidth} м)`, value: gateCost, qty: `${calc.gateWidth} м`, unitPrice: gateObj.base });
-  if (wicketCost > 0) lineItems.push({ label: `Калитка: ${wicketObj.label}`, value: wicketCost, qty: "1 шт.", unitPrice: wicketCost });
+  if (gateCost > 0) lineItems.push({ label: `${gateObj.label} ворота, ${calc.gateWidth} м × ${calc.gateCount} шт.`, value: gateCost, qty: `${calc.gateCount} шт.`, unitPrice: oneGateCost });
+  if (wicketCost > 0) lineItems.push({ label: `Калитка: ${wicketObj.label} × ${calc.wicketCount} шт.`, value: wicketCost, qty: `${calc.wicketCount} шт.`, unitPrice: wicketObj.price });
   if (installCost > 0) lineItems.push({ label: "Монтаж под ключ (35%)", value: installCost });
-  if (paintCost > 0) lineItems.push({ label: `Порошковая покраска 280 ₽/м²`, value: paintCost, qty: `${fenceArea} м²`, unitPrice: 280 });
+  if (paintCost > 0) lineItems.push({ label: `Порошковая покраска 280 ₽/м²`, value: paintCost, qty: `${fenceArea.toFixed(1)} м²`, unitPrice: 280 });
   if (autoCost > 0) lineItems.push({ label: "Автоматика ворот DoorHan", value: autoCost, qty: "1 компл.", unitPrice: autoCost });
 
   // Параметры объекта для КП
@@ -450,6 +528,165 @@ export default function Calculator() {
         ...(calc.gateId !== "none" ? { "Vorota": `${gateObj.label}, ${calc.gateWidth} m` } : {}),
         ...(calc.wicketId !== "none" ? { "Kalitka": wicketObj.label } : {}),
       };
+
+  // ── СТРУКТУРИРОВАННЫЙ JSON ДЛЯ 1С / VBA ─────────────────────────
+  // Структура совместима с модулями:
+  //   • 1С: «ARM_Calculation_Fences» (Документ.РасчётОграждений)
+  //   • VBA: «Generate_Ultra_Estimate» (формирование смет в Excel)
+  const buildExportJSON = () => ({
+    schema:        "ARM_Calculation_Fences@1.2",
+    generated_at:  new Date().toISOString(),
+    document: {
+      number:      orderNum,
+      type:        "CommercialOffer",
+      validity_days: 30,
+      currency:    "RUB",
+    },
+    contractor: {
+      legal_name:  COMPANY.legalName,
+      short_name:  COMPANY.shortName,
+      inn:         COMPANY.inn,
+      ogrnip:      COMPANY.ogrnip,
+      okpo:        COMPANY.okpo,
+      legal_addr:  COMPANY.legalAddress,
+      factory:     COMPANY.factoryAddress,
+      phone:       COMPANY.phoneE164,
+      email:       COMPANY.email,
+      bank: {
+        name:      COMPANY.bankName,
+        bik:       COMPANY.bik,
+        account:   COMPANY.bankAccount.replace(/\s/g, ""),
+        corr:      COMPANY.corrAccount.replace(/\s/g, ""),
+      },
+    },
+    client: {
+      name:        calc.clientName    || null,
+      phone:       calc.clientPhone   || null,
+      city:        calc.clientCity    || null,
+      address:     calc.clientAddress || null,
+    },
+    object: {
+      type:                calc.objectType,
+      type_name:           OBJECT_LABELS[calc.objectType],
+      // геометрия
+      perimeter_total_m:   calc.fenceLength,
+      openings_total_m:    +openingsWidth.toFixed(2),
+      perimeter_net_m:     +netFenceLength.toFixed(2),
+      height_m:            calc.fenceHeight,
+      fence_area_m2:       +fenceArea.toFixed(2),
+      canopy_area_m2:      isCanopy ? calc.canopyArea : 0,
+    },
+    materials: {
+      posts: {
+        section_mm:        postObj.label,
+        post_id:           calc.postId,
+        weight_per_m_kg:   postObj.weightPerM,
+        count_pcs:         postCount,
+        height_m:          +postHeight.toFixed(2),
+        embed_depth_m:     1.2,
+        step_m:            2.5,
+      },
+      lags: {
+        section_mm:        lagObj.label,
+        lag_id:            calc.lagId,
+        rows:              calc.lagRows,
+        total_length_m:    +lagTotalM.toFixed(2),
+      },
+      filling: isProf ? {
+        kind:            "proflist",
+        marka:           PROFLIST_OPTIONS.find(p=>p.id===calc.proflistId)!.label,
+        wave_height_mm:  PROFLIST_OPTIONS.find(p=>p.id===calc.proflistId)!.height_mm,
+        coating:         COATING_OPTIONS.find(c=>c.id===calc.coatingId)!.label,
+        coating_id:      calc.coatingId,
+      } : isShtak ? {
+        kind:            "shtaketnik",
+        plank_type:      SHTAK_OPTIONS.find(s=>s.id===calc.shtakId)!.label,
+        plank_id:        calc.shtakId,
+        gap_mm:          calc.shtakGap,
+        coating:         COATING_OPTIONS.find(c=>c.id===calc.coatingId)!.label,
+      } : { kind: calc.objectType },
+      foundation: {
+        id:              calc.foundId,
+        name:            fnd.label,
+        per_post_rub:    fnd.perPost,
+        per_meter_rub:   fnd.perM,
+        depth_m:         calc.foundId === "lentochny" ? 0.4 : 1.2,
+      },
+      welding: {
+        method:          "MIG/MAG (полуавтомат)",
+        seam_type:       "Сплошной угловой Т1 по ГОСТ 14771-76",
+        seam_height_mm:  4,
+        primer:          "АК-070 в 2 слоя по швам",
+      },
+    },
+    openings: {
+      gates: calc.gateId !== "none" ? {
+        type:            gateObj.label,
+        type_id:         calc.gateId,
+        count_pcs:       calc.gateCount,
+        width_each_m:    calc.gateWidth,
+        total_width_m:   gatesTotalWidth,
+        automation:      calc.automation,
+        price_per_pcs:   oneGateCost,
+      } : null,
+      wickets: calc.wicketId !== "none" ? {
+        type:            wicketObj.label,
+        type_id:         calc.wicketId,
+        count_pcs:       calc.wicketCount,
+        width_each_m:    calc.wicketWidth,
+        total_width_m:   wicketsTotalWidth,
+        price_per_pcs:   wicketObj.price,
+      } : null,
+    },
+    works: {
+      installation:    calc.installation,
+      painting:        calc.painting,
+      automation:      calc.automation,
+    },
+    line_items: lineItems.map((it, idx) => ({
+      pos:           idx + 1,
+      name:          it.label,
+      qty_text:      it.qty || "",
+      unit_price:    it.unitPrice || 0,
+      sum:           it.value,
+      is_gift:       it.value === 0,
+    })),
+    totals: {
+      materials_rub:    Math.round(matSum),
+      foundation_rub:   Math.round(foundCost),
+      installation_rub: Math.round(installCost),
+      painting_rub:     Math.round(paintCost),
+      automation_rub:   Math.round(autoCost),
+      grand_total_rub:  Math.round(total),
+      vat_included:     false,
+    },
+    integration: {
+      // подсказки для 1С/VBA: куда мапить поля
+      target_documents: ["1C:ARM_Calculation_Fences", "VBA:Generate_Ultra_Estimate"],
+      mapping_hint: {
+        "Документ.Номер":          "document.number",
+        "Контрагент.ИНН":          "contractor.inn",
+        "Объект.ЧистыйПериметр":   "object.perimeter_net_m",
+        "Объект.Высота":            "object.height_m",
+        "Материалы.Столбы.Кол":    "materials.posts.count_pcs",
+        "Материалы.Лаги.Длина":    "materials.lags.total_length_m",
+        "Итог.Сумма":               "totals.grand_total_rub",
+      },
+    },
+  });
+
+  const handleJSON = () => {
+    const data = buildExportJSON();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json;charset=utf-8" });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href = url;
+    a.download = `${orderNum}_calculation.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   const handlePDF = async () => {
     setPdfLoading(true);
@@ -722,13 +959,23 @@ export default function Calculator() {
               ))}
             </div>
             {calc.gateId !== "none" && (
-              <div>
-                <div className="flex justify-between mb-2">
-                  <label className="text-xs text-white/60">Ширина проёма</label>
-                  <span className="text-orange-400 font-bold font-oswald">{calc.gateWidth} м</span>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <label className="text-xs text-white/60">Ширина одних ворот</label>
+                    <span className="text-orange-400 font-bold font-oswald">{calc.gateWidth} м</span>
+                  </div>
+                  <input type="range" min={2.5} max={8} step={0.5} value={calc.gateWidth} onChange={e => set({ gateWidth: +e.target.value })} />
+                  <div className="flex justify-between text-xs text-white/30 mt-1"><span>2.5</span><span>8 м</span></div>
                 </div>
-                <input type="range" min={2.5} max={8} step={0.5} value={calc.gateWidth} onChange={e => set({ gateWidth: +e.target.value })} />
-                <div className="flex justify-between text-xs text-white/30 mt-1"><span>2.5 м</span><span>8 м</span></div>
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <label className="text-xs text-white/60">Кол-во ворот</label>
+                    <span className="text-orange-400 font-bold font-oswald">{calc.gateCount} шт.</span>
+                  </div>
+                  <input type="range" min={1} max={4} step={1} value={calc.gateCount} onChange={e => set({ gateCount: +e.target.value })} />
+                  <div className="flex justify-between text-xs text-white/30 mt-1"><span>1</span><span>4 шт.</span></div>
+                </div>
               </div>
             )}
           </div>
@@ -736,7 +983,7 @@ export default function Calculator() {
           {/* Калитка */}
           <div>
             <label className="block text-xs font-semibold text-orange-400 uppercase tracking-widest mb-2">Калитка</label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
               {WICKET_OPTIONS.map(w => (
                 <button key={w.id} onClick={() => set({ wicketId: w.id })}
                   className={`px-2 py-3 rounded-xl text-xs font-medium transition-all ${
@@ -748,6 +995,58 @@ export default function Calculator() {
                   {w.price > 0 && <div className={`mt-0.5 ${calc.wicketId === w.id ? "text-gray-900/70" : "text-white/35"}`}>{(w.price/1000).toFixed(1)}к ₽</div>}
                 </button>
               ))}
+            </div>
+            {calc.wicketId !== "none" && (
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <label className="text-xs text-white/60">Ширина калитки</label>
+                    <span className="text-orange-400 font-bold font-oswald">{calc.wicketWidth.toFixed(1)} м</span>
+                  </div>
+                  <input type="range" min={0.8} max={1.5} step={0.1} value={calc.wicketWidth} onChange={e => set({ wicketWidth: +e.target.value })} />
+                </div>
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <label className="text-xs text-white/60">Кол-во калиток</label>
+                    <span className="text-orange-400 font-bold font-oswald">{calc.wicketCount} шт.</span>
+                  </div>
+                  <input type="range" min={1} max={4} step={1} value={calc.wicketCount} onChange={e => set({ wicketCount: +e.target.value })} />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Информация о вычете проёмов */}
+          {hasFence && openingsWidth > 0 && (
+            <div className="bg-orange-500/5 border border-orange-500/20 rounded-xl p-3 text-xs text-white/60 flex items-start gap-2">
+              <Icon name="Info" size={14} className="text-orange-400 flex-shrink-0 mt-0.5" />
+              <div>
+                Из периметра <b className="text-white">{calc.fenceLength} м</b> вычтены проёмы под ворота и калитки
+                (<b className="text-orange-400">{openingsWidth.toFixed(1)} м</b>).
+                Чистая длина забора: <b className="text-orange-400">{netFenceLength.toFixed(1)} м</b>.
+              </div>
+            </div>
+          )}
+
+          {/* Контактные данные клиента — для JSON-выгрузки */}
+          <div className="bg-[#0d1017] border border-[#1e2230] rounded-xl p-4 space-y-3">
+            <div className="flex items-center gap-2 mb-1">
+              <Icon name="UserCheck" size={15} className="text-orange-400" />
+              <label className="text-xs font-semibold text-orange-400 uppercase tracking-widest">Данные для расчёта (опционально)</label>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <input type="text" placeholder="Ваше имя" value={calc.clientName}
+                onChange={e => set({ clientName: e.target.value })}
+                className="bg-[#1a1f2e] border border-[#1e2230] rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-orange-500/50" />
+              <input type="tel" placeholder="Телефон" value={calc.clientPhone}
+                onChange={e => set({ clientPhone: e.target.value })}
+                className="bg-[#1a1f2e] border border-[#1e2230] rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-orange-500/50" />
+              <input type="text" placeholder="Город (Люберцы, Истра…)" value={calc.clientCity}
+                onChange={e => set({ clientCity: e.target.value })}
+                className="bg-[#1a1f2e] border border-[#1e2230] rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-orange-500/50" />
+              <input type="text" placeholder="Адрес объекта" value={calc.clientAddress}
+                onChange={e => set({ clientAddress: e.target.value })}
+                className="bg-[#1a1f2e] border border-[#1e2230] rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-orange-500/50" />
             </div>
           </div>
 
@@ -836,9 +1135,17 @@ export default function Calculator() {
             <button
               onClick={handlePDF}
               disabled={pdfLoading}
-              className="w-full py-3 rounded-xl text-sm flex items-center justify-center gap-2 bg-red-600 hover:bg-red-500 text-white font-oswald font-bold uppercase tracking-wide transition-all disabled:opacity-60">
+              className="w-full py-3 rounded-xl text-sm flex items-center justify-center gap-2 bg-red-600 hover:bg-red-500 text-white font-oswald font-bold uppercase tracking-wide transition-all disabled:opacity-60 mb-2">
               <Icon name={pdfLoading ? "Loader" : "FileDown"} size={16} className={pdfLoading ? "animate-spin" : ""} />
               {pdfLoading ? "Генерация PDF..." : "Скачать КП в PDF"}
+            </button>
+
+            <button
+              onClick={handleJSON}
+              className="w-full py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 bg-[#1a1f2e] hover:bg-[#222838] border border-[#2a3040] hover:border-orange-500/40 text-white/70 hover:text-orange-400 font-medium transition-all"
+              title="JSON для импорта в 1С (ARM_Calculation_Fences) или VBA (Generate_Ultra_Estimate)">
+              <Icon name="FileJson" size={14} />
+              Выгрузить JSON для 1С / VBA
             </button>
           </div>
 
@@ -861,15 +1168,17 @@ export default function Calculator() {
       {/* ── Превью КП ── */}
       {showKP && (
         <div ref={kpRef} className="mt-8 bg-white rounded-2xl overflow-hidden shadow-2xl">
-          {/* Шапка */}
+          {/* Шапка КП с реквизитами */}
           <div className="bg-orange-500 px-8 py-5 flex items-center justify-between">
             <div>
               <div className="font-oswald font-bold text-3xl text-white tracking-wider">СТАЛЬГРУПП</div>
-              <div className="text-white/80 text-sm">Производство металлических ограждений</div>
+              <div className="text-white/90 text-sm">ИП Балтаг Алексей Васильевич</div>
+              <div className="text-white/70 text-[11px] mt-0.5">ИНН {COMPANY.inn} · ОГРНИП {COMPANY.ogrnip}</div>
             </div>
             <div className="text-right text-white/90 text-sm">
-              <div>8 800 123-45-67</div>
-              <div>info@stalgrupp.ru</div>
+              <div className="font-semibold">{COMPANY.phone}</div>
+              <div>{COMPANY.email}</div>
+              <div className="text-[11px] text-white/70 mt-0.5">{COMPANY.site}</div>
             </div>
           </div>
 
@@ -956,9 +1265,29 @@ export default function Calculator() {
             </div>
           </div>
 
-          {/* Подвал */}
-          <div className="bg-gray-800 px-8 py-4 text-center text-gray-400 text-xs">
-            СтальГрупп · Москва, ул. Промышленная, 12 · 8 800 123-45-67 · info@stalgrupp.ru
+          {/* Подвал КП — банковские реквизиты + подпись */}
+          <div className="border-t border-gray-200 px-8 py-5 bg-gray-50">
+            <div className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">Реквизиты исполнителя</div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 text-xs text-gray-600">
+              <div><span className="text-gray-400">Наименование:</span> <b className="text-gray-800">{COMPANY.legalName}</b></div>
+              <div><span className="text-gray-400">ИНН:</span> <b className="text-gray-800">{COMPANY.inn}</b></div>
+              <div><span className="text-gray-400">ОГРНИП:</span> <b className="text-gray-800">{COMPANY.ogrnip}</b></div>
+              <div><span className="text-gray-400">ОКПО:</span> <b className="text-gray-800">{COMPANY.okpo}</b></div>
+              <div className="sm:col-span-2"><span className="text-gray-400">Юр. адрес:</span> <b className="text-gray-800">{COMPANY.legalAddress}</b></div>
+              <div><span className="text-gray-400">Банк:</span> <b className="text-gray-800">{COMPANY.bankName}</b></div>
+              <div><span className="text-gray-400">БИК:</span> <b className="text-gray-800">{COMPANY.bik}</b></div>
+              <div><span className="text-gray-400">Р/с:</span> <b className="text-gray-800">{COMPANY.bankAccount}</b></div>
+              <div><span className="text-gray-400">К/с:</span> <b className="text-gray-800">{COMPANY.corrAccount}</b></div>
+            </div>
+            <div className="flex items-end justify-between mt-5 pt-4 border-t border-gray-200">
+              <div className="text-sm text-gray-700">
+                Исполнитель: <b>ИП Балтаг А. В.</b> ________________
+              </div>
+              <div className="text-xs text-gray-400">М.П.</div>
+            </div>
+          </div>
+          <div className="bg-gray-800 px-8 py-3 text-center text-gray-400 text-[11px]">
+            {COMPANY.shortName} · {COMPANY.phone} · {COMPANY.email} · {COMPANY.factoryAddress}
           </div>
         </div>
       )}
