@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import Icon from "@/components/ui/icon";
 import { COMPANY } from "@/lib/company";
 import { sendLead } from "@/lib/api";
+import { useLeadModal } from "@/hooks/useLeadModal";
 
 // ─────────────────────────────────────────────────────────────────
 // СПРАВОЧНИКИ КОМПЛЕКТУЮЩИХ (рыночные цены РФ 2026)
@@ -465,6 +466,7 @@ export default function Calculator() {
   const [maxLoading, setMaxLoading] = useState(false);
   const [maxSent, setMaxSent] = useState(false);
   const kpRef = useRef<HTMLDivElement>(null);
+  const lead = useLeadModal();
 
   const set = (p: Partial<CalcState>) => setCalc(c => ({ ...c, ...p }));
   const isCanopy = calc.objectType === "canopy";
@@ -807,6 +809,7 @@ export default function Calculator() {
   // ── JSX ─────────────────────────────────────────────────────────
   return (
     <div>
+      {lead.node}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
         {/* ── Настройки (3 col) ── */}
         <div className="lg:col-span-3 space-y-7">
@@ -1229,7 +1232,12 @@ export default function Calculator() {
               )}
             </div>
 
-            <button className="btn-orange w-full py-3.5 rounded-xl text-sm mb-3">
+            <button onClick={() => lead.open({
+                title: "Бесплатный замер",
+                source: `Калькулятор: ${OBJECT_LABELS[calc.objectType]}`,
+                serviceHint: `${OBJECT_LABELS[calc.objectType]}, ${calc.fenceLength} м × ${calc.fenceHeight} м — ${fmt(total)}`,
+              })}
+              className="btn-orange w-full py-3.5 rounded-xl text-sm mb-3">
               <span className="flex items-center gap-2 justify-center">
                 <Icon name="Phone" size={16} />
                 Заказать бесплатный замер

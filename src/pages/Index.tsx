@@ -2,7 +2,9 @@ import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import Calculator from "@/components/Calculator";
+import ContactForm from "@/components/ContactForm";
 import { COMPANY } from "@/lib/company";
+import { useLeadModal } from "@/hooks/useLeadModal";
 
 // ── Изображения ─────────────────────────────────────────────────────────────
 const IMGS = {
@@ -525,8 +527,11 @@ export default function Index() {
     setMenuOpen(false);
   };
 
+  const lead = useLeadModal();
+
   return (
     <div className="min-h-screen" style={{ background: "var(--dark-bg)" }}>
+      {lead.node}
 
       {/* NAV */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-[#1e2230]"
@@ -564,7 +569,8 @@ export default function Index() {
                   <Icon name="Clock" size={10} /> Пн–Сб 8:00–20:00
                 </div>
               </div>
-              <button className="btn-outline-orange px-4 py-2 rounded-lg text-xs" onClick={() => scrollTo("lead")}>
+              <button className="btn-outline-orange px-4 py-2 rounded-lg text-xs"
+                onClick={() => lead.open({ title: "Заказать звонок", source: "Шапка: Заказать звонок" })}>
                 Заказать звонок
               </button>
               <button className="btn-orange px-5 py-2 rounded-lg text-sm" onClick={() => scrollTo("calculator")}>
@@ -731,7 +737,8 @@ export default function Index() {
           </div>
 
           <div className="text-center mt-10 anim-ready">
-            <button className="btn-orange px-8 py-4 rounded-xl text-base" onClick={() => scrollTo("lead")}>
+            <button className="btn-orange px-8 py-4 rounded-xl text-base"
+              onClick={() => lead.open({ title: "Бесплатный замер", source: "Схема работы: Бесплатный замер" })}>
               <span className="flex items-center gap-2 justify-center">
                 <Icon name="ArrowRight" size={18} />
                 Начать с бесплатного замера
@@ -893,54 +900,43 @@ export default function Index() {
             </div>
 
             <div className="lg:col-span-2 anim-ready" style={{ transitionDelay: "0.15s" }}>
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  const fd = new FormData(e.currentTarget);
-                  alert(`Спасибо, ${fd.get("name") || "клиент"}! Перезвоним в течение 15 минут на ${fd.get("phone")}.`);
-                  (e.currentTarget as HTMLFormElement).reset();
-                }}
-                className="bg-[#141720]/95 backdrop-blur border-2 border-orange-500/30 rounded-3xl p-7 shadow-2xl shadow-orange-500/10">
+              <div className="bg-[#141720]/95 backdrop-blur border-2 border-orange-500/30 rounded-3xl p-7 shadow-2xl shadow-orange-500/10">
                 <div className="flex items-center gap-2 mb-5">
                   <div className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
                   <span className="text-orange-400 text-xs font-medium uppercase tracking-wider">Свободных слотов на замер: 3</span>
                 </div>
                 <div className="font-oswald font-bold text-2xl text-white mb-1">Получить расчёт</div>
-                <p className="text-white/40 text-xs mb-5">Заполните 2 поля — менеджер свяжется в течение 15 минут</p>
+                <p className="text-white/40 text-xs mb-5">Перезвоним в течение 15 минут и бесплатно посчитаем смету</p>
 
-                <div className="space-y-3">
-                  <div className="relative">
-                    <Icon name="User" size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none" />
-                    <input
-                      name="name"
-                      type="text"
-                      required
-                      placeholder="Ваше имя"
-                      className="select-field !pl-11"
-                    />
-                  </div>
-                  <div className="relative">
-                    <Icon name="Phone" size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none" />
-                    <input
-                      name="phone"
-                      type="tel"
-                      required
-                      placeholder="+7 (___) ___-__-__"
-                      className="select-field !pl-11"
-                    />
-                  </div>
-                  <button type="submit" className="btn-orange w-full py-4 rounded-xl text-base group">
-                    <span className="flex items-center gap-2 justify-center">
-                      Отправить заявку
-                      <Icon name="ArrowRight" size={18} className="group-hover:translate-x-1 transition-transform" />
-                    </span>
+                <button onClick={() => lead.open({
+                  title: "Бесплатный расчёт сметы",
+                  source: "Главная: Lead-форма «Бесплатный расчёт»",
+                  subtitle: "Перезвоним за 15 минут, бесплатно посчитаем смету по вашему участку."
+                })}
+                  className="btn-orange w-full py-4 rounded-xl text-base group">
+                  <span className="flex items-center gap-2 justify-center">
+                    <Icon name="Calculator" size={18} />
+                    Получить бесплатный расчёт
+                    <Icon name="ArrowRight" size={18} className="group-hover:translate-x-1 transition-transform" />
+                  </span>
+                </button>
+
+                <div className="grid grid-cols-2 gap-2 mt-4">
+                  <a href={`tel:${COMPANY.phoneE164}`} className="flex items-center gap-2 justify-center py-3 rounded-xl border border-[#1e2230] hover:border-orange-500/40 text-white/60 hover:text-orange-400 text-sm transition-all">
+                    <Icon name="Phone" size={14} />
+                    Позвонить
+                  </a>
+                  <button onClick={() => lead.open({ title: "Заказать звонок", source: "Lead: Заказать звонок" })}
+                    className="flex items-center gap-2 justify-center py-3 rounded-xl border border-[#1e2230] hover:border-orange-500/40 text-white/60 hover:text-orange-400 text-sm transition-all">
+                    <Icon name="PhoneCall" size={14} />
+                    Перезвоните мне
                   </button>
-                  <p className="text-white/30 text-[11px] text-center leading-relaxed">
-                    Нажимая кнопку, вы соглашаетесь<br />
-                    с <button type="button" className="text-orange-400/70 hover:text-orange-400 underline">политикой конфиденциальности</button>
-                  </p>
                 </div>
-              </form>
+
+                <p className="text-white/30 text-[11px] text-center leading-relaxed mt-4">
+                  Нажимая кнопку, вы соглашаетесь с политикой конфиденциальности
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -1116,42 +1112,21 @@ export default function Index() {
 
               <div className="flex gap-3">
                 {[
-                  { icon: "MessageCircle", label: "WhatsApp" },
-                  { icon: "Send",          label: "Telegram" },
-                  { icon: "Phone",         label: "Позвонить" },
-                ].map(({ icon, label }) => (
-                  <button key={label} className="flex-1 btn-outline-orange py-3 rounded-xl text-xs flex items-center justify-center gap-2">
+                  { icon: "MessageCircle", label: "WhatsApp", href: `https://wa.me/${COMPANY.phoneE164.replace(/[^0-9]/g, "")}` },
+                  { icon: "Send",          label: "Telegram", href: "https://t.me/stalgrupp_bot" },
+                  { icon: "Phone",         label: "Позвонить", href: `tel:${COMPANY.phoneE164}` },
+                ].map(({ icon, label, href }) => (
+                  <a key={label} href={href} target="_blank" rel="noopener noreferrer"
+                    className="flex-1 btn-outline-orange py-3 rounded-xl text-xs flex items-center justify-center gap-2">
                     <Icon name={icon} size={14} />
                     {label}
-                  </button>
+                  </a>
                 ))}
               </div>
             </div>
 
             <div className="anim-ready" style={{ transitionDelay: "0.1s" }}>
-              <div className="bg-[#141720] border border-[#1e2230] rounded-3xl p-8">
-                <div className="font-oswald font-bold text-xl text-white mb-6">Оставить заявку</div>
-                <div className="space-y-4">
-                  {[
-                    { placeholder: "Ваше имя",  type: "text" },
-                    { placeholder: "Телефон",   type: "tel" },
-                    { placeholder: "Email",     type: "email" },
-                  ].map(({ placeholder, type }) => (
-                    <input key={placeholder} type={type} placeholder={placeholder} className="select-field" />
-                  ))}
-                  <textarea
-                    placeholder="Опишите задачу: тип ограждения, размеры, пожелания"
-                    rows={4}
-                    className="select-field resize-none"
-                  />
-                  <button className="btn-orange w-full py-4 rounded-xl text-base">
-                    Отправить заявку
-                  </button>
-                  <p className="text-white/25 text-xs text-center">
-                    Нажимая кнопку, вы соглашаетесь с политикой конфиденциальности
-                  </p>
-                </div>
-              </div>
+              <ContactForm />
             </div>
           </div>
         </div>
@@ -1283,7 +1258,7 @@ export default function Index() {
               <div className="bg-[#141720] border border-orange-500/20 rounded-2xl p-5">
                 <div className="text-white text-sm font-medium mb-1">Не нашли нужное?</div>
                 <div className="text-white/40 text-xs mb-4">Перезвоним за 15 минут, ответим на любые вопросы и бесплатно посчитаем смету.</div>
-                <button onClick={() => scrollTo("lead")}
+                <button onClick={() => lead.open({ title: "Заказать звонок", source: "Footer: Заказать звонок" })}
                   className="btn-orange w-full py-3 rounded-xl text-sm flex items-center justify-center gap-2">
                   <Icon name="PhoneCall" size={15} />
                   Заказать звонок

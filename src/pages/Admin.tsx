@@ -420,8 +420,14 @@ export default function Admin() {
 
             {/* Инструкция */}
             <div className="bg-[#0d1017] border border-[#1e2230] rounded-2xl p-5 text-sm text-white/55 leading-relaxed">
-              <div className="font-bold text-white mb-2 flex items-center gap-2">
-                <Icon name="Info" size={16} className="text-orange-400" /> Как настроить MAX-бота
+              <div className="flex items-center justify-between mb-2">
+                <div className="font-bold text-white flex items-center gap-2">
+                  <Icon name="Info" size={16} className="text-orange-400" /> Как настроить MAX-бота
+                </div>
+                <Link to="/help/max" target="_blank" rel="noopener noreferrer"
+                  className="text-orange-400 hover:text-orange-300 text-xs flex items-center gap-1">
+                  Подробная инструкция <Icon name="ExternalLink" size={11} />
+                </Link>
               </div>
               <ol className="space-y-1.5 ml-5 list-decimal text-xs">
                 <li>Откройте мессенджер MAX → найдите <b>@MasterBot</b></li>

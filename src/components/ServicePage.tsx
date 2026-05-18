@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Icon from "@/components/ui/icon";
+import { useLeadModal } from "@/hooks/useLeadModal";
 
 // ─────────────────────────────────────────────────────────────────
 // ТИПЫ ДАННЫХ ШАБЛОНА
@@ -109,9 +110,11 @@ export default function ServicePage(p: ServiceProps) {
   }, [p.metaTitle, p.metaDescription]);
 
   const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+  const lead = useLeadModal({ source: `Услуга: ${p.breadcrumb}` });
 
   return (
     <div className="min-h-screen" style={{ background: "var(--dark-bg)" }}>
+      {lead.node}
 
       {/* ── ШАПКА ── */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-[#1e2230]"
@@ -140,7 +143,8 @@ export default function ServicePage(p: ServiceProps) {
                   <Icon name="Clock" size={10} /> Пн–Сб 8:00–20:00
                 </div>
               </div>
-              <button className="btn-orange px-5 py-2 rounded-lg text-sm" onClick={() => scrollTo("lead")}>
+              <button className="btn-orange px-5 py-2 rounded-lg text-sm"
+                onClick={() => lead.open({ title: "Вызвать замерщика", subtitle: "Бесплатный замер в день обращения." })}>
                 Вызвать замерщика
               </button>
             </div>
@@ -204,7 +208,11 @@ export default function ServicePage(p: ServiceProps) {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3">
-                <button onClick={() => scrollTo("lead")} className="btn-orange px-7 py-3.5 rounded-xl text-base">
+                <button onClick={() => lead.open({
+                    title: "Вызвать замерщика",
+                    serviceHint: `${p.breadcrumb} · от ${p.startPrice} ${p.priceUnit}`,
+                  })}
+                  className="btn-orange px-7 py-3.5 rounded-xl text-base">
                   <span className="flex items-center gap-2 justify-center">
                     <Icon name="Ruler" size={17} />
                     Вызвать замерщика
@@ -572,41 +580,36 @@ export default function ServicePage(p: ServiceProps) {
             </div>
 
             <div className="lg:col-span-2">
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  const fd = new FormData(e.currentTarget);
-                  alert(`Спасибо, ${fd.get("name") || "клиент"}! Перезвоним за 15 минут на ${fd.get("phone")}.`);
-                  (e.currentTarget as HTMLFormElement).reset();
-                }}
-                className="bg-[#141720]/95 backdrop-blur border-2 border-orange-500/30 rounded-3xl p-7 shadow-2xl shadow-orange-500/10">
+              <div className="bg-[#141720]/95 backdrop-blur border-2 border-orange-500/30 rounded-3xl p-7 shadow-2xl shadow-orange-500/10">
                 <div className="font-oswald font-bold text-2xl text-white mb-1">Точный расчёт</div>
-                <p className="text-white/40 text-xs mb-5">Заполните 2 поля — пришлём смету и подробный прайс на email</p>
+                <p className="text-white/40 text-xs mb-5">Менеджер перезвонит в течение 15 минут и пришлёт смету</p>
 
                 <div className="space-y-3">
-                  <div className="relative">
-                    <Icon name="User" size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none" />
-                    <input name="name" type="text" required placeholder="Ваше имя" className="select-field !pl-11" />
-                  </div>
-                  <div className="relative">
-                    <Icon name="Phone" size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none" />
-                    <input name="phone" type="tel" required placeholder="+7 (___) ___-__-__" className="select-field !pl-11" />
-                  </div>
-                  <button type="submit" className="btn-orange w-full py-4 rounded-xl text-base group">
+                  <button onClick={() => lead.open({
+                      title: "Точный расчёт сметы",
+                      source: `Услуга: ${p.breadcrumb} (лид-форма)`,
+                      serviceHint: `${p.breadcrumb} · от ${p.startPrice}`,
+                    })}
+                    className="btn-orange w-full py-4 rounded-xl text-base group">
                     <span className="flex items-center gap-2 justify-center">
                       Получить расчёт и прайс
                       <Icon name="ArrowRight" size={18} className="group-hover:translate-x-1 transition-transform" />
                     </span>
                   </button>
-                  <button type="button" className="btn-outline-orange w-full py-3 rounded-xl text-xs flex items-center justify-center gap-2">
+                  <button onClick={() => lead.open({
+                      title: "Скачать прайс на email",
+                      source: `Услуга: ${p.breadcrumb} (прайс PDF)`,
+                      subtitle: "Пришлём полный прайс-лист по этой услуге на ваш телефон в WhatsApp/MAX.",
+                    })}
+                    className="btn-outline-orange w-full py-3 rounded-xl text-xs flex items-center justify-center gap-2">
                     <Icon name="Download" size={14} />
-                    Скачать прайс PDF
+                    Получить полный прайс
                   </button>
                   <p className="text-white/30 text-[11px] text-center">
-                    Соглашаюсь с <button type="button" className="text-orange-400/70 hover:text-orange-400 underline">политикой</button>
+                    Согласие с <button type="button" className="text-orange-400/70 hover:text-orange-400 underline">политикой</button>
                   </p>
                 </div>
-              </form>
+              </div>
             </div>
           </div>
         </div>
