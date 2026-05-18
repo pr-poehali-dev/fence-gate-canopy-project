@@ -189,6 +189,30 @@ export async function erpAddNote(leadId: number, text: string) {
   return r.json();
 }
 
+// ─────────── Смена своего логина / пароля ───────────
+export interface ErpProfileInput {
+  current_password?: string;
+  new_login?: string;
+  new_password?: string;
+  full_name?: string;
+  email?: string;
+  phone?: string;
+}
+
+export async function erpUpdateProfile(p: ErpProfileInput) {
+  const r = await fetch(`${API.erp}?action=profile`, {
+    method: "PUT", headers: H(),
+    body: JSON.stringify(p),
+  });
+  return r.json() as Promise<{
+    ok: boolean;
+    login_changed?: boolean;
+    password_changed?: boolean;
+    error?: string;
+    message?: string;
+  }>;
+}
+
 export async function erpLeadEvents(leadId: number) {
   const r = await fetch(`${API.erp}?action=lead_events&id=${leadId}`, { headers: H() });
   const d = await r.json();

@@ -279,6 +279,95 @@ def handler(event: dict, context) -> dict:
                     conn.commit()
                 return {'statusCode': 200, 'headers': cors, 'body': json.dumps({'ok': True})}
 
+        # ── СМЕНА СВОЕГО ЛОГИНА / ПАРОЛЯ (любым сотрудником) ──
+        if action == 'profile' and method == 'PUT':
+            eid, _, _ = _session(headers, conn)
+            if not eid:
+                return {'statusCode': 401, 'headers': cors,
+                        'body': json.dumps({'error': 'unauthorized'})}
+            body = json.loads(event.get('body') or '{}')
+            current_pwd = (body.get('current_password') or '').strip()
+            new_login = (body.get('new_login') or '').strip().lower()[:60]
+            new_pwd   = (body.get('new_password') or '').strip()[:200]
+            full_name = (body.get('full_name') or '').strip()[:200]
+            email     = (body.get('email') or '').strip()[:200]
+            phone     = (body.get('phone') or '').strip()[:30]
+
+            # Проверяем текущий пароль (обязательно при смене логина или пароля)
+            changing_credentials = bool(new_login or new_pwd)
+            if changing_credentials and not current_pwd:
+                return {'statusCode': 400, 'headers': cors,
+                        'body': json.dumps({'error': 'current_password_required'})}
+
+            with conn.cursor() as cur:
+                cur.execute(f"SELECT login, password_hash FROM erp_employees WHERE id={eid}")
+                row = cur.fetchone()
+                if not row:
+                    return {'statusCode': 404, 'headers': cors,
+                            'body': json.dumps({'error': 'not_found'})}
+                cur_login, cur_hash = row
+
+                if changing_credentials:
+                    if cur_hash.startswith('plain:'):
+                        if cur_hash[6:] != current_pwd:
+                            return {'statusCode': 401, 'headers': cors,
+                                    'body': json.dumps({'error': 'wrong_current_password'})}
+                    elif cur_hash != _h(current_pwd):
+                        return {'statusCode': 401, 'headers': cors,
+                                'body': json.dumps({'error': 'wrong_current_password'})}
+
+                # Валидация нового логина
+                if new_login and new_login != cur_login:
+                    if not all(c.isalnum() or c == '_' for c in new_login) or len(new_login) < 3:
+                        return {'statusCode': 400, 'headers': cors,
+                                'body': json.dumps({'error': 'bad_login',
+                                                     'message': 'Логин: только латиница/цифры/_, минимум 3 символа'})}
+                    # проверяем уникальность
+                    sl = new_login.replace("'", "''")
+                    cur.execute(f"SELECT id FROM erp_employees WHERE LOWER(login)=LOWER('{sl}') AND id<>{eid}")
+                    if cur.fetchone():
+                        return {'statusCode': 400, 'headers': cors,
+                                'body': json.dumps({'error': 'login_taken',
+                                                     'message': 'Такой логин уже занят'})}
+
+                # Валидация пароля
+                if new_pwd and len(new_pwd) < 5:
+                    return {'statusCode': 400, 'headers': cors,
+                            'body': json.dumps({'error': 'weak_password',
+                                                 'message': 'Минимум 5 символов'})}
+
+                # Собираем UPDATE
+                updates = []
+                if new_login and new_login != cur_login:
+                    updates.append(f"login='{new_login.replace(chr(39), chr(39)+chr(39))}'")
+                if new_pwd:
+                    updates.append(f"password_hash='{_h(new_pwd)}'")
+                if 'full_name' in body and full_name:
+                    updates.append(f"full_name='{full_name.replace(chr(39), chr(39)+chr(39))}'")
+                if 'email' in body:
+                    updates.append(f"email='{email.replace(chr(39), chr(39)+chr(39))}'")
+                if 'phone' in body:
+                    updates.append(f"phone='{phone.replace(chr(39), chr(39)+chr(39))}'")
+
+                if not updates:
+                    return {'statusCode': 400, 'headers': cors,
+                            'body': json.dumps({'error': 'nothing_to_update'})}
+
+                cur.execute(f"UPDATE erp_employees SET {','.join(updates)} WHERE id={eid}")
+                # Если меняли пароль — инвалидируем все остальные сессии (для безопасности)
+                if new_pwd:
+                    tk = headers.get('X-Erp-Token') or headers.get('x-erp-token') or ''
+                    safe_tk = tk.replace("'", "''")
+                    cur.execute(
+                        f"UPDATE erp_sessions SET expires_at=NOW() "
+                        f"WHERE employee_id={eid} AND token <> '{safe_tk}'"
+                    )
+                conn.commit()
+            return {'statusCode': 200, 'headers': cors,
+                    'body': json.dumps({'ok': True,
+                                         'login_changed': bool(new_login and new_login != cur_login),
+                                         'password_changed': bool(new_pwd)})}
+
         # ── ВОРОНКА ──────────────────────────────────────
         if action == 'funnel' and method == 'GET':
             eid, _, _ = _session(headers, conn)

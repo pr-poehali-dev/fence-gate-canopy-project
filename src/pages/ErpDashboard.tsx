@@ -5,6 +5,7 @@ import {
   ErpMe, ErpFunnel, ErpLead, ErpEmployee, ErpStage,
   erpMe, erpLogout, erpFunnel, erpBoard, erpEmployees, erpUpdateLead, erpAddNote, erpLeadEvents,
 } from "@/lib/erp";
+import ErpProfileModal from "@/components/ErpProfileModal";
 import { toast } from "sonner";
 
 export default function ErpDashboard() {
@@ -17,6 +18,7 @@ export default function ErpDashboard() {
   const [onlyMine, setOnlyMine] = useState(false);
   const [search, setSearch] = useState("");
   const [activeLead, setActiveLead] = useState<ErpLead | null>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -137,6 +139,11 @@ export default function ErpDashboard() {
             <Link to="/admin" className="text-xs px-3 py-2 bg-orange-500/10 hover:bg-orange-500/20 text-orange-300 border border-orange-500/30 hover:border-orange-500/50 rounded-lg transition-all flex items-center gap-1.5">
               <Icon name="Settings" size={13} /> Админ
             </Link>
+            <button onClick={() => setProfileOpen(true)}
+              className="text-xs px-3 py-2 bg-[#141720] hover:bg-orange-500/10 hover:text-orange-300 text-white/70 border border-[#1e2230] hover:border-orange-500/40 rounded-lg transition-all flex items-center gap-1.5"
+              title="Сменить логин и пароль">
+              <Icon name="UserCog" size={13} /> Профиль
+            </button>
             <button onClick={handleLogout}
               className="text-xs px-3 py-2 text-white/40 hover:text-red-400 hover:bg-red-500/10 rounded-lg flex items-center gap-1.5">
               <Icon name="LogOut" size={13} /> Выйти
@@ -179,6 +186,16 @@ export default function ErpDashboard() {
           canAssign={me.role.is_owner || ["ceo", "production", "manager"].includes(me.role.slug)}
           onClose={() => setActiveLead(null)}
           onChange={async () => { setActiveLead(null); await reloadBoard(); }} />
+      )}
+
+      {profileOpen && (
+        <ErpProfileModal me={me}
+          onClose={() => setProfileOpen(false)}
+          onSaved={async () => {
+            const fresh = await erpMe();
+            if (fresh) setMe(fresh);
+            setProfileOpen(false);
+          }} />
       )}
     </div>
   );
