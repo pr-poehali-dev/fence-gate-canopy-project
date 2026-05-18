@@ -1,0 +1,25 @@
+{
+  "tests": [
+    {
+      "name": "GET без page возвращает 400",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 400
+    },
+    {
+      "name": "GET страницы возвращает 200",
+      "method": "GET",
+      "path": "/?page=home",
+      "expectedStatus": 200,
+      "expectedBody": {"items": "object"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "PUT без авторизации возвращает 401",
+      "method": "PUT",
+      "path": "/",
+      "body": {"blocks": []},
+      "expectedStatus": 401
+    }
+  ]
+}

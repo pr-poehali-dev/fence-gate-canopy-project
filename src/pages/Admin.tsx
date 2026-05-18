@@ -65,16 +65,27 @@ export default function Admin() {
         // MAX-бот
         { key: "max_bot_token",         value: settings.max_bot_token || "" },
         { key: "max_chat_id",           value: settings.max_chat_id   || "" },
+        { key: "notify_manager_max",    value: settings.notify_manager_max || "true" },
         { key: "notify_client_via_max", value: settings.notify_client_via_max || "true" },
+        { key: "manager_max_template",  value: settings.manager_max_template || "" },
         { key: "client_notify_text",    value: settings.client_notify_text || "" },
         // Email
+        { key: "notify_manager_email",  value: settings.notify_manager_email || "true" },
+        { key: "notify_client_email",   value: settings.notify_client_email || "true" },
         { key: "notify_email_enabled",  value: settings.notify_email_enabled || "false" },
         { key: "notify_email_to",       value: settings.notify_email_to || "" },
+        { key: "manager_emails",        value: settings.manager_emails || "" },
         { key: "smtp_host",             value: settings.smtp_host || "" },
         { key: "smtp_port",             value: settings.smtp_port || "465" },
         { key: "smtp_user",             value: settings.smtp_user || "" },
         { key: "smtp_password",         value: settings.smtp_password || "" },
         { key: "smtp_from_name",        value: settings.smtp_from_name || "" },
+        { key: "manager_email_subject", value: settings.manager_email_subject || "" },
+        { key: "client_email_subject",  value: settings.client_email_subject || "" },
+        { key: "client_email_html",     value: settings.client_email_html || "" },
+        // SMS
+        { key: "notify_client_sms",     value: settings.notify_client_sms || "false" },
+        { key: "client_sms_template",   value: settings.client_sms_template || "" },
         // Компания
         { key: "company_phone",         value: settings.company_phone || "" },
         { key: "company_email",         value: settings.company_email || "" },
@@ -90,21 +101,60 @@ export default function Admin() {
     }
   };
 
-  const doTestEmail = async () => {
+  const doTestEmail = async (customTo?: string) => {
     setEmailTesting(true);
     setEmailTestResult("");
     try {
-      // Сначала сохраним текущие настройки, иначе тест пойдёт со старыми
-      await saveSettingsHandler();
-      const r = await testEmail();
+      if (settingsDirty) await saveSettingsHandler();
+      const r = await testEmail(customTo);
       setEmailTestResult(r?.ok
-        ? "✅ Письмо отправлено! Проверьте почту."
-        : `❌ ${r?.info || "Не удалось отправить"}`);
-      setTimeout(() => setEmailTestResult(""), 10000);
+        ? `✅ Письмо отправлено${r.recipients ? " (" + r.recipients.join(", ") + ")" : ""}`
+        : `❌ ${r?.message || r?.info || "Не удалось отправить"}`);
+      setTimeout(() => setEmailTestResult(""), 15000);
     } catch {
       setEmailTestResult("❌ Ошибка сети");
     } finally {
       setEmailTesting(false);
+    }
+  };
+
+  const [maxTesting, setMaxTesting] = useState(false);
+  const [maxTestResult, setMaxTestResult] = useState("");
+  const doTestMax = async () => {
+    setMaxTesting(true);
+    setMaxTestResult("");
+    try {
+      if (settingsDirty) await saveSettingsHandler();
+      const { testMax } = await import("@/lib/api");
+      const r = await testMax();
+      setMaxTestResult(r?.ok
+        ? "✅ Тестовое сообщение отправлено в MAX!"
+        : `❌ ${r?.info || r?.error || "Не удалось отправить"}`);
+      setTimeout(() => setMaxTestResult(""), 15000);
+    } catch {
+      setMaxTestResult("❌ Ошибка сети");
+    } finally {
+      setMaxTesting(false);
+    }
+  };
+
+  const [smsTesting, setSmsTesting] = useState(false);
+  const [smsTestResult, setSmsTestResult] = useState("");
+  const [smsTestPhone, setSmsTestPhone] = useState("");
+  const doTestSms = async () => {
+    if (!smsTestPhone.trim()) { setSmsTestResult("Укажите телефон"); return; }
+    setSmsTesting(true); setSmsTestResult("");
+    try {
+      const { testSms } = await import("@/lib/api");
+      const r = await testSms(smsTestPhone.trim());
+      setSmsTestResult(r?.ok
+        ? "✅ SMS отправлена! Проверьте телефон"
+        : `❌ ${r?.info || "Не удалось отправить (проверьте SMSRU_API_ID)"}`);
+      setTimeout(() => setSmsTestResult(""), 15000);
+    } catch {
+      setSmsTestResult("❌ Ошибка сети");
+    } finally {
+      setSmsTesting(false);
     }
   };
 
@@ -221,6 +271,9 @@ export default function Admin() {
           <div className="flex items-center gap-3">
             <Link to="/admin/leads" className="text-orange-400/90 hover:text-orange-400 text-xs flex items-center gap-1 px-2.5 py-1 border border-orange-500/30 hover:border-orange-500/60 rounded-lg transition-all">
               <Icon name="Inbox" size={13} /> Заявки
+            </Link>
+            <Link to="/admin/content" className="text-purple-300/90 hover:text-purple-300 text-xs flex items-center gap-1 px-2.5 py-1 border border-purple-500/30 hover:border-purple-500/60 rounded-lg transition-all">
+              <Icon name="FileEdit" size={13} /> Контент
             </Link>
             <Link to="/" className="text-white/40 hover:text-orange-400 text-xs flex items-center gap-1">
               <Icon name="ExternalLink" size={13} /> Сайт
@@ -448,6 +501,21 @@ export default function Admin() {
                   </div>
                 </div>
 
+                {/* Кнопка теста отправки в MAX */}
+                <div className="pt-2 flex items-center gap-3 flex-wrap">
+                  <button type="button" onClick={doTestMax}
+                    disabled={maxTesting || (!settings.max_bot_token && !settings.max_bot_token_set)}
+                    className="text-xs px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 border border-blue-500/30 hover:border-blue-500/50 rounded-lg transition-all flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed">
+                    <Icon name={maxTesting ? "Loader" : "Send"} size={13} className={maxTesting ? "animate-spin" : ""} />
+                    {maxTesting ? "Отправляем..." : "Отправить тест в MAX"}
+                  </button>
+                  {maxTestResult && (
+                    <span className={`text-xs ${maxTestResult.startsWith("✅") ? "text-green-400" : "text-red-400"}`}>
+                      {maxTestResult}
+                    </span>
+                  )}
+                </div>
+
                 <MaxChatPicker
                   open={chatPickerOpen}
                   onClose={() => setChatPickerOpen(false)}
@@ -459,42 +527,90 @@ export default function Admin() {
               </div>
             </div>
 
-            {/* Уведомление клиенту в MAX */}
+            {/* КАНАЛЫ УВЕДОМЛЕНИЙ — общий переключатель */}
+            <div className="bg-[#141720] border border-[#1e2230] rounded-2xl p-6 mb-5">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-10 h-10 bg-indigo-500/15 border border-indigo-500/30 rounded-xl flex items-center justify-center">
+                  <Icon name="Bell" size={20} className="text-indigo-400" />
+                </div>
+                <div>
+                  <div className="font-oswald font-bold text-white text-lg">Каналы уведомлений</div>
+                  <div className="text-white/40 text-xs">Что и куда отправлять при каждой заявке</div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {[
+                  { k: "notify_manager_max",   t: "MAX менеджеру",  d: "Заявка в чат бота", def: "true" },
+                  { k: "notify_manager_email", t: "Email менеджеру", d: "Дубль на почту",   def: "true" },
+                  { k: "notify_client_via_max", t: "MAX клиенту",   d: "Подтверждение в MAX, если есть чат", def: "true" },
+                  { k: "notify_client_email",  t: "Email клиенту",  d: "Письмо, если email указан в форме", def: "true" },
+                  { k: "notify_client_sms",    t: "SMS клиенту",    d: "Через sms.ru — нужен API-ключ", def: "false" },
+                ].map(ch => (
+                  <label key={ch.k} className="flex items-start gap-3 bg-[#0d1017] border border-[#1e2230] rounded-xl px-4 py-3 cursor-pointer hover:border-orange-500/30 transition-colors">
+                    <input type="checkbox"
+                      checked={((settings as Record<string, string | undefined>)[ch.k] || ch.def) === "true"}
+                      onChange={e => onSettingChange(ch.k as keyof typeof settings, e.target.checked ? "true" : "false")}
+                      className="mt-0.5 w-4 h-4 accent-orange-500" />
+                    <div>
+                      <div className="text-white text-sm font-semibold">{ch.t}</div>
+                      <div className="text-white/40 text-[11px]">{ch.d}</div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Шаблоны MAX-сообщений */}
             <div className="bg-[#141720] border border-[#1e2230] rounded-2xl p-6 mb-5">
               <div className="flex items-center gap-3 mb-5">
                 <div className="w-10 h-10 bg-purple-500/15 border border-purple-500/30 rounded-xl flex items-center justify-center">
                   <Icon name="MessageCircle" size={20} className="text-purple-400" />
                 </div>
                 <div>
-                  <div className="font-oswald font-bold text-white text-lg">Уведомление клиенту в MAX</div>
-                  <div className="text-white/40 text-xs">Если клиент уже писал боту — пришлём ему номер заявки в личку</div>
-                </div>
-                <div className="ml-auto">
-                  <label className="inline-flex items-center gap-2 cursor-pointer text-xs">
-                    <input type="checkbox"
-                      checked={(settings.notify_client_via_max || "true") === "true"}
-                      onChange={e => onSettingChange("notify_client_via_max", e.target.checked ? "true" : "false")}
-                      className="w-4 h-4 accent-orange-500" />
-                    <span className="text-white/60">Включено</span>
-                  </label>
+                  <div className="font-oswald font-bold text-white text-lg">Шаблоны сообщений в MAX</div>
+                  <div className="text-white/40 text-xs">Markdown, переменные в фигурных скобках</div>
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
-                  Шаблон сообщения клиенту
-                </label>
-                <textarea
-                  value={settings.client_notify_text || ""}
-                  onChange={e => onSettingChange("client_notify_text", e.target.value)}
-                  rows={4}
-                  placeholder="СтальГрупп: ваша заявка №{order_num} принята! ..."
-                  className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none font-mono resize-none" />
-                <div className="text-[11px] text-white/35 mt-1.5 leading-relaxed">
-                  Подстановки: <code className="text-orange-400/80">{"{order_num}"}</code> — номер заявки,{" "}
-                  <code className="text-orange-400/80">{"{company_phone}"}</code> — телефон,{" "}
-                  <code className="text-orange-400/80">{"{company_name}"}</code> — название,{" "}
-                  <code className="text-orange-400/80">{"{name}"}</code> — имя клиента
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
+                    Шаблон сообщения МЕНЕДЖЕРУ
+                  </label>
+                  <textarea
+                    value={settings.manager_max_template || ""}
+                    onChange={e => onSettingChange("manager_max_template", e.target.value)}
+                    rows={9}
+                    placeholder="🔔 *НОВАЯ ЗАЯВКА — {company_name}*&#10;..."
+                    className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none font-mono resize-none" />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
+                    Шаблон сообщения КЛИЕНТУ
+                  </label>
+                  <textarea
+                    value={settings.client_notify_text || ""}
+                    onChange={e => onSettingChange("client_notify_text", e.target.value)}
+                    rows={5}
+                    placeholder="🟧 *{company_name}*&#10;Ваша заявка *№{order_num}* принята!"
+                    className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none font-mono resize-none" />
+                </div>
+
+                <div className="text-[11px] text-white/40 leading-relaxed bg-[#0d1017] border border-[#1e2230] rounded-lg px-3 py-2">
+                  <b className="text-orange-400/80">Переменные:</b>{" "}
+                  <code className="text-orange-400/80">{"{order_num}"}</code>,{" "}
+                  <code className="text-orange-400/80">{"{name}"}</code>,{" "}
+                  <code className="text-orange-400/80">{"{phone}"}</code>,{" "}
+                  <code className="text-orange-400/80">{"{email}"}</code>,{" "}
+                  <code className="text-orange-400/80">{"{city}"}</code>,{" "}
+                  <code className="text-orange-400/80">{"{address}"}</code>,{" "}
+                  <code className="text-orange-400/80">{"{object_type}"}</code>,{" "}
+                  <code className="text-orange-400/80">{"{total}"}</code>,{" "}
+                  <code className="text-orange-400/80">{"{company_name}"}</code>,{" "}
+                  <code className="text-orange-400/80">{"{company_phone}"}</code>,{" "}
+                  <code className="text-orange-400/80">{"{company_email}"}</code>
                 </div>
               </div>
             </div>
@@ -523,12 +639,28 @@ export default function Admin() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
-                    Email получателя (куда слать заявки)
+                    Email менеджеров (несколько через запятую)
+                  </label>
+                  <input type="text"
+                    value={settings.manager_emails || ""}
+                    onChange={e => onSettingChange("manager_emails", e.target.value)}
+                    placeholder={settings.manager_emails_set
+                      ? "•••••• email сохранены, введите чтобы заменить"
+                      : "manager1@firma.ru, manager2@firma.ru"}
+                    className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none" />
+                  <div className="text-[11px] text-white/35 mt-1.5">
+                    Заявки придут на все указанные адреса одним письмом. Через запятую, точку с запятой или с новой строки.
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
+                    Резервный email (legacy)
                   </label>
                   <input type="email"
                     value={settings.notify_email_to || ""}
                     onChange={e => onSettingChange("notify_email_to", e.target.value)}
-                    placeholder={settings.notify_email_to_set ? "•••••• email сохранён" : "manager@stalgrupp.ru"}
+                    placeholder={settings.notify_email_to_set ? "•••••• email сохранён" : "Оставьте пустым, если используете «Email менеджеров»"}
                     className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none" />
                 </div>
 
@@ -587,12 +719,54 @@ export default function Admin() {
                     className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none" />
                 </div>
 
-                <div className="pt-2 flex items-center gap-3 flex-wrap">
-                  <button type="button" onClick={doTestEmail}
+                {/* Шаблоны писем */}
+                <div className="pt-3 mt-2 border-t border-[#1e2230]">
+                  <div className="text-xs font-bold text-white/70 uppercase tracking-wider mb-3">Шаблоны писем</div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
+                      Тема письма МЕНЕДЖЕРУ
+                    </label>
+                    <input type="text"
+                      value={settings.manager_email_subject || ""}
+                      onChange={e => onSettingChange("manager_email_subject", e.target.value)}
+                      placeholder="[Заявка №{order_num}] {object_type}"
+                      className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none font-mono" />
+                  </div>
+
+                  <div className="mt-3">
+                    <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
+                      Тема письма КЛИЕНТУ
+                    </label>
+                    <input type="text"
+                      value={settings.client_email_subject || ""}
+                      onChange={e => onSettingChange("client_email_subject", e.target.value)}
+                      placeholder="Ваша заявка №{order_num} принята — {company_name}"
+                      className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none font-mono" />
+                  </div>
+
+                  <div className="mt-3">
+                    <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
+                      HTML-шаблон письма КЛИЕНТУ
+                    </label>
+                    <textarea
+                      value={settings.client_email_html || ""}
+                      onChange={e => onSettingChange("client_email_html", e.target.value)}
+                      rows={10}
+                      placeholder="<div>...HTML с переменными {name}, {order_num}, {company_phone}...</div>"
+                      className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-xs text-white placeholder:text-white/25 focus:outline-none font-mono resize-y" />
+                    <div className="text-[11px] text-white/35 mt-1.5">
+                      Используйте те же переменные что и в MAX-шаблонах.
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-3 flex items-center gap-2 flex-wrap border-t border-[#1e2230]">
+                  <button type="button" onClick={() => doTestEmail()}
                     disabled={emailTesting}
                     className="text-xs px-4 py-2 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 hover:border-cyan-500/50 rounded-lg transition-all flex items-center gap-1.5 disabled:opacity-40">
                     <Icon name={emailTesting ? "Loader" : "Send"} size={13} className={emailTesting ? "animate-spin" : ""} />
-                    {emailTesting ? "Отправляем..." : "Отправить тестовое письмо"}
+                    {emailTesting ? "Отправляем..." : "Тест письма менеджеру"}
                   </button>
                   {emailTestResult && (
                     <span className={`text-xs ${emailTestResult.startsWith("✅") ? "text-green-400" : "text-red-400"}`}>
@@ -600,6 +774,54 @@ export default function Admin() {
                     </span>
                   )}
                 </div>
+              </div>
+            </div>
+
+            {/* SMS клиенту */}
+            <div className="bg-[#141720] border border-[#1e2230] rounded-2xl p-6 mb-5">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-10 h-10 bg-blue-500/15 border border-blue-500/30 rounded-xl flex items-center justify-center">
+                  <Icon name="Smartphone" size={20} className="text-blue-400" />
+                </div>
+                <div>
+                  <div className="font-oswald font-bold text-white text-lg">SMS клиенту (sms.ru)</div>
+                  <div className="text-white/40 text-xs">
+                    Включается в блоке «Каналы». Требует секрет <code className="text-orange-400/80">SMSRU_API_ID</code>.
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
+                  Шаблон SMS
+                </label>
+                <textarea
+                  value={settings.client_sms_template || ""}
+                  onChange={e => onSettingChange("client_sms_template", e.target.value)}
+                  rows={3}
+                  placeholder="{company_name}: заявка №{order_num} принята. Срочно? {company_phone}"
+                  className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none font-mono resize-none" />
+                <div className="text-[11px] text-white/35 mt-1.5">
+                  Используйте короткий текст — длинные SMS считаются как несколько и стоят дороже.
+                </div>
+              </div>
+
+              <div className="mt-4 pt-3 border-t border-[#1e2230] flex items-center gap-2 flex-wrap">
+                <input type="tel" value={smsTestPhone}
+                  onChange={e => setSmsTestPhone(e.target.value)}
+                  placeholder="+7 999 123-45-67"
+                  className="flex-1 min-w-[180px] bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/25 focus:outline-none font-mono" />
+                <button type="button" onClick={doTestSms}
+                  disabled={smsTesting}
+                  className="text-xs px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 border border-blue-500/30 hover:border-blue-500/50 rounded-lg transition-all flex items-center gap-1.5 disabled:opacity-40">
+                  <Icon name={smsTesting ? "Loader" : "Send"} size={13} className={smsTesting ? "animate-spin" : ""} />
+                  {smsTesting ? "Отправляем..." : "Тест SMS"}
+                </button>
+                {smsTestResult && (
+                  <span className={`text-xs basis-full sm:basis-auto ${smsTestResult.startsWith("✅") ? "text-green-400" : "text-red-400"}`}>
+                    {smsTestResult}
+                  </span>
+                )}
               </div>
             </div>
 
