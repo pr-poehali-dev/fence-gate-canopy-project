@@ -1,0 +1,634 @@
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import Icon from "@/components/ui/icon";
+
+// ─────────────────────────────────────────────────────────────────
+// ТИПЫ ДАННЫХ ШАБЛОНА
+// ─────────────────────────────────────────────────────────────────
+export interface PriceRow {
+  param:        string;
+  zink:         string;
+  polymer:      string;
+  premium:      string;
+}
+
+export interface SpecRow {
+  param:  string;
+  value:  string;
+  icon?:  string;
+}
+
+export interface FoundationOption {
+  name:      string;
+  price:     string;
+  desc:      string;
+  recommend: boolean;
+}
+
+export interface RalColor {
+  ral:   string;
+  name:  string;
+  hex:   string;
+}
+
+export interface FaqItem {
+  q: string;
+  a: string;
+}
+
+export interface PortfolioItem {
+  img:      string;
+  location: string;
+  size:     string;
+}
+
+export interface ServiceProps {
+  // SEO
+  metaTitle:         string;
+  metaDescription:   string;
+  breadcrumb:        string;
+
+  // Hero
+  h1:                string;
+  subtitle:          string;
+  benefits:          string[];
+  startPrice:        string;
+  priceUnit:         string;
+  heroImg:           string;
+  heroBadge?:        string;
+
+  // Описание
+  aboutTitle:        string;
+  aboutText:         string;
+  suitableFor:       { icon: string; title: string; desc: string }[];
+
+  // Прайс
+  priceRows:         PriceRow[];
+  foundations:       FoundationOption[];
+
+  // Спецификация
+  specs:             SpecRow[];
+  specImg:           string;
+
+  // Варианты и цвета
+  profileTypes:      { img: string; name: string; desc: string }[];
+  ralColors:         RalColor[];
+
+  // Доп. комплектующие
+  extras:            { icon: string; name: string; price: string; desc: string }[];
+
+  // Портфолио
+  portfolio:         PortfolioItem[];
+
+  // FAQ
+  faq:               FaqItem[];
+
+  // Лид-магнит
+  leadTitle:         string;
+  leadOffer:         string;
+}
+
+// ─────────────────────────────────────────────────────────────────
+// ШАБЛОН
+// ─────────────────────────────────────────────────────────────────
+export default function ServicePage(p: ServiceProps) {
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [activeRal, setActiveRal] = useState<string>(p.ralColors[0]?.ral || "");
+
+  // SEO
+  useEffect(() => {
+    document.title = p.metaTitle;
+    let meta = document.querySelector('meta[name="description"]') as HTMLMetaElement | null;
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.name = "description";
+      document.head.appendChild(meta);
+    }
+    meta.content = p.metaDescription;
+    window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+  }, [p.metaTitle, p.metaDescription]);
+
+  const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+
+  return (
+    <div className="min-h-screen" style={{ background: "var(--dark-bg)" }}>
+
+      {/* ── ШАПКА ── */}
+      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-[#1e2230]"
+        style={{ background: "rgba(13,15,20,0.93)", backdropFilter: "blur(16px)" }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <Link to="/" className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
+                <Icon name="Fence" size={18} className="text-gray-900" />
+              </div>
+              <div>
+                <div className="font-oswald font-bold text-white text-lg leading-none tracking-wider">
+                  СТАЛЬ<span className="text-orange-400">ГРУПП</span>
+                </div>
+                <div className="text-[10px] text-white/30 leading-none tracking-widest">ПРОИЗВОДСТВО</div>
+              </div>
+            </Link>
+
+            <div className="hidden lg:flex items-center gap-4">
+              <div className="text-right leading-tight">
+                <a href="tel:+78001234567" className="flex items-center gap-1.5 text-orange-400 font-oswald font-medium hover:text-orange-300 transition-colors text-sm justify-end">
+                  <Icon name="Phone" size={14} />
+                  8 800 123-45-67
+                </a>
+                <div className="text-[10px] text-white/35 mt-0.5 flex items-center justify-end gap-1">
+                  <Icon name="Clock" size={10} /> Пн–Сб 8:00–20:00
+                </div>
+              </div>
+              <button className="btn-orange px-5 py-2 rounded-lg text-sm" onClick={() => scrollTo("lead")}>
+                Вызвать замерщика
+              </button>
+            </div>
+
+            <a href="tel:+78001234567" className="lg:hidden text-orange-400">
+              <Icon name="Phone" size={22} />
+            </a>
+          </div>
+        </div>
+      </nav>
+
+      {/* ── ХЛЕБНЫЕ КРОШКИ ── */}
+      <div className="pt-20 pb-2 bg-[#0a0c10] border-b border-[#1e2230]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-2 text-xs">
+          <Link to="/" className="text-white/40 hover:text-orange-400 transition-colors">Главная</Link>
+          <Icon name="ChevronRight" size={12} className="text-white/25" />
+          <Link to="/#products" className="text-white/40 hover:text-orange-400 transition-colors">Продукция</Link>
+          <Icon name="ChevronRight" size={12} className="text-white/25" />
+          <span className="text-orange-400">{p.breadcrumb}</span>
+        </div>
+      </div>
+
+      {/* ── HERO ── */}
+      <section className="relative overflow-hidden grid-pattern py-16 lg:py-20">
+        <div className="absolute inset-0"
+          style={{ background: "radial-gradient(ellipse 70% 60% at 70% 50%, rgba(249,115,22,0.10) 0%, transparent 70%)" }} />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+            <div>
+              {p.heroBadge && (
+                <div className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/30 rounded-full px-3 py-1.5 mb-5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
+                  <span className="text-orange-400 text-xs font-medium">{p.heroBadge}</span>
+                </div>
+              )}
+
+              <h1 className="font-oswald font-bold text-4xl sm:text-5xl lg:text-6xl text-white leading-tight mb-5">
+                {p.h1}
+              </h1>
+
+              <p className="text-white/60 text-base sm:text-lg mb-6 leading-relaxed max-w-xl">{p.subtitle}</p>
+
+              <ul className="space-y-2.5 mb-7">
+                {p.benefits.map(b => (
+                  <li key={b} className="flex items-start gap-2.5 text-white/75 text-sm">
+                    <Icon name="CheckCircle2" size={18} className="text-orange-400 flex-shrink-0 mt-0.5" />
+                    <span>{b}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="flex items-end gap-6 mb-6 flex-wrap">
+                <div>
+                  <div className="text-white/40 text-xs uppercase tracking-wider mb-1">Стартовая цена</div>
+                  <div className="font-oswald font-bold text-4xl sm:text-5xl text-orange-400 leading-none">
+                    от {p.startPrice}
+                  </div>
+                  <div className="text-white/40 text-xs mt-1">{p.priceUnit}</div>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button onClick={() => scrollTo("lead")} className="btn-orange px-7 py-3.5 rounded-xl text-base">
+                  <span className="flex items-center gap-2 justify-center">
+                    <Icon name="Ruler" size={17} />
+                    Вызвать замерщика
+                  </span>
+                </button>
+                <button onClick={() => scrollTo("prices")} className="btn-outline-orange px-7 py-3.5 rounded-xl text-base">
+                  Прайс-лист
+                </button>
+              </div>
+            </div>
+
+            <div className="relative">
+              <div className="aspect-[4/3] rounded-3xl overflow-hidden border border-[#1e2230] shadow-2xl">
+                <img src={p.heroImg} alt={p.h1} className="w-full h-full object-cover" />
+              </div>
+              <div className="absolute -bottom-5 -left-5 bg-[#141720] border border-orange-500/30 rounded-2xl p-4 shadow-xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
+                    <Icon name="ShieldCheck" size={20} className="text-gray-900" />
+                  </div>
+                  <div>
+                    <div className="font-oswald font-bold text-white text-base">Гарантия 5 лет</div>
+                    <div className="text-white/40 text-xs">По договору</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── ОПИСАНИЕ И ЗАДАЧИ ── */}
+      <section className="py-20 bg-[#0a0c10]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
+            <div>
+              <span className="section-tag">О конструкции</span>
+              <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-white mb-4">{p.aboutTitle}</h2>
+              <p className="text-white/60 leading-relaxed whitespace-pre-line">{p.aboutText}</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              {p.suitableFor.map(({ icon, title, desc }) => (
+                <div key={title} className="bg-[#141720] border border-[#1e2230] rounded-2xl p-5 hover:border-orange-500/40 transition-colors">
+                  <Icon name={icon} size={26} className="text-orange-400 mb-3" />
+                  <div className="font-oswald font-semibold text-white text-base mb-1.5">{title}</div>
+                  <div className="text-white/45 text-xs leading-relaxed">{desc}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── ПРАЙС-ЛИСТ ── */}
+      <section id="prices" className="py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <span className="section-tag">Прайс</span>
+            <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-white mb-3">
+              ЦЕНЫ <span className="text-orange-400">ОТ ПРОИЗВОДИТЕЛЯ</span>
+            </h2>
+            <p className="text-white/50 max-w-xl mx-auto text-sm">Стоимость 1 п.м. забора &laquo;под ключ&raquo; с монтажом и материалами. Цены актуальны на 2026 год.</p>
+          </div>
+
+          <div className="bg-[#141720] border border-[#1e2230] rounded-3xl p-4 sm:p-7 mb-8 overflow-x-auto">
+            <table className="w-full text-sm min-w-[600px]">
+              <thead>
+                <tr className="border-b border-[#1e2230]">
+                  <th className="text-left py-4 px-3 text-white/50 font-medium text-xs uppercase tracking-wider">Высота / толщина</th>
+                  <th className="text-center py-4 px-3 text-white/50 font-medium text-xs uppercase tracking-wider">Оцинковка</th>
+                  <th className="text-center py-4 px-3 text-orange-400 font-medium text-xs uppercase tracking-wider">
+                    Полимер
+                    <span className="block text-[10px] text-orange-400/60 normal-case font-normal mt-0.5">популярный</span>
+                  </th>
+                  <th className="text-center py-4 px-3 text-white/50 font-medium text-xs uppercase tracking-wider">Премиум (двусторонний)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {p.priceRows.map((row, i) => (
+                  <tr key={i} className="border-b border-[#1a1f2e] hover:bg-[#0a0c10]/40 transition-colors">
+                    <td className="py-3.5 px-3 text-white font-medium">{row.param}</td>
+                    <td className="py-3.5 px-3 text-center text-white/70 font-oswald">{row.zink}</td>
+                    <td className="py-3.5 px-3 text-center text-orange-400 font-oswald font-bold">{row.polymer}</td>
+                    <td className="py-3.5 px-3 text-center text-white/70 font-oswald">{row.premium}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Фундаменты */}
+          <h3 className="font-oswald font-bold text-2xl text-white mb-5 text-center">Тип фундамента</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {p.foundations.map(f => (
+              <div key={f.name}
+                className={`relative rounded-2xl p-5 border transition-all ${
+                  f.recommend
+                    ? "bg-orange-500/5 border-orange-500/40 hover:border-orange-500/60"
+                    : "bg-[#141720] border-[#1e2230] hover:border-orange-500/30"
+                }`}>
+                {f.recommend && (
+                  <div className="absolute -top-2 left-4 bg-orange-500 text-gray-900 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded">
+                    Рекомендуем
+                  </div>
+                )}
+                <div className="font-oswald font-bold text-white text-lg mb-1">{f.name}</div>
+                <div className="text-orange-400 font-oswald font-bold text-xl mb-2">{f.price}</div>
+                <div className="text-white/45 text-xs leading-relaxed">{f.desc}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-8 bg-orange-500/5 border border-orange-500/20 rounded-2xl p-5 text-sm text-white/60 flex items-start gap-3">
+            <Icon name="Info" size={18} className="text-orange-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <span className="text-orange-400 font-medium">Важно:</span> финальная стоимость зависит от рельефа участка, удалённости и наличия подъезда. Замер и смета — бесплатно, фиксируем цену в договоре.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── ТЕХНИЧЕСКИЕ СТАНДАРТЫ ── */}
+      <section className="py-20 bg-[#0a0c10]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <span className="section-tag">Спецификация</span>
+            <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-white mb-3">
+              ТЕХНИЧЕСКИЕ <span className="text-orange-400">СТАНДАРТЫ</span>
+            </h2>
+            <p className="text-white/50 max-w-xl mx-auto text-sm">Используем материалы по ГОСТ, чёткие технологические карты на каждом этапе.</p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            <div className="bg-[#141720] border border-[#1e2230] rounded-3xl overflow-hidden">
+              <img src={p.specImg} alt="Конструктив" className="w-full h-64 object-cover" />
+            </div>
+
+            <div className="space-y-3">
+              {p.specs.map(s => (
+                <div key={s.param} className="flex items-start gap-4 bg-[#141720] border border-[#1e2230] rounded-xl p-4 hover:border-orange-500/30 transition-colors">
+                  <div className="w-10 h-10 bg-orange-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Icon name={s.icon || "Wrench"} size={18} className="text-orange-400" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-white/45 text-xs mb-0.5 uppercase tracking-wider">{s.param}</div>
+                    <div className="text-white text-sm font-medium leading-snug">{s.value}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── ВАРИАНТЫ ИСПОЛНЕНИЯ + RAL ── */}
+      <section className="py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <span className="section-tag">Варианты</span>
+            <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-white mb-3">
+              ИСПОЛНЕНИЕ <span className="text-orange-400">И ЦВЕТ</span>
+            </h2>
+            <p className="text-white/50 max-w-xl mx-auto text-sm">Подберите профиль и оттенок RAL под архитектуру дома и дизайн участка.</p>
+          </div>
+
+          {/* Типы профиля */}
+          <h3 className="font-oswald font-bold text-xl text-white mb-5">Типы профиля</h3>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
+            {p.profileTypes.map(pt => (
+              <div key={pt.name} className="bg-[#141720] border border-[#1e2230] hover:border-orange-500/40 rounded-2xl overflow-hidden transition-all hover:-translate-y-1">
+                <div className="aspect-square overflow-hidden">
+                  <img src={pt.img} alt={pt.name} className="w-full h-full object-cover" />
+                </div>
+                <div className="p-4">
+                  <div className="font-oswald font-semibold text-white text-base mb-1">{pt.name}</div>
+                  <div className="text-white/45 text-xs leading-relaxed">{pt.desc}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Палитра RAL */}
+          <h3 className="font-oswald font-bold text-xl text-white mb-5">Цветовая палитра RAL</h3>
+          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
+            {p.ralColors.map(c => (
+              <button
+                key={c.ral}
+                onClick={() => setActiveRal(c.ral)}
+                className={`group rounded-xl overflow-hidden border-2 transition-all ${
+                  activeRal === c.ral ? "border-orange-500 -translate-y-1 shadow-lg shadow-orange-500/20" : "border-[#1e2230] hover:border-orange-500/40"
+                }`}>
+                <div className="aspect-square" style={{ background: c.hex }} />
+                <div className="bg-[#141720] py-2 px-2 text-center">
+                  <div className="font-oswald font-bold text-orange-400 text-sm">{c.ral}</div>
+                  <div className="text-white/45 text-[10px] leading-tight">{c.name}</div>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          <p className="text-white/40 text-xs mt-5 text-center">
+            Доступно более 200 оттенков по каталогу RAL Classic. Возможна имитация дерева и камня (PrintPattern).
+          </p>
+        </div>
+      </section>
+
+      {/* ── ДОП. КОМПЛЕКТУЮЩИЕ ── */}
+      <section className="py-20 bg-[#0a0c10]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <span className="section-tag">Комплектация</span>
+            <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-white mb-3">
+              ДОПОЛНИТЕЛЬНЫЕ <span className="text-orange-400">КОМПЛЕКТУЮЩИЕ</span>
+            </h2>
+            <p className="text-white/50 max-w-xl mx-auto text-sm">Доукомплектуйте забор всем необходимым — со скидкой при заказе в комплексе.</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {p.extras.map(e => (
+              <div key={e.name} className="group bg-[#141720] border border-[#1e2230] hover:border-orange-500/40 rounded-2xl p-6 transition-all hover:-translate-y-1">
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <div className="w-12 h-12 bg-orange-500/10 group-hover:bg-orange-500/20 rounded-xl flex items-center justify-center transition-colors">
+                    <Icon name={e.icon} size={22} className="text-orange-400" />
+                  </div>
+                  <div className="text-orange-400 font-oswald font-bold text-sm whitespace-nowrap">{e.price}</div>
+                </div>
+                <div className="font-oswald font-semibold text-white text-base mb-1">{e.name}</div>
+                <div className="text-white/45 text-xs leading-relaxed">{e.desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── ПОРТФОЛИО ── */}
+      <section className="py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <span className="section-tag">Портфолио</span>
+            <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-white mb-3">
+              НАШИ <span className="text-orange-400">РАБОТЫ</span>
+            </h2>
+            <p className="text-white/50 max-w-xl mx-auto text-sm">Реальные объекты, сданные за 2024–2026 годы.</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {p.portfolio.map((item, i) => (
+              <div key={i} className="group rounded-2xl overflow-hidden bg-[#141720] border border-[#1e2230] hover:border-orange-500/40 transition-all">
+                <div className="aspect-[4/3] overflow-hidden">
+                  <img src={item.img} alt={item.location} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                </div>
+                <div className="p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-white text-sm">
+                    <Icon name="MapPin" size={14} className="text-orange-400" />
+                    {item.location}
+                  </div>
+                  <span className="text-orange-400 font-oswald font-bold text-sm">{item.size}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── ЭТАПЫ РАБОТЫ ── */}
+      <section className="py-20 bg-[#0a0c10]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <span className="section-tag">Этапы работы</span>
+            <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-white mb-3">
+              КАК МЫ <span className="text-orange-400">РАБОТАЕМ</span>
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            {[
+              { n: "01", icon: "PhoneCall",      title: "Заявка",         d: "Звонок или заявка с сайта. Согласуем дату замера." },
+              { n: "02", icon: "Ruler",          title: "Замер",          d: "Бесплатный выезд инженера, проект и точная смета." },
+              { n: "03", icon: "FileSignature", title: "Договор",        d: "Фиксируем цену, материалы и сроки. Аванс 30%." },
+              { n: "04", icon: "Factory",        title: "Производство",   d: "Изготовление секций в нашем цеху. 7–14 дней." },
+              { n: "05", icon: "CheckCheck",     title: "Монтаж + акт",   d: "Установка, уборка территории, акт сдачи-приёмки." },
+            ].map(({ n, icon, title, d }) => (
+              <div key={n} className="bg-[#141720] border border-[#1e2230] hover:border-orange-500/40 rounded-2xl p-5 text-center transition-all hover:-translate-y-2">
+                <div className="w-14 h-14 mx-auto mb-3 bg-orange-500/10 border border-orange-500/30 rounded-full flex items-center justify-center">
+                  <Icon name={icon} size={20} className="text-orange-400" />
+                </div>
+                <div className="font-oswald font-bold text-2xl text-orange-400 mb-1">{n}</div>
+                <div className="font-oswald font-semibold text-white text-base mb-1.5">{title}</div>
+                <div className="text-white/45 text-xs leading-relaxed">{d}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── FAQ / SEO-БЛОК ── */}
+      <section className="py-20">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <span className="section-tag">FAQ</span>
+            <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-white mb-3">
+              ОТВЕТЫ <span className="text-orange-400">НА ВОПРОСЫ</span>
+            </h2>
+            <p className="text-white/50 text-sm">Подробно об особенностях, технологиях и нюансах монтажа.</p>
+          </div>
+
+          <div className="space-y-3">
+            {p.faq.map((item, i) => (
+              <div key={i}
+                className={`bg-[#141720] border rounded-2xl overflow-hidden transition-all ${
+                  openFaq === i ? "border-orange-500/40" : "border-[#1e2230] hover:border-orange-500/20"
+                }`}>
+                <button
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  className="w-full text-left p-5 flex items-center justify-between gap-4">
+                  <span className="font-oswald font-semibold text-white text-base sm:text-lg pr-4">{item.q}</span>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
+                    openFaq === i ? "bg-orange-500 text-gray-900 rotate-45" : "bg-[#0a0c10] text-orange-400"
+                  }`}>
+                    <Icon name="Plus" size={18} />
+                  </div>
+                </button>
+                {openFaq === i && (
+                  <div className="px-5 pb-5 text-white/60 text-sm leading-relaxed whitespace-pre-line border-t border-[#1e2230] pt-4">
+                    {item.a}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── ЛИД-МАГНИТ ── */}
+      <section id="lead" className="py-20 relative overflow-hidden">
+        <div className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${p.heroImg})`, opacity: 0.12 }} />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0d0f14] via-[#0d0f14]/95 to-[#0d0f14]/70" />
+        <div className="absolute inset-0"
+          style={{ background: "radial-gradient(circle at 80% 50%, rgba(249,115,22,0.15) 0%, transparent 60%)" }} />
+
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-10 items-center">
+            <div className="lg:col-span-3">
+              <span className="section-tag">Бесплатно</span>
+              <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-white mb-4 leading-tight">
+                {p.leadTitle}
+              </h2>
+              <p className="text-white/60 text-base mb-6 max-w-xl">{p.leadOffer}</p>
+
+              <div className="grid grid-cols-2 gap-3 max-w-md">
+                {[
+                  { icon: "Clock",       text: "Звонок за 15 мин." },
+                  { icon: "Ruler",       text: "Замер бесплатно" },
+                  { icon: "FileText",    text: "Смета на email" },
+                  { icon: "Gift",        text: "Скидка 5%" },
+                ].map(({ icon, text }) => (
+                  <div key={text} className="flex items-center gap-2 text-sm text-white/70">
+                    <Icon name={icon} size={15} className="text-orange-400 flex-shrink-0" />
+                    {text}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="lg:col-span-2">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const fd = new FormData(e.currentTarget);
+                  alert(`Спасибо, ${fd.get("name") || "клиент"}! Перезвоним за 15 минут на ${fd.get("phone")}.`);
+                  (e.currentTarget as HTMLFormElement).reset();
+                }}
+                className="bg-[#141720]/95 backdrop-blur border-2 border-orange-500/30 rounded-3xl p-7 shadow-2xl shadow-orange-500/10">
+                <div className="font-oswald font-bold text-2xl text-white mb-1">Точный расчёт</div>
+                <p className="text-white/40 text-xs mb-5">Заполните 2 поля — пришлём смету и подробный прайс на email</p>
+
+                <div className="space-y-3">
+                  <div className="relative">
+                    <Icon name="User" size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none" />
+                    <input name="name" type="text" required placeholder="Ваше имя" className="select-field !pl-11" />
+                  </div>
+                  <div className="relative">
+                    <Icon name="Phone" size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none" />
+                    <input name="phone" type="tel" required placeholder="+7 (___) ___-__-__" className="select-field !pl-11" />
+                  </div>
+                  <button type="submit" className="btn-orange w-full py-4 rounded-xl text-base group">
+                    <span className="flex items-center gap-2 justify-center">
+                      Получить расчёт и прайс
+                      <Icon name="ArrowRight" size={18} className="group-hover:translate-x-1 transition-transform" />
+                    </span>
+                  </button>
+                  <button type="button" className="btn-outline-orange w-full py-3 rounded-xl text-xs flex items-center justify-center gap-2">
+                    <Icon name="Download" size={14} />
+                    Скачать прайс PDF
+                  </button>
+                  <p className="text-white/30 text-[11px] text-center">
+                    Соглашаюсь с <button type="button" className="text-orange-400/70 hover:text-orange-400 underline">политикой</button>
+                  </p>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FOOTER (упрощённый) ── */}
+      <footer className="border-t border-[#1e2230] bg-[#0a0c10] py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <Link to="/" className="flex items-center gap-3 text-white/40 hover:text-orange-400 transition-colors text-sm">
+            <Icon name="ChevronLeft" size={16} />
+            Вернуться на главную
+          </Link>
+          <div className="text-white/30 text-xs">© 2009–2026 ООО «СтальГрупп» · 8 800 123-45-67</div>
+        </div>
+      </footer>
+
+      {/* Мобильная плавающая кнопка */}
+      <a href="tel:+78001234567"
+        className="lg:hidden fixed bottom-5 right-5 z-40 w-14 h-14 bg-orange-500 hover:bg-orange-400 rounded-full shadow-2xl shadow-orange-500/40 flex items-center justify-center animate-pulse"
+        aria-label="Позвонить">
+        <Icon name="Phone" size={22} className="text-gray-900" />
+      </a>
+    </div>
+  );
+}

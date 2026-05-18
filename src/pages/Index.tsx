@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import Calculator from "@/components/Calculator";
 
@@ -27,13 +28,13 @@ const NAV_ITEMS = [
 ];
 
 // ── Продукция ────────────────────────────────────────────────────────────────
-const PRODUCTS = [
-  { img: IMGS.profnastil, title: "Профнастил", desc: "Оцинкованный С8/С10/МП20, покрытие полиэстер или пурал. Срок службы 25+ лет.", price: "от 1 100 ₽/м²", badge: "Хит" },
+const PRODUCTS: { img: string; title: string; desc: string; price: string; badge: string | null; href?: string }[] = [
+  { img: IMGS.profnastil, title: "Профнастил", desc: "Оцинкованный С8/С10/МП20, покрытие полиэстер или пурал. Срок службы 25+ лет.", price: "от 1 100 ₽/м²", badge: "Хит", href: "/services/profnastil" },
+  { img: IMGS.euro,       title: "Евроштакетник", desc: "Двусторонний металлический штакетник. Пропускает свет, современный дизайн.", price: "от 2 100 ₽/м²", badge: null, href: "/services/shtaketnik" },
+  { img: IMGS.gates,      title: "Откатные ворота", desc: "Консольные откатные ворота под автоматику. Любое наполнение, до 8 м проёма.", price: "от 42 000 ₽", badge: null, href: "/services/otkatnye-vorota" },
+  { img: IMGS.canopy,     title: "Навесы и беседки", desc: "Арочные, двухскатные, односкатные. Поликарбонат и профнастил. Под ключ.", price: "от 3 200 ₽/м²", badge: null, href: "/services/navesy" },
   { img: IMGS.kovka,      title: "Ковка художественная", desc: "Горячая и холодная ковка по индивидуальным эскизам. Антикоррозийная обработка.", price: "от 4 500 ₽/м²", badge: "Премиум" },
   { img: IMGS.mesh3d,     title: "3D-сетка сварная", desc: "Прутки Ø4–6 мм, ячейка 50×200 мм. Антивандальные, для промышленных объектов.", price: "от 1 600 ₽/м²", badge: null },
-  { img: IMGS.euro,       title: "Евроштакетник", desc: "Двусторонний металлический штакетник. Пропускает свет, современный дизайн.", price: "от 2 100 ₽/м²", badge: null },
-  { img: IMGS.gates,      title: "Ворота и калитки", desc: "Откатные, распашные, секционные. Любое наполнение, подготовка под автоматику.", price: "от 26 000 ₽", badge: null },
-  { img: IMGS.canopy,     title: "Навесы и козырьки", desc: "Навесы для автомобилей, входные группы, козырьки. Поликарбонат и профнастил.", price: "от 18 000 ₽", badge: null },
   { img: IMGS.gazebo,     title: "Беседки и пергола", desc: "Металлические беседки, перголы, зоны отдыха. Под ключ с кровлей.", price: "от 35 000 ₽", badge: null },
   { img: IMGS.foundation, title: "Фундаменты", desc: "Ленточный, столбчатый, бутование, бетонирование. Основа долговечного забора.", price: "от 650 ₽/м.п.", badge: null },
   { img: IMGS.profnastil, title: "Сетка-рабица", desc: "Оцинкованная Ø2 мм или с ПВХ-покрытием. Быстрый монтаж, дачный вариант.", price: "от 550 ₽/м²", badge: "Эконом" },
@@ -731,7 +732,7 @@ export default function Index() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {PRODUCTS.map(({ img, title, desc, price, badge }, i) => (
+            {PRODUCTS.map(({ img, title, desc, price, badge, href }, i) => (
               <div key={title} className="product-card rounded-2xl overflow-hidden anim-ready relative"
                 style={{ transitionDelay: `${i * 0.06}s` }}>
                 {badge && (
@@ -747,10 +748,17 @@ export default function Index() {
                   <p className="text-white/50 text-sm leading-relaxed mb-4">{desc}</p>
                   <div className="flex items-center justify-between">
                     <span className="text-orange-400 font-oswald font-bold text-lg">{price}</span>
-                    <button onClick={() => scrollTo("lead")}
-                      className="text-white/50 hover:text-orange-400 transition-all text-sm flex items-center gap-1 group/btn">
-                      Подробнее <Icon name="ArrowRight" size={14} className="group-hover/btn:translate-x-1 transition-transform" />
-                    </button>
+                    {href ? (
+                      <Link to={href}
+                        className="text-white/60 hover:text-orange-400 transition-all text-sm flex items-center gap-1 group/btn font-medium">
+                        Подробнее <Icon name="ArrowRight" size={14} className="group-hover/btn:translate-x-1 transition-transform" />
+                      </Link>
+                    ) : (
+                      <button onClick={() => scrollTo("lead")}
+                        className="text-white/50 hover:text-orange-400 transition-all text-sm flex items-center gap-1 group/btn">
+                        Подробнее <Icon name="ArrowRight" size={14} className="group-hover/btn:translate-x-1 transition-transform" />
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
