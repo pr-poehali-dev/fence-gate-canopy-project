@@ -2,6 +2,7 @@ import json
 import os
 import urllib.request
 import urllib.parse
+import urllib.error
 import psycopg2
 
 
@@ -17,25 +18,66 @@ def _auth_ok(headers, conn):
         return cur.fetchone() is not None
 
 
+MAX_API_HOSTS = ('https://botapi.max.ru', 'https://platform-api.max.ru')
+
+
+def _max_request(bot_token, method, path, params=None, json_body=None):
+    """Универсальный запрос к MAX Bot API. Пытается оба домена и оба способа авторизации
+    (Authorization-заголовок и ?access_token=...). Возвращает (status, dict)."""
+    if not bot_token:
+        return 0, {}
+    body = None
+    headers = {'Accept': 'application/json'}
+    if json_body is not None:
+        body = json.dumps(json_body, ensure_ascii=False).encode('utf-8')
+        headers['Content-Type'] = 'application/json; charset=utf-8'
+
+    last_status, last_data = 0, {}
+    for host in MAX_API_HOSTS:
+        for auth_mode in ('header', 'query'):
+            try:
+                qs = dict(params or {})
+                hdrs = dict(headers)
+                if auth_mode == 'header':
+                    hdrs['Authorization'] = f'Bearer {bot_token}'
+                else:
+                    qs['access_token'] = bot_token
+                query = ('?' + urllib.parse.urlencode(qs)) if qs else ''
+                url = host + path + query
+                req = urllib.request.Request(url, data=body, headers=hdrs, method=method)
+                with urllib.request.urlopen(req, timeout=8) as resp:
+                    raw = resp.read().decode('utf-8') or '{}'
+                    try:
+                        data = json.loads(raw)
+                    except Exception:
+                        data = {'raw': raw}
+                    return resp.status, data
+            except urllib.error.HTTPError as e:
+                try:
+                    raw = e.read().decode('utf-8') or '{}'
+                    data = json.loads(raw) if raw else {}
+                except Exception:
+                    data = {}
+                last_status, last_data = e.code, data
+                # 401/403 — пробуем следующий способ; 5xx — следующий хост; 4xx прочие — выходим
+                if e.code in (401, 403):
+                    continue
+                if 500 <= e.code < 600:
+                    break  # пробуем другой хост
+                return e.code, data
+            except Exception as e:
+                last_status, last_data = 0, {'error': str(e)}
+                continue
+    return last_status, last_data
+
+
 def _max_get(bot_token, path, params=None):
     """GET-запрос к MAX Bot API. Возвращает dict или {} при ошибке."""
-    if not bot_token:
-        return {}
-    try:
-        qs = {'access_token': bot_token}
-        if params:
-            qs.update(params)
-        query = urllib.parse.urlencode(qs)
-        url = "https://botapi.max.ru" + path + "?" + query
-        req = urllib.request.Request(url, headers={'Accept': 'application/json'})
-        with urllib.request.urlopen(req, timeout=12) as resp:
-            return json.loads(resp.read().decode('utf-8') or '{}')
-    except Exception:
-        return {}
+    _, data = _max_request(bot_token, 'GET', path, params=params)
+    return data or {}
 
 
-def _send_to_max(bot_token: str, chat_id: str, text: str,
-                 phone: str = '', pdf_url: str = '') -> bool:
+def _send_to_max(bot_token, chat_id, text, phone='', pdf_url=''):
     """Отправка сообщения через MAX Messenger Bot API с inline-кнопками.
     Кнопки: «Перезвонить» (tel:) и «Открыть КП в PDF» (link).
     """
@@ -60,18 +102,17 @@ def _send_to_max(bot_token: str, chat_id: str, text: str,
                 "type": "inline_keyboard",
                 "payload": {"buttons": buttons}
             }]
-        url = (
-            f"https://botapi.max.ru/messages"
-            f"?access_token={urllib.parse.quote(bot_token)}"
-            f"&chat_id={urllib.parse.quote(str(chat_id))}"
+        # chat_id передаём числом, если возможно (новые API строго требуют int)
+        try:
+            cid_val = int(str(chat_id).strip())
+        except Exception:
+            cid_val = str(chat_id).strip()
+        status, _ = _max_request(
+            bot_token, 'POST', '/messages',
+            params={'chat_id': cid_val},
+            json_body=payload,
         )
-        body = json.dumps(payload, ensure_ascii=False).encode('utf-8')
-        req = urllib.request.Request(
-            url, data=body,
-            headers={'Content-Type': 'application/json; charset=utf-8'}
-        )
-        with urllib.request.urlopen(req, timeout=12) as resp:
-            return 200 <= resp.status < 300
+        return 200 <= status < 300
     except Exception:
         return False
 
