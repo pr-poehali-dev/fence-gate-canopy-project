@@ -1278,6 +1278,67 @@ def handler(event: dict, context) -> dict:
             return {'statusCode': 200, 'headers': cors,
                     'body': json.dumps({'ok': bool(ok), 'info': info}, default=str)}
 
+        # ── ПОИСК КЛИЕНТА В MAX ПО НОМЕРУ ─────────────────────────
+        # Используется в админке для проверки: «Найдёт ли бот клиента в MAX
+        # по этому номеру до того, как тот оформит заявку?»
+        # POST /?action=find_max_user  body={"phone": "+79991234567", "send_test": false}
+        if action == 'find_max_user' and method == 'POST':
+            if not _auth_ok(event.get('headers'), conn):
+                return {'statusCode': 401, 'headers': cors,
+                        'body': json.dumps({'error': 'unauthorized'})}
+            body = json.loads(event.get('body') or '{}')
+            phone_raw = (body.get('phone') or '').strip()
+            send_test = bool(body.get('send_test') or False)
+            with conn.cursor() as cur:
+                cur.execute("SELECT value FROM site_settings WHERE key='max_bot_token'")
+                row = cur.fetchone()
+                bot_token = (row[0] if row else '') or ''
+            if not bot_token:
+                return {'statusCode': 200, 'headers': cors,
+                        'body': json.dumps({
+                            'ok': False, 'found': False,
+                            'error': 'no_token',
+                            'message': 'Сначала сохраните токен MAX-бота в настройках',
+                        })}
+            norm_phone = _normalize_phone_ru(phone_raw)
+            if not norm_phone:
+                return {'statusCode': 200, 'headers': cors,
+                        'body': json.dumps({
+                            'ok': False, 'found': False,
+                            'error': 'bad_phone',
+                            'message': 'Введите корректный номер РФ',
+                            'phone_normalized': norm_phone,
+                        })}
+            chat_id = _find_client_chat_in_max(bot_token, norm_phone, name='')
+            result = {
+                'ok': True,
+                'found': bool(chat_id),
+                'phone_normalized': '+' + norm_phone,
+                'chat_id': chat_id or '',
+            }
+            if chat_id:
+                result['message'] = f'Клиент найден в MAX. chat_id={chat_id}'
+                if send_test:
+                    ok, info = _send_to_max(
+                        bot_token, chat_id,
+                        '✅ *Тест поиска*\n'
+                        '────────────────\n'
+                        f'Здравствуйте! Это тестовое сообщение от СтальГрупп.\n'
+                        'Ваш номер найден в MAX — мы сможем присылать вам КП в личку.',
+                        phone='', pdf_url=''
+                    )
+                    result['test_sent'] = bool(ok)
+                    result['test_info'] = info
+            else:
+                result['message'] = (
+                    'Клиент с этим номером не найден в MAX. '
+                    'Возможные причины: пользователь не зарегистрирован в MAX, '
+                    'скрыл телефон в настройках приватности, или MAX Bot API '
+                    'не отдаёт его в выдаче. Заявка такому клиенту будет отправлена на email.'
+                )
+            return {'statusCode': 200, 'headers': cors,
+                    'body': json.dumps(result, default=str, ensure_ascii=False)}
+
         return {'statusCode': 400, 'headers': cors,
                 'body': json.dumps({'error': 'unknown_action_or_method'})}
     finally:

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import MaxChatPicker from "@/components/MaxChatPicker";
+import MaxPhoneFinder from "@/components/admin/MaxPhoneFinder";
 import {
   fetchPrices, fetchReviews, loginAdmin, verifyAdmin,
   updatePrices, moderateReview, deleteReview, adminToken,
@@ -543,6 +544,11 @@ export default function Admin() {
                 />
 
               </div>
+            </div>
+
+            {/* ТЕСТ ПОИСКА КЛИЕНТА В MAX ПО НОМЕРУ */}
+            <div className="mb-5">
+              <MaxPhoneFinder />
             </div>
 
             {/* КАНАЛЫ УВЕДОМЛЕНИЙ — общий переключатель */}

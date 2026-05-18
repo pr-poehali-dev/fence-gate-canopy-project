@@ -258,6 +258,30 @@ export async function testSms(phone: string) {
   return r.json();
 }
 
+// Поиск клиента в MAX по номеру — проверка перед заявкой
+export interface FindMaxUserResp {
+  ok: boolean;
+  found: boolean;
+  phone_normalized?: string;
+  chat_id?: string;
+  message?: string;
+  error?: string;
+  test_sent?: boolean;
+  test_info?: string;
+}
+
+export async function findMaxUser(phone: string, sendTest = false): Promise<FindMaxUserResp> {
+  const r = await fetch(`${API.bot}?action=find_max_user`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Auth-Token": adminToken.get(),
+    },
+    body: JSON.stringify({ phone, send_test: sendTest }),
+  });
+  return r.json();
+}
+
 // ───────────────── CMS (контент сайта) ─────────────────
 export type ContentBlockType = "text" | "html" | "image" | "url";
 

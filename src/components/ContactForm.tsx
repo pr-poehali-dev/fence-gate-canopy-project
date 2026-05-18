@@ -3,6 +3,7 @@ import Icon from "@/components/ui/icon";
 import { sendLead } from "@/lib/api";
 import { COMPANY } from "@/lib/company";
 import { formatPhoneRU, isPhoneValid, isEmailValid, phoneE164 } from "@/lib/phone";
+import PhoneInput from "@/components/ui/phone-input";
 import { toast } from "sonner";
 
 const LS_NAME  = "sg_lead_name";
@@ -138,13 +139,14 @@ export default function ContactForm() {
           placeholder="Ваше имя" className="select-field" />
 
         <div>
-          <input type="tel" required inputMode="tel" autoComplete="tel"
+          <PhoneInput
+            required
             value={phone}
-            onChange={e => { setPhone(formatPhoneRU(e.target.value)); if (err) setErr(""); }}
+            hasError={touched.phone && !phoneOk}
+            onChange={(v) => { setPhone(v); if (err) setErr(""); }}
             onBlur={() => setTouched(t => ({ ...t, phone: true }))}
-            onFocus={() => { if (!phone) setPhone("+7 ("); }}
-            placeholder="+7 (___) ___-__-__"
-            className={`select-field ${inputErrorCls(touched.phone && !phoneOk)}`} />
+            className={`select-field ${inputErrorCls(touched.phone && !phoneOk)}`}
+          />
           {touched.phone && !phoneOk && phone.length > 0 && (
             <div className="text-red-400 text-[11px] mt-1 ml-1">Введите корректный российский номер</div>
           )}

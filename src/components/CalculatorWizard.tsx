@@ -2,7 +2,8 @@ import { useMemo, useState } from "react";
 import Icon from "@/components/ui/icon";
 import { COMPANY } from "@/lib/company";
 import { sendLead } from "@/lib/api";
-import { formatPhoneRU, isPhoneValid, isEmailValid, phoneE164 } from "@/lib/phone";
+import { isPhoneValid, isEmailValid, phoneE164 } from "@/lib/phone";
+import PhoneInput from "@/components/ui/phone-input";
 import { toast } from "sonner";
 import {
   CANOPY_TYPES, CANOPY_COVER,
@@ -832,12 +833,7 @@ function StepContacts({
         <input type="text" placeholder="Ваше имя" value={name}
           onChange={e => setName(e.target.value)}
           className="w-full bg-[#0a0c10] border-2 border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none" />
-        <input type="tel" inputMode="tel" autoComplete="tel"
-          placeholder="+7 (___) ___-__-__"
-          value={phone}
-          onChange={e => setPhone(formatPhoneRU(e.target.value))}
-          onFocus={() => { if (!phone) setPhone("+7 ("); }}
-          className="w-full bg-[#0a0c10] border-2 border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none" />
+        <PhoneInput value={phone} onChange={setPhone} />
         <input type="email" inputMode="email" autoComplete="email"
           placeholder="Email — пришлём КП в PDF (необязательно)"
           value={email}

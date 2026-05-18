@@ -2,7 +2,8 @@ import { useState } from "react";
 import Icon from "@/components/ui/icon";
 import { sendLead } from "@/lib/api";
 import { COMPANY } from "@/lib/company";
-import { formatPhoneRU, isPhoneValid, phoneE164 } from "@/lib/phone";
+import { isPhoneValid, phoneE164 } from "@/lib/phone";
+import PhoneInput from "@/components/ui/phone-input";
 import { toast } from "sonner";
 
 interface Props {
@@ -120,15 +121,10 @@ export default function QuickQuoteForm({
           placeholder="Ваше имя"
           className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none"
         />
-        <input
-          type="tel"
+        <PhoneInput
           required
-          inputMode="tel"
-          autoComplete="tel"
           value={phone}
-          onChange={e => { setPhone(formatPhoneRU(e.target.value)); if (err) setErr(""); }}
-          onFocus={() => { if (!phone) setPhone("+7 ("); }}
-          placeholder="+7 (___) ___-__-__"
+          onChange={(v) => { setPhone(v); if (err) setErr(""); }}
           className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none"
         />
       </div>

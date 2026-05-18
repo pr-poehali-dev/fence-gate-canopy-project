@@ -3,6 +3,7 @@ import Icon from "@/components/ui/icon";
 import { sendLead } from "@/lib/api";
 import { COMPANY } from "@/lib/company";
 import { formatPhoneRU, isPhoneValid, isEmailValid, phoneE164 } from "@/lib/phone";
+import PhoneInput from "@/components/ui/phone-input";
 import { toast } from "sonner";
 
 export interface LeadModalProps {
@@ -255,13 +256,12 @@ export default function LeadModal({
               <div>
                 <div className="relative">
                   <Icon name="Phone" size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none" />
-                  <input
-                    type="tel" required inputMode="tel" autoComplete="tel"
+                  <PhoneInput
+                    required
                     value={phone}
-                    onChange={e => { setPhone(formatPhoneRU(e.target.value)); if (error) setError(""); }}
-                    onFocus={() => { if (!phone) setPhone("+7 ("); }}
+                    hasError={touched.phone && !phoneOk}
+                    onChange={(v) => { setPhone(v); if (error) setError(""); }}
                     onBlur={() => setTouched(t => ({ ...t, phone: true }))}
-                    placeholder="+7 (___) ___-__-__"
                     className={`w-full bg-[#1a1f2e] border rounded-xl pl-11 pr-10 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none ${inputErrorCls(touched.phone && !phoneOk)}`}
                   />
                   {phoneOk && (
