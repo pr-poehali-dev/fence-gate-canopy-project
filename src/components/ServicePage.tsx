@@ -6,6 +6,7 @@ import { useLeadModal } from "@/hooks/useLeadModal";
 import { generatePriceListPDF } from "@/lib/priceListPDF";
 import { sendLead } from "@/lib/api";
 import { usePageContent } from "@/hooks/usePageContent";
+import { EditableText, EditableImage } from "@/components/InlineEditor";
 
 // ─────────────────────────────────────────────────────────────────
 // ТИПЫ ДАННЫХ ШАБЛОНА
@@ -207,18 +208,26 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string }) {
                 </div>
               )}
 
-              {cms("hero_title") ? (
-                <h1 className="font-oswald font-bold text-4xl sm:text-5xl lg:text-6xl text-white leading-tight mb-5"
-                  dangerouslySetInnerHTML={{ __html: cms("hero_title") }} />
+              {p.pageSlug ? (
+                <EditableText
+                  page={p.pageSlug} blockKey="hero_title"
+                  value={cms("hero_title")} html as="h1"
+                  className="font-oswald font-bold text-4xl sm:text-5xl lg:text-6xl text-white leading-tight mb-5"
+                  fallback={p.h1}
+                />
               ) : (
                 <h1 className="font-oswald font-bold text-4xl sm:text-5xl lg:text-6xl text-white leading-tight mb-5">
                   {p.h1}
                 </h1>
               )}
 
-              {cms("hero_subtitle") ? (
-                <div className="text-white/60 text-base sm:text-lg mb-6 leading-relaxed max-w-xl prose prose-invert prose-p:my-0"
-                  dangerouslySetInnerHTML={{ __html: cms("hero_subtitle") }} />
+              {p.pageSlug ? (
+                <EditableText
+                  page={p.pageSlug} blockKey="hero_subtitle"
+                  value={cms("hero_subtitle")} html as="div"
+                  className="text-white/60 text-base sm:text-lg mb-6 leading-relaxed max-w-xl prose prose-invert prose-p:my-0"
+                  fallback={p.subtitle}
+                />
               ) : (
                 <p className="text-white/60 text-base sm:text-lg mb-6 leading-relaxed max-w-xl">{p.subtitle}</p>
               )}
@@ -261,7 +270,16 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string }) {
 
             <div className="relative">
               <div className="aspect-[4/3] rounded-3xl overflow-hidden border border-[#1e2230] shadow-2xl">
-                <img src={cms("hero_image", p.heroImg)} alt={p.h1} className="w-full h-full object-cover" />
+                {p.pageSlug ? (
+                  <EditableImage
+                    page={p.pageSlug} blockKey="hero_image"
+                    value={cms("hero_image")} fallback={p.heroImg} alt={p.h1}
+                    className="w-full h-full"
+                    imgClassName="w-full h-full object-cover"
+                  />
+                ) : (
+                  <img src={cms("hero_image", p.heroImg)} alt={p.h1} className="w-full h-full object-cover" />
+                )}
               </div>
               <div className="absolute -bottom-5 -left-5 bg-[#141720] border border-orange-500/30 rounded-2xl p-4 shadow-xl">
                 <div className="flex items-center gap-3">

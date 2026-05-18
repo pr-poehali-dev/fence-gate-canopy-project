@@ -10,7 +10,7 @@ import { generatePriceListPDF } from "@/lib/priceListPDF";
 import { sendLead } from "@/lib/api";
 import { usePageContent } from "@/hooks/usePageContent";
 import EditableBgPhoto from "@/components/EditableBgPhoto";
-import { EditableText } from "@/components/InlineEditor";
+import { EditableText, EditableImage } from "@/components/InlineEditor";
 
 // ── Изображения ─────────────────────────────────────────────────────────────
 const IMGS = {
@@ -841,11 +841,24 @@ export default function Index() {
                   </div>
                 )}
                 <div className="h-44 overflow-hidden">
-                  <img src={img} alt={title} className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" />
+                  <EditableImage
+                    page="home" blockKey={`product_img_${i}`}
+                    value={cms(`product_img_${i}`)} fallback={img} alt={title}
+                    className="w-full h-full"
+                    imgClassName="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                  />
                 </div>
                 <div className="p-5">
-                  <h3 className="font-oswald font-semibold text-lg text-white mb-1.5">{title}</h3>
-                  <p className="text-white/50 text-sm leading-relaxed mb-4">{desc}</p>
+                  <EditableText
+                    page="home" blockKey={`product_title_${i}`}
+                    value={cms(`product_title_${i}`)} fallback={title} as="h3"
+                    className="font-oswald font-semibold text-lg text-white mb-1.5"
+                  />
+                  <EditableText
+                    page="home" blockKey={`product_desc_${i}`}
+                    value={cms(`product_desc_${i}`)} fallback={desc} as="p"
+                    className="text-white/50 text-sm leading-relaxed mb-4"
+                  />
                   <div className="flex items-center justify-between">
                     <span className="text-orange-400 font-oswald font-bold text-lg">{price}</span>
                     {href ? (
@@ -920,15 +933,28 @@ export default function Index() {
                 className="group bg-[#141720] border border-[#1e2230] hover:border-orange-500/40 rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 anim-ready"
                 style={{ transitionDelay: `${i * 0.07}s` }}>
                 <div className="h-36 overflow-hidden relative">
-                  <img src={img} alt={title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#141720] via-transparent to-transparent" />
+                  <EditableImage
+                    page="home" blockKey={`service_img_${i}`}
+                    value={cms(`service_img_${i}`)} fallback={img} alt={title}
+                    className="w-full h-full"
+                    imgClassName="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#141720] via-transparent to-transparent pointer-events-none" />
                 </div>
                 <div className="p-5">
                   <div className="flex items-center gap-2 mb-2">
                     <Icon name={icon} size={18} className="text-orange-400" />
-                    <h3 className="font-oswald font-semibold text-base text-white">{title}</h3>
+                    <EditableText
+                      page="home" blockKey={`service_title_${i}`}
+                      value={cms(`service_title_${i}`)} fallback={title} as="h3"
+                      className="font-oswald font-semibold text-base text-white"
+                    />
                   </div>
-                  <p className="text-white/50 text-sm leading-relaxed">{desc}</p>
+                  <EditableText
+                    page="home" blockKey={`service_desc_${i}`}
+                    value={cms(`service_desc_${i}`)} fallback={desc} as="p"
+                    className="text-white/50 text-sm leading-relaxed"
+                  />
                 </div>
               </div>
             ))}

@@ -9,7 +9,7 @@ import {
   PriceItem, ReviewItem, SiteSettings,
 } from "@/lib/api";
 
-type Tab = "prices" | "reviews" | "settings";
+type Tab = "prices" | "reviews" | "settings" | "seo";
 
 export default function Admin() {
   const [authed, setAuthed] = useState<boolean | null>(null);
@@ -95,6 +95,15 @@ export default function Admin() {
         { key: "crm_webhook_type",      value: settings.crm_webhook_type || "generic" },
         { key: "crm_webhook_url",       value: settings.crm_webhook_url || "" },
         { key: "crm_webhook_secret",    value: settings.crm_webhook_secret || "" },
+        // SEO и аналитика
+        { key: "seo_title",             value: settings.seo_title || "" },
+        { key: "seo_description",       value: settings.seo_description || "" },
+        { key: "seo_keywords",          value: settings.seo_keywords || "" },
+        { key: "seo_og_image",          value: settings.seo_og_image || "" },
+        { key: "yandex_metrika_id",     value: settings.yandex_metrika_id || "" },
+        { key: "yandex_verification",   value: settings.yandex_verification || "" },
+        { key: "google_analytics_id",   value: settings.google_analytics_id || "" },
+        { key: "google_verification",   value: settings.google_verification || "" },
       ];
       await saveSettings(items);
       setSettingsDirty(false);
@@ -297,6 +306,7 @@ export default function Admin() {
             ["prices",   "Цены",      prices.length],
             ["reviews",  "Отзывы",    pending.length],
             ["settings", "Настройки", 0],
+            ["seo",      "SEO и счётчики", 0],
           ] as [Tab, string, number][]).map(([k, label, badge]) => (
             <button key={k} onClick={() => setTab(k)}
               className={`px-4 py-2.5 text-sm border-b-2 transition-all flex items-center gap-2 ${
@@ -1029,6 +1039,205 @@ export default function Admin() {
                 <li>Добавьте бота в нужный чат / напишите ему лично</li>
                 <li>Узнайте <b>chat_id</b> и вставьте во второе поле</li>
                 <li>Нажмите «Сохранить» — заявки начнут приходить автоматически</li>
+              </ol>
+            </div>
+          </div>
+        )}
+
+        {/* ───────── ВКЛАДКА: SEO и счётчики ───────── */}
+        {tab === "seo" && (
+          <div className="max-w-3xl">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="font-oswald font-bold text-2xl text-white mb-1">SEO и счётчики аналитики</h2>
+                <p className="text-white/40 text-sm">Настройка для поисковиков (Яндекс, Google), счётчики, метаданные</p>
+              </div>
+            </div>
+
+            {/* Основные SEO-теги */}
+            <div className="bg-[#141720] border border-[#1e2230] rounded-2xl p-6 mb-5">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-10 h-10 bg-blue-500/15 border border-blue-500/30 rounded-xl flex items-center justify-center">
+                  <Icon name="Search" size={20} className="text-blue-400" />
+                </div>
+                <div>
+                  <div className="font-oswald font-bold text-white text-lg">Метаданные сайта</div>
+                  <div className="text-white/40 text-xs">То, что увидят Яндекс, Google и соцсети</div>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-white/70 text-xs font-medium mb-1.5 block">
+                    Заголовок (Title) — для вкладки браузера и поиска
+                  </label>
+                  <input
+                    type="text" maxLength={120}
+                    value={settings.seo_title || ""}
+                    onChange={e => onSettingChange("seo_title", e.target.value)}
+                    placeholder="СтальГрупп — заборы, ворота, навесы под ключ в Москве и МО"
+                    className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none"
+                  />
+                  <div className="text-white/30 text-[10px] mt-1">{(settings.seo_title || "").length} / 70 рекомендуется</div>
+                </div>
+                <div>
+                  <label className="text-white/70 text-xs font-medium mb-1.5 block">
+                    Описание (Description) — показывается под ссылкой в поиске
+                  </label>
+                  <textarea
+                    maxLength={300} rows={3}
+                    value={settings.seo_description || ""}
+                    onChange={e => onSettingChange("seo_description", e.target.value)}
+                    placeholder="Производство и монтаж заборов, ворот, навесов и ковки. Бесплатный замер, гарантия 5 лет, цены от 1 450 ₽/м.п."
+                    className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none resize-none"
+                  />
+                  <div className="text-white/30 text-[10px] mt-1">{(settings.seo_description || "").length} / 160 рекомендуется</div>
+                </div>
+                <div>
+                  <label className="text-white/70 text-xs font-medium mb-1.5 block">
+                    Ключевые слова (через запятую)
+                  </label>
+                  <input
+                    type="text" maxLength={500}
+                    value={settings.seo_keywords || ""}
+                    onChange={e => onSettingChange("seo_keywords", e.target.value)}
+                    placeholder="забор под ключ, ворота откатные, навесы для авто, евроштакетник Москва"
+                    className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-white/70 text-xs font-medium mb-1.5 block">
+                    Картинка для соцсетей (URL) — что покажется при шаринге ссылки в WhatsApp, Telegram, VK
+                  </label>
+                  <input
+                    type="text"
+                    value={settings.seo_og_image || ""}
+                    onChange={e => onSettingChange("seo_og_image", e.target.value)}
+                    placeholder="https://cdn.poehali.dev/.../my-image.jpg"
+                    className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none"
+                  />
+                  {settings.seo_og_image && (
+                    <img src={settings.seo_og_image} alt="" className="mt-2 max-h-32 rounded-lg border border-[#1e2230]" />
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Яндекс */}
+            <div className="bg-[#141720] border border-[#1e2230] rounded-2xl p-6 mb-5">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-10 h-10 bg-red-500/15 border border-red-500/30 rounded-xl flex items-center justify-center">
+                  <Icon name="BarChart3" size={20} className="text-red-400" />
+                </div>
+                <div>
+                  <div className="font-oswald font-bold text-white text-lg">Яндекс.Метрика и Вебмастер</div>
+                  <div className="text-white/40 text-xs">Чтобы видеть посетителей и быстрее попасть в поиск Яндекса</div>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-white/70 text-xs font-medium mb-1.5 block">
+                    ID счётчика Яндекс.Метрики
+                  </label>
+                  <input
+                    type="text" inputMode="numeric"
+                    value={settings.yandex_metrika_id || ""}
+                    onChange={e => onSettingChange("yandex_metrika_id", e.target.value.replace(/\D/g, ""))}
+                    placeholder="например: 12345678"
+                    className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none font-mono"
+                  />
+                  <a href="https://metrika.yandex.ru/" target="_blank" rel="noopener noreferrer"
+                    className="text-orange-400 hover:text-orange-300 text-xs flex items-center gap-1 mt-1.5">
+                    Создать счётчик в Метрике <Icon name="ExternalLink" size={11} />
+                  </a>
+                </div>
+                <div>
+                  <label className="text-white/70 text-xs font-medium mb-1.5 block">
+                    Код подтверждения для Яндекс.Вебмастера
+                  </label>
+                  <input
+                    type="text"
+                    value={settings.yandex_verification || ""}
+                    onChange={e => onSettingChange("yandex_verification", e.target.value)}
+                    placeholder="например: a1b2c3d4e5f6g7h8"
+                    className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none font-mono"
+                  />
+                  <a href="https://webmaster.yandex.ru/" target="_blank" rel="noopener noreferrer"
+                    className="text-orange-400 hover:text-orange-300 text-xs flex items-center gap-1 mt-1.5">
+                    Открыть Яндекс.Вебмастер <Icon name="ExternalLink" size={11} />
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* Google */}
+            <div className="bg-[#141720] border border-[#1e2230] rounded-2xl p-6 mb-5">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-10 h-10 bg-green-500/15 border border-green-500/30 rounded-xl flex items-center justify-center">
+                  <Icon name="LineChart" size={20} className="text-green-400" />
+                </div>
+                <div>
+                  <div className="font-oswald font-bold text-white text-lg">Google Analytics и Search Console</div>
+                  <div className="text-white/40 text-xs">Опционально, для англоязычной / международной аудитории</div>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-white/70 text-xs font-medium mb-1.5 block">
+                    ID Google Analytics
+                  </label>
+                  <input
+                    type="text"
+                    value={settings.google_analytics_id || ""}
+                    onChange={e => onSettingChange("google_analytics_id", e.target.value)}
+                    placeholder="например: G-XXXXXXXXXX"
+                    className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-white/70 text-xs font-medium mb-1.5 block">
+                    Код подтверждения Google Search Console
+                  </label>
+                  <input
+                    type="text"
+                    value={settings.google_verification || ""}
+                    onChange={e => onSettingChange("google_verification", e.target.value)}
+                    placeholder="строка из meta-тега"
+                    className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none font-mono"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Кнопка сохранения */}
+            <div className="bg-[#141720] border border-orange-500/30 rounded-2xl p-5 sticky bottom-4 flex items-center justify-between">
+              <button
+                onClick={saveSettingsHandler}
+                disabled={!settingsDirty || settingsSaving}
+                className="bg-orange-500 hover:bg-orange-400 disabled:bg-orange-500/30 disabled:cursor-not-allowed text-gray-900 px-6 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2"
+              >
+                {settingsSaving
+                  ? <><Icon name="Loader2" size={16} className="animate-spin" /> Сохранение…</>
+                  : settingsSaved
+                    ? <><Icon name="Check" size={16} /> Сохранено</>
+                    : <><Icon name="Save" size={16} /> Сохранить</>}
+              </button>
+              {settingsDirty && !settingsSaving && (
+                <span className="text-orange-400/70 text-xs">Есть несохранённые изменения</span>
+              )}
+            </div>
+
+            {/* Инструкция SEO */}
+            <div className="bg-[#0d1017] border border-[#1e2230] rounded-2xl p-5 mt-5 text-sm text-white/55 leading-relaxed">
+              <div className="font-bold text-white mb-2 flex items-center gap-2">
+                <Icon name="Info" size={16} className="text-orange-400" /> Как подключить Яндекс быстро
+              </div>
+              <ol className="space-y-1.5 ml-5 list-decimal text-xs">
+                <li>Зайдите на <a href="https://metrika.yandex.ru/" target="_blank" rel="noopener noreferrer" className="text-orange-400">metrika.yandex.ru</a> → «Добавить счётчик»</li>
+                <li>Введите адрес сайта, согласитесь с условиями → получите номер счётчика</li>
+                <li>Вставьте номер в поле «ID счётчика Яндекс.Метрики» выше и нажмите «Сохранить»</li>
+                <li>Перейдите на <a href="https://webmaster.yandex.ru/" target="_blank" rel="noopener noreferrer" className="text-orange-400">webmaster.yandex.ru</a> → «Добавить сайт»</li>
+                <li>Выберите способ «Мета-тег», скопируйте значение `content="..."` — вставьте в «Код подтверждения»</li>
+                <li>Сохраните → в Вебмастере нажмите «Проверить» → готово, сайт виден Яндексу</li>
               </ol>
             </div>
           </div>

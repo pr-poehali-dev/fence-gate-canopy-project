@@ -1,22 +1,78 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>СтальГрупп — Производство заборов и ворот</title>
-    <meta name="description" content="Производство заборов, ворот и ограждений из металла. Расчёт стоимости онлайн."/>
+
+    <!-- Основное SEO -->
+    <title>СтальГрупп — заборы, ворота, навесы и ковка под ключ в Москве и МО. Расчёт онлайн</title>
+    <meta name="description" content="Производство и монтаж заборов, ворот, навесов, беседок, кованых изделий под ключ. Замер бесплатно, гарантия 5 лет, цены от 1 450 ₽/м.п. Москва, Люберцы, Балашиха, Мытищи, Подольск, Реутов, Красногорск, Одинцово, Химки."/>
+    <meta name="keywords" content="забор под ключ, забор из профнастила, евроштакетник, откатные ворота, распашные ворота, кованые ворота, навесы для авто, беседки, 3D-сетка, сетка-рабица, фундамент под забор, установка забора Москва, монтаж заборов МО, СтальГрупп"/>
+    <meta name="author" content="СтальГрупп"/>
+    <meta name="robots" content="index, follow, max-image-preview:large"/>
+    <meta name="theme-color" content="#f97316"/>
+    <meta name="format-detection" content="telephone=yes"/>
+    <meta name="geo.region" content="RU-MOS"/>
+    <meta name="geo.placename" content="Москва, Московская область"/>
+    <link rel="canonical" href="https://stalgrupp.ru/"/>
+
+    <!-- Шрифты -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Golos+Text:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <meta name="author" content="poehali.dev"/>
+
+    <!-- Favicon (переопределяется через CMS) -->
     <link rel="icon" type="image/png" href="https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/favicon-1779117909112.png">
-    <meta property="og:title" content="Поехали!">
-    <meta property="og:description" content="Ваш личный программист, который делает сайты в 30 раз быстрее обычного.">
-    <meta property="og:image:width" content="4800">
-    <meta property="og:image:height" content="2520">
-    <meta property="og:image:alt" content="Поехали! — сервис разработки сайтов с помощью ИИ">
-    <meta property="og:image" content="https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/og-image-1779118071368.jpg">
-    <meta name="twitter:image" content="https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/og-image-1779118071368.jpg">
+    <link rel="apple-touch-icon" href="https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/favicon-1779117909112.png">
+
+    <!-- Open Graph (соц.сети, мессенджеры) -->
+    <meta property="og:type" content="website"/>
+    <meta property="og:locale" content="ru_RU"/>
+    <meta property="og:site_name" content="СтальГрупп"/>
+    <meta property="og:url" content="https://stalgrupp.ru/"/>
+    <meta property="og:title" content="СтальГрупп — заборы, ворота и навесы под ключ в Москве и МО"/>
+    <meta property="og:description" content="Производство и монтаж заборов, ворот, навесов и ковки. Замер бесплатно, гарантия 5 лет. Цены от 1 450 ₽/м.п."/>
+    <meta property="og:image" content="https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/0a741620-67a4-416c-98a2-103d4d52aff3.jpg"/>
+    <meta property="og:image:width" content="1024"/>
+    <meta property="og:image:height" content="1024"/>
+    <meta property="og:image:alt" content="СтальГрупп — заборы, ворота и навесы под ключ"/>
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image"/>
+    <meta name="twitter:title" content="СтальГрупп — заборы, ворота и навесы под ключ"/>
+    <meta name="twitter:description" content="Производство и монтаж заборов, ворот, навесов и ковки в Москве и МО. Замер бесплатно."/>
+    <meta name="twitter:image" content="https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/0a741620-67a4-416c-98a2-103d4d52aff3.jpg"/>
+
+    <!-- Structured data: LocalBusiness -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      "name": "СтальГрупп",
+      "image": "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/0a741620-67a4-416c-98a2-103d4d52aff3.jpg",
+      "@id": "https://stalgrupp.ru/",
+      "url": "https://stalgrupp.ru/",
+      "telephone": "+7 (800) 123-45-67",
+      "priceRange": "₽₽",
+      "description": "Производство и монтаж заборов, ворот, навесов и кованых изделий под ключ. Москва и Московская область.",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "ул. Котельническая, д. 18, оф. 14",
+        "addressLocality": "Люберцы",
+        "addressRegion": "Московская область",
+        "postalCode": "140000",
+        "addressCountry": "RU"
+      },
+      "areaServed": ["Москва", "Люберцы", "Балашиха", "Мытищи", "Подольск", "Реутов", "Красногорск", "Одинцово", "Химки", "Истра"],
+      "openingHoursSpecification": [{
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],
+        "opens": "08:00",
+        "closes": "20:00"
+      }],
+      "sameAs": []
+    }
+    </script>
 
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS COMMENT! -->
 
@@ -34,34 +90,7 @@
 <div id="root"></div>
 <script type="module" src="/src/main.tsx"></script>
 
-<!-- Yandex.Metrika counter -->
-<script type="text/javascript">
-    (function (m, e, t, r, i, k, a) {
-        m[i] = m[i] || function () {
-            (m[i].a = m[i].a || []).push(arguments)
-        };
-        m[i].l = 1 * new Date();
-        for (var j = 0; j < document.scripts.length; j++) {
-            if (document.scripts[j].src === r) {
-                return;
-            }
-        }
-        k = e.createElement(t), a = e.getElementsByTagName(t)[0], k.async = 1, k.src = r, a.parentNode.insertBefore(k, a)
-    })
-    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
-
-    ym(101026698, "init", {
-        trustedDomains: ["poehali.dev"],
-        clickmap: true,
-        trackLinks: true,
-        accurateTrackBounce: true,
-        webvisor: true,
-        trackHash: true
-    });
-</script>
-<noscript>
-    <div><img src="https://mc.yandex.ru/watch/101026698" style="position:absolute; left:-9999px;" alt=""/></div>
-</noscript>
-<!-- /Yandex.Metrika counter -->
+<!-- Метрика / счётчики аналитики динамически подключаются через src/components/AnalyticsCounters.tsx
+     с настройкой в админке (/admin) -->
 </body>
 </html>

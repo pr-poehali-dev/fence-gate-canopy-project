@@ -151,6 +151,15 @@ export interface SiteSettings {
   crm_webhook_type?: string;
   crm_webhook_secret?: string;
   crm_webhook_secret_set?: boolean;
+  // SEO и аналитика
+  seo_title?: string;
+  seo_description?: string;
+  seo_keywords?: string;
+  seo_og_image?: string;
+  yandex_metrika_id?: string;
+  yandex_verification?: string;
+  google_analytics_id?: string;
+  google_verification?: string;
 }
 
 export async function fetchSettings(adminMode = false): Promise<SiteSettings> {
