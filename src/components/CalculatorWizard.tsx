@@ -202,23 +202,22 @@ export default function CalculatorWizard() {
           <div className="text-white/40 text-xs mt-1">Сумма по КП: <b className="text-white">{fmtRub(result.total)}</b></div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-w-md mx-auto mb-6 text-left">
-          <Channel ok={sent.channels.maxClient}    label="КП отправлено вам в MAX"   icon="MessageCircle" />
-          <Channel ok={sent.channels.emailClient}  label="Копия КП на ваш email"      icon="Mail" />
-          <Channel ok={sent.channels.maxManager}   label="Заявка передана менеджеру"  icon="UserCheck" />
-          <Channel ok={sent.channels.emailManager} label="Менеджеру отправлен email"  icon="Send" />
-        </div>
+        <div className="bg-[#0d1017] border border-[#1e2230] rounded-2xl p-4 sm:p-5 max-w-md mx-auto mb-6 text-left space-y-2.5">
+          <div className="text-[10px] text-white/40 uppercase tracking-widest mb-1">Куда отправлено</div>
 
-        {!sent.channels.maxClient && (
-          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl px-4 py-3 text-sm text-orange-300 max-w-md mx-auto mb-4 text-left">
-            <Icon name="Info" size={14} className="inline mr-1.5" />
-            Мы попытались найти вас в MAX по номеру, но пока не видим в контактах. Напишите нашему боту{" "}
-            <a href={COMPANY.maxLink} target="_blank" rel="noopener noreferrer" className="text-orange-200 underline font-semibold">
-              в MAX
-            </a>{" "}
-            хотя бы «Привет» — и мы тут же пришлём КП в личку.
-          </div>
-        )}
+          {/* Клиенту — MAX приоритетнее, email — резерв */}
+          {sent.channels.maxClient ? (
+            <Channel ok label="КП отправлено вам в MAX" icon="MessageCircle" />
+          ) : sent.channels.emailClient ? (
+            <Channel ok label="КП отправлено на ваш email (вы не зарегистрированы в MAX)" icon="Mail" />
+          ) : (
+            <Channel ok={false} label="Менеджер пришлёт КП при звонке" icon="PhoneCall" />
+          )}
+
+          {/* Менеджеру — параллельно в MAX и на email */}
+          <Channel ok={sent.channels.maxManager}   label="Заявка передана менеджеру в MAX" icon="UserCheck" />
+          <Channel ok={sent.channels.emailManager} label="Email менеджеру с КП в PDF"      icon="Send" />
+        </div>
 
         <button
           onClick={() => {

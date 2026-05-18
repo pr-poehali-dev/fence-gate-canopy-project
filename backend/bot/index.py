@@ -152,13 +152,18 @@ def _normalize_phone_ru(phone):
 
 
 def _find_client_chat_in_max(bot_token, phone, name=''):
-    """Ищет личный чат клиента с ботом в MAX строго по номеру телефона
-    из формы заявки. Если не нашли по телефону — пробуем по имени.
+    """Находит / создаёт личный чат клиента с ботом в MAX по номеру телефона.
 
-    Источники поиска (по убыванию надёжности):
-      1) /chats         — все диалоги бота со списком участников и их телефонами
-      2) /updates       — последние входящие сообщения боту (если клиент писал боту)
-      3) /subscriptions — подписки бота (опционально)
+    Поиск производится не только по тем, кто писал боту, а **активно**:
+      1) GET  /users/by_phone?phone=79991234567       (если есть в публичном API)
+      2) GET  /users/search?query=+7999…              (поиск по поисковику MAX)
+      3) GET  /contacts/by_phone?phone=…              (контакты бота)
+      4) POST /chats { "user_phone": "79991234567" }  (создать диалог с пользователем)
+      5) GET  /chats — пробег по существующим диалогам бота
+      6) GET  /updates — fallback (если клиент писал боту)
+
+    После того как найден user_id — пытаемся открыть/получить диалог через
+       POST /chats { "user_id": ... } или GET /chats/by_user/{user_id}.
 
     Возвращает chat_id (str) или ''.
     """
@@ -170,21 +175,103 @@ def _find_client_chat_in_max(bot_token, phone, name=''):
     def _phone_match(p) -> bool:
         return bool(norm_phone) and _normalize_phone_ru(p) == norm_phone
 
-    # ── 1) Поиск по списку чатов бота /chats ────────────────────────
-    # Самый надёжный способ: бот видит все диалоги, в каждом — участники с телефоном
+    # ── helper: открыть диалог с user_id (если ещё не существует) ────
+    def _ensure_chat_with_user(uid):
+        if not uid:
+            return ''
+        # Пробуем несколько эндпоинтов «создать/получить личный диалог»
+        for path, body in [
+            ('/chats',                {'user_id': uid}),
+            ('/chats',                {'user_ids': [uid]}),
+            ('/dialogs',              {'user_id': uid}),
+            (f'/chats/by_user/{uid}', None),
+        ]:
+            try:
+                if body is None:
+                    status, data = _max_request(bot_token, 'GET', path)
+                else:
+                    status, data = _max_request(bot_token, 'POST', path, json_body=body)
+                if 200 <= status < 300 and isinstance(data, dict):
+                    cid = (data.get('chat_id') or data.get('id')
+                           or (data.get('chat') or {}).get('chat_id')
+                           or (data.get('chat') or {}).get('id'))
+                    if cid:
+                        print(f'[MAX] opened chat with user {uid} via {path}: {cid}', flush=True)
+                        return str(cid)
+            except Exception:
+                pass
+        # Если все попытки провалились — отдаём user_id как chat_id (в личке MAX это работает)
+        return str(uid)
+
+    # ── 1) Прямой поиск пользователя по номеру ──────────────────────
+    if norm_phone:
+        plus_phone = '+' + norm_phone
+        candidates_endpoints = [
+            ('/users/by_phone',       {'phone': norm_phone}),
+            ('/users/by_phone',       {'phone': plus_phone}),
+            ('/users/search',         {'query': plus_phone}),
+            ('/users/search',         {'q':     plus_phone}),
+            ('/contacts/by_phone',    {'phone': norm_phone}),
+            ('/contacts/search',      {'phone': norm_phone}),
+        ]
+        for path, params in candidates_endpoints:
+            try:
+                status, data = _max_request(bot_token, 'GET', path, params=params)
+                if not (200 <= status < 300) or not isinstance(data, dict):
+                    continue
+                # Возможные форматы ответа: {user: {...}}, {users: [...]}, {...}
+                users = []
+                if isinstance(data.get('users'), list):
+                    users = data['users']
+                elif isinstance(data.get('items'), list):
+                    users = data['items']
+                elif isinstance(data.get('user'), dict):
+                    users = [data['user']]
+                elif data.get('user_id') or data.get('id'):
+                    users = [data]
+                for u in users:
+                    if not isinstance(u, dict):
+                        continue
+                    if _phone_match(u.get('phone') or u.get('phone_number') or ''):
+                        uid = u.get('user_id') or u.get('id')
+                        if uid:
+                            cid = _ensure_chat_with_user(uid)
+                            if cid:
+                                print(f'[MAX] found user by {path}: uid={uid} -> chat_id={cid}', flush=True)
+                                return cid
+            except Exception as e:
+                print(f'[MAX] lookup {path} failed: {e}', flush=True)
+
+    # ── 2) Создать диалог напрямую по номеру (без user_id) ─────────
+    if norm_phone:
+        for path, body in [
+            ('/chats', {'user_phone': norm_phone}),
+            ('/chats', {'phone':      norm_phone}),
+            ('/chats', {'user_phone': '+' + norm_phone}),
+            ('/dialogs', {'phone':    norm_phone}),
+        ]:
+            try:
+                status, data = _max_request(bot_token, 'POST', path, json_body=body)
+                if 200 <= status < 300 and isinstance(data, dict):
+                    cid = (data.get('chat_id') or data.get('id')
+                           or (data.get('chat') or {}).get('chat_id'))
+                    if cid:
+                        print(f'[MAX] created direct chat by phone via {path}: {cid}', flush=True)
+                        return str(cid)
+            except Exception:
+                pass
+
+    # ── 3) Пройтись по существующим чатам бота ─────────────────────
     try:
         chats_resp = _max_get(bot_token, '/chats', {'count': 100})
         for ch in (chats_resp.get('chats') or []):
             chat_type = (ch.get('type') or '').lower()
-            # Личные диалоги (dialog/private) — тут точно одно физлицо
-            if chat_type not in ('', 'dialog', 'private', 'chat'):
+            if chat_type and chat_type not in ('dialog', 'private', 'chat'):
                 continue
             cid = ch.get('chat_id') or ch.get('id')
             if not cid:
                 continue
-            # Проверяем участников
             participants = ch.get('participants') or ch.get('members') or []
-            # Иногда участники приходят в виде {user_id: info}
             if isinstance(participants, dict):
                 participants = list(participants.values())
             owner = ch.get('owner') or ch.get('dialog_with') or {}
@@ -193,17 +280,16 @@ def _find_client_chat_in_max(bot_token, phone, name=''):
                 if not isinstance(p, dict):
                     continue
                 if _phone_match(p.get('phone') or p.get('phone_number') or ''):
-                    print(f'[MAX] found chat by /chats phone match: {cid}', flush=True)
+                    print(f'[MAX] found existing chat by phone match: {cid}', flush=True)
                     return str(cid)
-                # Fallback по имени, только если телефон не задан
                 if not norm_phone and name_lc:
                     pn = (p.get('name') or p.get('first_name') or '').strip().lower()
                     if pn and name_lc in pn:
                         return str(cid)
     except Exception as e:
-        print(f'[MAX] /chats lookup failed: {e}', flush=True)
+        print(f'[MAX] /chats scan failed: {e}', flush=True)
 
-    # ── 2) Поиск в /updates (если клиент когда-то писал боту) ────────
+    # ── 4) Fallback: те, кто писал боту ─────────────────────────────
     try:
         ups = _max_get(bot_token, '/updates', {'limit': 100, 'types': 'message_created'})
         for u in (ups.get('updates') or []):
@@ -217,7 +303,6 @@ def _find_client_chat_in_max(bot_token, phone, name=''):
                 if cid:
                     print(f'[MAX] found chat by /updates phone match: {cid}', flush=True)
                     return str(cid)
-            # Fallback по имени, только если телефон не задан/не нашли
             if not norm_phone and name_lc:
                 sender_name = (sender.get('name') or sender.get('first_name') or '').strip().lower()
                 if sender_name and name_lc in sender_name:
@@ -226,9 +311,9 @@ def _find_client_chat_in_max(bot_token, phone, name=''):
                     if cid:
                         return str(cid)
     except Exception as e:
-        print(f'[MAX] /updates lookup failed: {e}', flush=True)
+        print(f'[MAX] /updates fallback failed: {e}', flush=True)
 
-    # ── 3) Поиск в /subscriptions (если бот ведёт список подписчиков) ──
+    # ── 5) Подписки бота ────────────────────────────────────────────
     try:
         subs = _max_get(bot_token, '/subscriptions', {})
         for s in (subs.get('subscriptions') or []):
@@ -238,7 +323,7 @@ def _find_client_chat_in_max(bot_token, phone, name=''):
                     print(f'[MAX] found chat by /subscriptions phone match: {cid}', flush=True)
                     return str(cid)
     except Exception as e:
-        print(f'[MAX] /subscriptions lookup failed: {e}', flush=True)
+        print(f'[MAX] /subscriptions fallback failed: {e}', flush=True)
 
     print(f'[MAX] client not found in MAX by phone={norm_phone} name={name_lc}', flush=True)
     return ''
@@ -794,10 +879,19 @@ def handler(event: dict, context) -> dict:
                 else:
                     mgr_email_info = 'no_recipients'
 
-            # ── 4) Email клиенту (если email указан) ─────────────
+            # ── 4) Email клиенту ─────────────────────────────────
+            # Правило: КП клиенту уходит в MAX, если найден в MAX.
+            # Если в MAX не нашли — отправляем КП на email (как резервный канал).
             cli_email_ok, cli_email_info = False, 'skipped'
-            if (not is_event and client_email and '@' in client_email
-                    and _tgl('notify_client_email', 'true')):
+            should_email_client = (
+                not is_event
+                and client_email and '@' in client_email
+                and _tgl('notify_client_email', 'true')
+                and not client_max_ok   # email — только если MAX не доставлен
+            )
+            if not should_email_client and client_max_ok:
+                cli_email_info = 'sent_via_max'
+            if should_email_client:
                 subj_c = _render_template(
                     settings.get('client_email_subject') or 'Ваша заявка №{order_num} принята — {company_name}',
                     ctx
