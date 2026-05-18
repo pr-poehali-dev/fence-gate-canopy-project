@@ -210,9 +210,13 @@ export default function CalculatorWizard() {
         </div>
 
         {!sent.channels.maxClient && (
-          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl px-4 py-3 text-sm text-orange-300 max-w-md mx-auto mb-4">
+          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl px-4 py-3 text-sm text-orange-300 max-w-md mx-auto mb-4 text-left">
             <Icon name="Info" size={14} className="inline mr-1.5" />
-            Если у вас есть MAX — установите его и зарегистрируйтесь по этому номеру: мы автоматически пришлём КП.
+            Мы попытались найти вас в MAX по номеру, но пока не видим в контактах. Напишите нашему боту{" "}
+            <a href={COMPANY.maxLink} target="_blank" rel="noopener noreferrer" className="text-orange-200 underline font-semibold">
+              в MAX
+            </a>{" "}
+            хотя бы «Привет» — и мы тут же пришлём КП в личку.
           </div>
         )}
 

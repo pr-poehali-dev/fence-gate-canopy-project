@@ -23,6 +23,7 @@ export const COMPANY = {
   email:          "info@stalgrupp.ru",
   site:           "stalgrupp.ru",
   schedule:       "Пн–Сб 08:00–20:00, Вс — по записи",
+  maxLink:        "https://max.ru/stalgrupp",
 
   // Адреса
   legalAddress:   "140000, Московская область, г. Люберцы, ул. Котельническая, д. 18, оф. 14",

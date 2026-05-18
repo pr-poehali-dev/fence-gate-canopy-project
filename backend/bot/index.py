@@ -152,33 +152,95 @@ def _normalize_phone_ru(phone):
 
 
 def _find_client_chat_in_max(bot_token, phone, name=''):
-    """Ищет личный чат клиента с ботом в MAX по совпадению телефона/имени
-    в недавних входящих сообщениях боту. Возвращает chat_id (str) или ''.
-    Сценарий: клиент написал боту хоть раз — мы можем ему ответить."""
+    """Ищет личный чат клиента с ботом в MAX строго по номеру телефона
+    из формы заявки. Если не нашли по телефону — пробуем по имени.
+
+    Источники поиска (по убыванию надёжности):
+      1) /chats         — все диалоги бота со списком участников и их телефонами
+      2) /updates       — последние входящие сообщения боту (если клиент писал боту)
+      3) /subscriptions — подписки бота (опционально)
+
+    Возвращает chat_id (str) или ''.
+    """
     if not bot_token:
         return ''
     norm_phone = _normalize_phone_ru(phone)
     name_lc = (name or '').strip().lower()
+
+    def _phone_match(p) -> bool:
+        return bool(norm_phone) and _normalize_phone_ru(p) == norm_phone
+
+    # ── 1) Поиск по списку чатов бота /chats ────────────────────────
+    # Самый надёжный способ: бот видит все диалоги, в каждом — участники с телефоном
+    try:
+        chats_resp = _max_get(bot_token, '/chats', {'count': 100})
+        for ch in (chats_resp.get('chats') or []):
+            chat_type = (ch.get('type') or '').lower()
+            # Личные диалоги (dialog/private) — тут точно одно физлицо
+            if chat_type not in ('', 'dialog', 'private', 'chat'):
+                continue
+            cid = ch.get('chat_id') or ch.get('id')
+            if not cid:
+                continue
+            # Проверяем участников
+            participants = ch.get('participants') or ch.get('members') or []
+            # Иногда участники приходят в виде {user_id: info}
+            if isinstance(participants, dict):
+                participants = list(participants.values())
+            owner = ch.get('owner') or ch.get('dialog_with') or {}
+            candidates = list(participants) + ([owner] if owner else [])
+            for p in candidates:
+                if not isinstance(p, dict):
+                    continue
+                if _phone_match(p.get('phone') or p.get('phone_number') or ''):
+                    print(f'[MAX] found chat by /chats phone match: {cid}', flush=True)
+                    return str(cid)
+                # Fallback по имени, только если телефон не задан
+                if not norm_phone and name_lc:
+                    pn = (p.get('name') or p.get('first_name') or '').strip().lower()
+                    if pn and name_lc in pn:
+                        return str(cid)
+    except Exception as e:
+        print(f'[MAX] /chats lookup failed: {e}', flush=True)
+
+    # ── 2) Поиск в /updates (если клиент когда-то писал боту) ────────
     try:
         ups = _max_get(bot_token, '/updates', {'limit': 100, 'types': 'message_created'})
         for u in (ups.get('updates') or []):
             msg = u.get('message') or {}
-            sender = msg.get('sender') or {}
-            recipient = msg.get('recipient') or {}
-            # Совпадение по нормализованному телефону (если MAX отдаёт)
-            sender_phone = _normalize_phone_ru(sender.get('phone') or '')
-            if norm_phone and sender_phone and sender_phone == norm_phone:
-                cid = recipient.get('chat_id') or sender.get('user_id')
+            sender = msg.get('sender') or msg.get('from') or {}
+            recipient = msg.get('recipient') or msg.get('chat') or {}
+            sender_phone = sender.get('phone') or sender.get('phone_number') or ''
+            if _phone_match(sender_phone):
+                cid = (recipient.get('chat_id') or recipient.get('id')
+                       or sender.get('user_id') or sender.get('id'))
                 if cid:
+                    print(f'[MAX] found chat by /updates phone match: {cid}', flush=True)
                     return str(cid)
-            # Совпадение по имени (fallback)
-            sender_name = (sender.get('name') or sender.get('first_name') or '').strip().lower()
-            if name_lc and sender_name and name_lc in sender_name:
-                cid = recipient.get('chat_id') or sender.get('user_id')
+            # Fallback по имени, только если телефон не задан/не нашли
+            if not norm_phone and name_lc:
+                sender_name = (sender.get('name') or sender.get('first_name') or '').strip().lower()
+                if sender_name and name_lc in sender_name:
+                    cid = (recipient.get('chat_id') or recipient.get('id')
+                           or sender.get('user_id') or sender.get('id'))
+                    if cid:
+                        return str(cid)
+    except Exception as e:
+        print(f'[MAX] /updates lookup failed: {e}', flush=True)
+
+    # ── 3) Поиск в /subscriptions (если бот ведёт список подписчиков) ──
+    try:
+        subs = _max_get(bot_token, '/subscriptions', {})
+        for s in (subs.get('subscriptions') or []):
+            if _phone_match(s.get('phone') or s.get('phone_number') or ''):
+                cid = s.get('chat_id') or s.get('user_id')
                 if cid:
+                    print(f'[MAX] found chat by /subscriptions phone match: {cid}', flush=True)
                     return str(cid)
-    except Exception:
-        pass
+    except Exception as e:
+        print(f'[MAX] /subscriptions lookup failed: {e}', flush=True)
+
+    print(f'[MAX] client not found in MAX by phone={norm_phone} name={name_lc}', flush=True)
     return ''
 
 
