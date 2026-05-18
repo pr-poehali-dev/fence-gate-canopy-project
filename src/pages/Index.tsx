@@ -11,6 +11,8 @@ import { sendLead } from "@/lib/api";
 import { usePageContent } from "@/hooks/usePageContent";
 import EditableBgPhoto from "@/components/EditableBgPhoto";
 import { EditableText, EditableImage } from "@/components/InlineEditor";
+import QuickQuoteForm from "@/components/QuickQuoteForm";
+import CalculatorWizardIntro from "@/components/CalculatorWizardIntro";
 
 // ── Изображения ─────────────────────────────────────────────────────────────
 const IMGS = {
@@ -678,16 +680,25 @@ export default function Index() {
             fallback="Производство и монтаж металлических ограждений, ворот, навесов и беседок любой сложности. Собственный завод, гарантия качества, доставка по всей России."
           />
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
-            <button className="btn-orange px-8 py-4 rounded-xl text-base w-full sm:w-auto" onClick={() => scrollTo("calculator")}>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-6">
+            <button className="btn-orange px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl text-sm sm:text-base w-full sm:w-auto" onClick={() => scrollTo("calculator")}>
               <span className="flex items-center gap-2 justify-center">
                 <Icon name="Calculator" size={18} />
-                Рассчитать + сформировать КП
+                Рассчитать стоимость
               </span>
             </button>
-            <button className="btn-outline-orange px-8 py-4 rounded-xl text-base w-full sm:w-auto" onClick={() => scrollTo("portfolio")}>
+            <button className="btn-outline-orange px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl text-sm sm:text-base w-full sm:w-auto" onClick={() => scrollTo("portfolio")}>
               Смотреть работы
             </button>
+          </div>
+
+          {/* Быстрая форма «Бесплатный замер» */}
+          <div className="max-w-md mx-auto mb-10 anim-ready">
+            <QuickQuoteForm
+              source="Главная: Hero — Быстрый замер"
+              title="Закажите бесплатный замер"
+              compact
+            />
           </div>
 
           {/* Быстрая кнопка скачивания прайс-листа */}
@@ -898,10 +909,15 @@ export default function Index() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {PORTFOLIO_ITEMS.map(({ title, tag, img }, i) => (
-              <div key={title} className="portfolio-item anim-ready"
+              <div key={title} className="portfolio-item anim-ready relative"
                 style={{ height: i === 0 || i === 5 ? "320px" : "230px", transitionDelay: `${i * 0.07}s` }}>
-                <img src={img} alt={title} />
-                <div className="portfolio-overlay">
+                <EditableImage
+                  page="home" blockKey={`portfolio_img_${i}`}
+                  value={cms(`portfolio_img_${i}`)} fallback={img} alt={title}
+                  className="absolute inset-0 w-full h-full"
+                  imgClassName="w-full h-full object-cover"
+                />
+                <div className="portfolio-overlay pointer-events-none">
                   <div>
                     <div className="inline-block bg-orange-500 text-gray-900 text-xs font-bold font-oswald px-2 py-1 rounded mb-2 uppercase tracking-wider">
                       {tag}
@@ -909,7 +925,7 @@ export default function Index() {
                     <div className="text-white font-semibold">{title}</div>
                   </div>
                 </div>
-                <div className="absolute top-3 left-3 bg-orange-500/10 border border-orange-500/30 text-orange-400 text-xs px-2 py-1 rounded-full font-oswald tracking-wider uppercase">
+                <div className="absolute top-3 left-3 bg-orange-500/10 border border-orange-500/30 text-orange-400 text-xs px-2 py-1 rounded-full font-oswald tracking-wider uppercase pointer-events-none">
                   {tag}
                 </div>
               </div>
@@ -1058,8 +1074,10 @@ export default function Index() {
               Готовое коммерческое предложение — за 1 клик.
             </p>
           </div>
-          <div className="bg-[#141720] border border-[#1e2230] rounded-3xl p-6 sm:p-8 anim-ready">
-            <Calculator />
+          <div className="bg-[#141720] border border-[#1e2230] rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 anim-ready">
+            <CalculatorWizardIntro>
+              <Calculator />
+            </CalculatorWizardIntro>
           </div>
         </div>
       </section>

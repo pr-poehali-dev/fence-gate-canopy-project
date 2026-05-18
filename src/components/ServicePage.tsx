@@ -7,6 +7,7 @@ import { generatePriceListPDF } from "@/lib/priceListPDF";
 import { sendLead } from "@/lib/api";
 import { usePageContent } from "@/hooks/usePageContent";
 import { EditableText, EditableImage } from "@/components/InlineEditor";
+import QuickQuoteForm from "@/components/QuickQuoteForm";
 
 // ─────────────────────────────────────────────────────────────────
 // ТИПЫ ДАННЫХ ШАБЛОНА
@@ -251,20 +252,30 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string }) {
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex flex-col sm:flex-row gap-3 mb-6">
                 <button onClick={() => lead.open({
                     title: "Вызвать замерщика",
                     serviceHint: `${p.breadcrumb} · от ${p.startPrice} ${p.priceUnit}`,
                   })}
-                  className="btn-orange px-7 py-3.5 rounded-xl text-base">
+                  className="btn-orange px-6 sm:px-7 py-3 sm:py-3.5 rounded-xl text-sm sm:text-base">
                   <span className="flex items-center gap-2 justify-center">
                     <Icon name="Ruler" size={17} />
                     Вызвать замерщика
                   </span>
                 </button>
-                <button onClick={() => scrollTo("prices")} className="btn-outline-orange px-7 py-3.5 rounded-xl text-base">
+                <button onClick={() => scrollTo("prices")} className="btn-outline-orange px-6 sm:px-7 py-3 sm:py-3.5 rounded-xl text-sm sm:text-base">
                   Прайс-лист
                 </button>
+              </div>
+
+              {/* Быстрая форма замера */}
+              <div className="lg:hidden">
+                <QuickQuoteForm
+                  source={`Услуга «${p.breadcrumb}»: hero форма`}
+                  serviceHint={`${p.breadcrumb} · от ${p.startPrice} ${p.priceUnit}`}
+                  title=""
+                  compact
+                />
               </div>
             </div>
 
@@ -292,6 +303,16 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string }) {
                   </div>
                 </div>
               </div>
+
+              {/* Быстрая форма замера на десктопе — под фото */}
+              <div className="hidden lg:block mt-6">
+                <QuickQuoteForm
+                  source={`Услуга «${p.breadcrumb}»: hero форма (десктоп)`}
+                  serviceHint={`${p.breadcrumb} · от ${p.startPrice} ${p.priceUnit}`}
+                  title=""
+                  compact
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -303,8 +324,26 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string }) {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
             <div>
               <span className="section-tag">О конструкции</span>
-              <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-white mb-4">{p.aboutTitle}</h2>
-              <p className="text-white/60 leading-relaxed whitespace-pre-line">{p.aboutText}</p>
+              {p.pageSlug ? (
+                <>
+                  <EditableText
+                    page={p.pageSlug} blockKey="about_title"
+                    value={cms("about_title")} fallback={p.aboutTitle} as="h2"
+                    className="font-oswald font-bold text-3xl sm:text-4xl text-white mb-4"
+                  />
+                  <EditableText
+                    page={p.pageSlug} blockKey="about_text"
+                    value={cms("about_text")} html as="div"
+                    fallback={p.aboutText}
+                    className="text-white/60 leading-relaxed whitespace-pre-line"
+                  />
+                </>
+              ) : (
+                <>
+                  <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-white mb-4">{p.aboutTitle}</h2>
+                  <p className="text-white/60 leading-relaxed whitespace-pre-line">{p.aboutText}</p>
+                </>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">

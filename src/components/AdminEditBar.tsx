@@ -10,8 +10,11 @@ export default function AdminEditBar() {
   const isAdmin = useIsAdmin();
   if (!isAdmin) return null;
   return (
-    <div className="fixed bottom-4 right-4 z-[90] flex items-center gap-2 bg-slate-900/95 backdrop-blur text-white px-3 py-2 rounded-full shadow-2xl border border-orange-500/40">
-      <div className="flex items-center gap-2 px-2">
+    <div
+      className="fixed bottom-3 right-3 sm:bottom-4 sm:right-4 z-[90] flex items-center gap-1.5 sm:gap-2 bg-slate-900/95 backdrop-blur text-white px-2 py-1.5 sm:px-3 sm:py-2 rounded-full shadow-2xl border border-orange-500/40"
+      style={{ marginBottom: "env(safe-area-inset-bottom)" }}
+    >
+      <div className="hidden sm:flex items-center gap-2 px-2">
         <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
         <span className="text-xs font-semibold">Режим редактирования</span>
       </div>

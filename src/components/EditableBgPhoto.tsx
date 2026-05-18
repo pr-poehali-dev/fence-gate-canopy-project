@@ -44,7 +44,7 @@ export default function EditableBgPhoto({ page, blockKey, label = "Замени�
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={`absolute top-4 left-4 z-30 flex items-center gap-1 px-3 py-1.5 rounded-full bg-orange-500/90 hover:bg-orange-500 text-white text-xs font-semibold shadow-lg ${className || ""}`}
+        className={`absolute top-20 left-4 sm:top-24 lg:top-20 z-30 flex items-center gap-1 px-3 py-1.5 rounded-full bg-orange-500/90 hover:bg-orange-500 text-white text-xs font-semibold shadow-lg ${className || ""}`}
       >
         <Icon name="Image" size={14} /> {label}
       </button>

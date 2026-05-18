@@ -46,11 +46,94 @@
   * {
     @apply border-border;
   }
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
   body {
     @apply bg-background text-foreground;
     font-family: "Golos Text", sans-serif;
     background-color: var(--dark-bg);
     scroll-behavior: smooth;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  img,
+  video {
+    max-width: 100%;
+    height: auto;
+  }
+  /* Удобный target-size для пальцев */
+  button,
+  a {
+    touch-action: manipulation;
+  }
+  input,
+  select,
+  textarea {
+    font-size: 16px; /* Защита от автозума на iOS */
+  }
+}
+
+/* ── Адаптация под планшеты ──────────────────────────────────────── */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .grid-pattern {
+    background-size: 60px 60px;
+  }
+}
+
+/* ── Адаптация под ТВ и большие мониторы (от 1920px) ─────────────── */
+@media (min-width: 1920px) {
+  html {
+    font-size: 17px;
+  }
+  .max-w-7xl {
+    max-width: 88rem;
+  }
+}
+@media (min-width: 2560px) {
+  html {
+    font-size: 18px;
+  }
+  .max-w-7xl {
+    max-width: 100rem;
+  }
+}
+@media (min-width: 3840px) {
+  /* 4K-телевизоры */
+  html {
+    font-size: 22px;
+  }
+  .max-w-7xl {
+    max-width: 140rem;
+  }
+}
+
+/* ── Маленькие мобильные телефоны ─────────────────────────────────── */
+@media (max-width: 374px) {
+  html {
+    font-size: 14px;
+  }
+}
+
+/* ── Уважение к prefers-reduced-motion ───────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Safe area для iPhone с челкой ───────────────────────────────── */
+@supports (padding: max(0px)) {
+  body {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
   }
 }
 
