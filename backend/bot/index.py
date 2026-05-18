@@ -22,52 +22,59 @@ MAX_API_HOSTS = ('https://botapi.max.ru', 'https://platform-api.max.ru')
 
 
 def _max_request(bot_token, method, path, params=None, json_body=None):
-    """Универсальный запрос к MAX Bot API. Пытается оба домена и оба способа авторизации
-    (Authorization-заголовок и ?access_token=...). Возвращает (status, dict)."""
+    """Запрос к MAX Bot API. Использует ТОЛЬКО Authorization: Bearer (актуальный способ).
+    Перебирает оба домена API. Возвращает (status, dict).
+
+    ВАЖНО: query-параметр access_token deprecated с 2025 — MAX возвращает 400.
+    Не используем его, чтобы не получать ошибки.
+    """
     if not bot_token:
-        return 0, {}
+        return 0, {'error': 'no_token'}
+
+    # Чистим токен от случайных пробелов/кавычек, которые иногда копируют вместе с токеном
+    bot_token = str(bot_token).strip().strip('"').strip("'")
+
     body = None
-    headers = {'Accept': 'application/json'}
+    headers = {
+        'Accept': 'application/json',
+        'Authorization': f'Bearer {bot_token}',
+        'User-Agent': 'StalgrupSite/1.0',
+    }
     if json_body is not None:
         body = json.dumps(json_body, ensure_ascii=False).encode('utf-8')
         headers['Content-Type'] = 'application/json; charset=utf-8'
 
     last_status, last_data = 0, {}
     for host in MAX_API_HOSTS:
-        for auth_mode in ('header', 'query'):
-            try:
-                qs = dict(params or {})
-                hdrs = dict(headers)
-                if auth_mode == 'header':
-                    hdrs['Authorization'] = f'Bearer {bot_token}'
-                else:
-                    qs['access_token'] = bot_token
-                query = ('?' + urllib.parse.urlencode(qs)) if qs else ''
-                url = host + path + query
-                req = urllib.request.Request(url, data=body, headers=hdrs, method=method)
-                with urllib.request.urlopen(req, timeout=8) as resp:
-                    raw = resp.read().decode('utf-8') or '{}'
-                    try:
-                        data = json.loads(raw)
-                    except Exception:
-                        data = {'raw': raw}
-                    return resp.status, data
-            except urllib.error.HTTPError as e:
+        try:
+            qs = dict(params or {})
+            query = ('?' + urllib.parse.urlencode(qs)) if qs else ''
+            url = host + path + query
+            req = urllib.request.Request(url, data=body, headers=headers, method=method)
+            with urllib.request.urlopen(req, timeout=8) as resp:
+                raw = resp.read().decode('utf-8') or '{}'
                 try:
-                    raw = e.read().decode('utf-8') or '{}'
-                    data = json.loads(raw) if raw else {}
+                    data = json.loads(raw)
                 except Exception:
-                    data = {}
-                last_status, last_data = e.code, data
-                # 401/403 — пробуем следующий способ; 5xx — следующий хост; 4xx прочие — выходим
-                if e.code in (401, 403):
-                    continue
-                if 500 <= e.code < 600:
-                    break  # пробуем другой хост
-                return e.code, data
-            except Exception as e:
-                last_status, last_data = 0, {'error': str(e)}
+                    data = {'raw': raw}
+                return resp.status, data
+        except urllib.error.HTTPError as e:
+            try:
+                raw = e.read().decode('utf-8') or '{}'
+                data = json.loads(raw) if raw else {}
+            except Exception:
+                data = {'raw': raw if 'raw' in dir() else ''}
+            last_status, last_data = e.code, data
+            # 5xx или сетевые ошибки — пробуем другой хост; всё остальное возвращаем как есть
+            if 500 <= e.code < 600:
                 continue
+            return e.code, data
+        except urllib.error.URLError as e:
+            last_status, last_data = 0, {'error': f'network: {e.reason}'}
+            continue
+        except Exception as e:
+            last_status, last_data = 0, {'error': str(e)}
+            continue
     return last_status, last_data
 
 
