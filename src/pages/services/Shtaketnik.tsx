@@ -13,9 +13,9 @@ const INSTALL_SINGLE = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02
 const ORIENT_HORIZ = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/b34c0ef5-1aed-4f68-af68-51e99a6ea5ce.jpg";
 const ORIENT_VERT = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/a21b8fcd-c1d4-40ee-9baa-341d9834ebe1.jpg";
 
-const P1 = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/a09f72fb-e0f1-4b8d-81e3-6c8e9fe71d0b.jpg";
-const P2 = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/86dc400a-a244-4829-a08f-2cb7c250ec44.jpg";
-const P3 = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/a79c10b9-f8c9-47b8-8c8e-f9114b137334.jpg";
+const P1 = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/a2d5d769-5a87-4e5f-8469-1445ffd91ca0.jpg";
+const P2 = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/5d958160-34c8-48f5-a1a6-b1dee8f035e1.jpg";
+const P3 = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/9cc561bd-cc64-41e1-861c-58f089163fc0.jpg";
 
 export default function Shtaketnik() {
   return (
@@ -161,12 +161,12 @@ export default function Shtaketnik() {
       ]}
 
       portfolio={[
-        { img: P1, location: "Истра, КП «Берёзки»",       size: "120 м" },
-        { img: P2, location: "Красногорск, частный дом",  size: "85 м" },
-        { img: P3, location: "Одинцово, таунхаус",        size: "45 м" },
-        { img: P1, location: "Подольск, дача",            size: "60 м" },
-        { img: P2, location: "Химки, кафе «Веранда»",     size: "180 м" },
-        { img: P3, location: "Мытищи, частный дом",       size: "95 м" },
+        { img: P1,           location: "Истра, частный дом в лесу — RAL 8017, шахматка на кирпичных столбах с цоколем", size: "95 м" },
+        { img: P2,           location: "Чехов, СНТ — RAL 8004 «Терракот», однорядная нашивка, винтовые сваи",            size: "120 м" },
+        { img: P3,           location: "Наро-Фоминск, дача — RAL 8017, шахматка + откатные ворота 4 м в едином стиле",   size: "75 м" },
+        { img: ORIENT_HORIZ, location: "Подмосковье, КП — RAL 9003 «Белый», горизонтальная установка, высота 2.0 м",     size: "180 м" },
+        { img: ORIENT_VERT,  location: "Красногорск, частный дом — RAL 7024 «Графит», шахматка + автоматические ворота",  size: "85 м" },
+        { img: INSTALL_SINGLE, location: "Одинцово, таунхаус — RAL 8017, однорядка с зазором 30 мм, фигурный верх",       size: "45 м" },
       ]}
 
       faq={[
