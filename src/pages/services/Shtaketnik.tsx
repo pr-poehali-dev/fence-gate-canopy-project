@@ -4,6 +4,8 @@ const HERO = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45
 const SPEC = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/e0d77d2c-8f9f-40dc-b64e-507118cbb28f.jpg";
 
 const PROFILES_ALL = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/c233d5b7-4272-4af3-90e1-57c97a477c60.jpg";
+const CUT_ROUND = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/5c40bc97-e1de-4b7f-a0d1-57f849e6f13e.jpg";
+const CUT_STRAIGHT = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/efc7b128-fa4c-4ec2-afe3-f7e839fa0b6e.jpg";
 
 const P1 = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/a09f72fb-e0f1-4b8d-81e3-6c8e9fe71d0b.jpg";
 const P2 = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/86dc400a-a244-4829-a08f-2cb7c250ec44.jpg";
@@ -98,6 +100,19 @@ export default function Shtaketnik() {
           name: "Фигурный (decor)",
           desc: "Резной верх — пика, корона, волна. Делается под заказ из любого профиля выше.",
           imgClassName: "max-w-full max-h-full w-auto h-auto object-contain",
+        },
+      ]}
+
+      topCuts={[
+        {
+          img: CUT_ROUND,
+          name: "Полукруглый рез",
+          desc: "Мягкий закруглённый верх планки — безопасный (нет острых углов), премиальный вид. Рекомендуем для семей с детьми, частных домов и коттеджных посёлков. На фото — RAL 7024 «Графитовый серый».",
+        },
+        {
+          img: CUT_STRAIGHT,
+          name: "Прямой рез",
+          desc: "Классический ровный верх со срезанным углом. Строгая геометрия, минималистичный стиль. Бюджетнее полукруглого реза примерно на 10–15%. На фото — RAL 5005 «Сигнально-синий».",
         },
       ]}
 
