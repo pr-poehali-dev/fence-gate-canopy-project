@@ -6,6 +6,8 @@ const SPEC = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45
 const PROFILES_ALL = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/c233d5b7-4272-4af3-90e1-57c97a477c60.jpg";
 const CUT_ROUND = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/5c40bc97-e1de-4b7f-a0d1-57f849e6f13e.jpg";
 const CUT_STRAIGHT = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/efc7b128-fa4c-4ec2-afe3-f7e839fa0b6e.jpg";
+const INSTALL_CHESS = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/ccc7dba9-4039-425b-925c-ce08f22497ed.jpg";
+const INSTALL_SINGLE = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/b83cd4b5-9a56-4745-987d-9e2208df2561.jpg";
 
 const P1 = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/a09f72fb-e0f1-4b8d-81e3-6c8e9fe71d0b.jpg";
 const P2 = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/86dc400a-a244-4829-a08f-2cb7c250ec44.jpg";
@@ -113,6 +115,19 @@ export default function Shtaketnik() {
           img: CUT_STRAIGHT,
           name: "Прямой рез",
           desc: "Классический ровный верх со срезанным углом. Строгая геометрия, минималистичный стиль. Бюджетнее полукруглого реза примерно на 10–15%. На фото — RAL 5005 «Сигнально-синий».",
+        },
+      ]}
+
+      installTypes={[
+        {
+          img: INSTALL_CHESS,
+          name: "Шахматка (двухсторонняя нашивка)",
+          desc: "Планки крепятся в 2 ряда со смещением — с лицевой и обратной стороны лаги. Полностью закрывает участок от посторонних глаз, как глухой забор, но при этом продувается ветром и пропускает свет. Расход материала +80–100%, цена выше примерно в 1.8 раза. На фото — RAL 8017 «Шоколад», высота 1.8 м.",
+        },
+        {
+          img: INSTALL_SINGLE,
+          name: "Однорядная (с просветом)",
+          desc: "Классическая нашивка в один ряд с зазором 30–50 мм между планками. Самый экономичный вариант — расход минимальный. Через зазоры видно участок, но забор смотрится лёгким и аккуратным. Подходит для дач, садов и палисадников. На фото — RAL 8017 «Шоколад», зазор 30 мм.",
         },
       ]}
 

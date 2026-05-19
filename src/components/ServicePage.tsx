@@ -80,6 +80,7 @@ export interface ServiceProps {
   // Варианты и цвета
   profileTypes:      { img: string; name: string; desc: string; imgStyle?: React.CSSProperties; imgClassName?: string }[];
   topCuts?:          { img: string; name: string; desc: string }[];
+  installTypes?:     { img: string; name: string; desc: string }[];
   ralColors:         RalColor[];
 
   // Доп. комплектующие
@@ -514,6 +515,30 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string }) {
                     <div className="p-5">
                       <div className="font-oswald font-semibold text-white text-lg mb-1.5">{tc.name}</div>
                       <div className="text-white/55 text-sm leading-relaxed">{tc.desc}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* Тип нашивки */}
+          {p.installTypes && p.installTypes.length > 0 && (
+            <>
+              <h3 className="font-oswald font-bold text-xl text-white mb-5">Тип нашивки</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-12">
+                {p.installTypes.map(it => (
+                  <div key={it.name} className="bg-[#141720] border border-[#1e2230] hover:border-orange-500/40 rounded-2xl overflow-hidden transition-all hover:-translate-y-1">
+                    <div className="aspect-[16/9] bg-white flex items-center justify-center p-4 overflow-hidden">
+                      <img
+                        src={it.img}
+                        alt={it.name}
+                        className="max-w-full max-h-full w-auto h-auto object-contain"
+                      />
+                    </div>
+                    <div className="p-5">
+                      <div className="font-oswald font-semibold text-white text-lg mb-1.5">{it.name}</div>
+                      <div className="text-white/55 text-sm leading-relaxed">{it.desc}</div>
                     </div>
                   </div>
                 ))}
