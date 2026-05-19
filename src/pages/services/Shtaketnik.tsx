@@ -3,7 +3,7 @@ import ServicePage from "@/components/ServicePage";
 const HERO = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/81e66b5f-be0c-4f79-a8a9-63ff2cc60584.jpg";
 const SPEC = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/e0d77d2c-8f9f-40dc-b64e-507118cbb28f.jpg";
 
-const PROFILES_ALL = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/c233d5b7-4272-4af3-90e1-57c97a477c60.jpg";
+const PROFILES_ALL = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/e3e996b3-04a9-42bf-b981-a2ad2bb1ade0.jpg";
 const CUT_ROUND = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/5c40bc97-e1de-4b7f-a0d1-57f849e6f13e.jpg";
 const CUT_STRAIGHT = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/efc7b128-fa4c-4ec2-afe3-f7e839fa0b6e.jpg";
 const INSTALL_CHESS = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/ccc7dba9-4039-425b-925c-ce08f22497ed.jpg";
@@ -78,24 +78,24 @@ export default function Shtaketnik() {
       profileTypes={[
         {
           img: PROFILES_ALL,
-          name: "М-образный",
-          desc: "Ширина 110.6 мм. Двойное ребро жёсткости — не «играет» от ветра, держит форму на пролётах до 2.5 м.",
-          imgClassName: "h-full w-auto max-w-none object-cover",
-          imgStyle: { objectPosition: "0% center", transform: "scale(3)", transformOrigin: "16% center" },
+          name: "П-образный 125 мм",
+          desc: "Ширина планки 125 мм, глубина волны 20 мм. Классическая трапеция — самый доступный профиль, подходит под любой стиль и высоту забора.",
+          imgClassName: "h-full max-w-none object-cover",
+          imgStyle: { width: "300%", objectPosition: "0% center" },
         },
         {
           img: PROFILES_ALL,
-          name: "ПД-образный (полукруглый)",
-          desc: "Ширина 110.8 мм. Округлый силуэт с центральным ребром — премиальный вид, безопасный верх.",
-          imgClassName: "h-full w-auto max-w-none object-cover",
-          imgStyle: { transform: "scale(3)", transformOrigin: "50% center" },
+          name: "Полукруглый 130 мм",
+          desc: "Ширина планки 130 мм, высота волны 18 мм. Округлый силуэт с центральным ребром жёсткости — премиальный вид, безопасный верх.",
+          imgClassName: "h-full max-w-none object-cover",
+          imgStyle: { width: "300%", objectPosition: "50% center" },
         },
         {
           img: PROFILES_ALL,
-          name: "П-образный",
-          desc: "Ширина 110.2 мм. Классический трапециевидный профиль — самый доступный, подходит под любой стиль.",
-          imgClassName: "h-full w-auto max-w-none object-cover",
-          imgStyle: { transform: "scale(3)", transformOrigin: "84% center" },
+          name: "М-образный 87 мм",
+          desc: "Ширина планки 87 мм, высота 9 мм. Узкий профиль с двойным ребром жёсткости — изящный силуэт, экономит материал на длинных пролётах.",
+          imgClassName: "h-full max-w-none object-cover",
+          imgStyle: { width: "300%", objectPosition: "100% center" },
         },
         {
           img: PROFILES_ALL,
