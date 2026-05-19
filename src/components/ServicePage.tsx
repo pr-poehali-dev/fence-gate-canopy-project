@@ -479,7 +479,7 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string }) {
 
           {/* Типы профиля */}
           <h3 className="font-oswald font-bold text-xl text-white mb-5">Типы профиля</h3>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
+          <div className={`grid grid-cols-2 ${p.profileTypes.length === 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-4'} gap-4 mb-12`}>
             {p.profileTypes.map(pt => (
               <div key={pt.name} className="bg-[#141720] border border-[#1e2230] hover:border-orange-500/40 rounded-2xl overflow-hidden transition-all hover:-translate-y-1">
                 <div className="aspect-square bg-white flex items-center justify-center p-3 overflow-hidden">

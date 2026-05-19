@@ -3,7 +3,9 @@ import ServicePage from "@/components/ServicePage";
 const HERO = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/81e66b5f-be0c-4f79-a8a9-63ff2cc60584.jpg";
 const SPEC = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/e0d77d2c-8f9f-40dc-b64e-507118cbb28f.jpg";
 
-const PROFILES_ALL = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/e3e996b3-04a9-42bf-b981-a2ad2bb1ade0.jpg";
+const PROF_M = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/6cc32be8-9c98-4a55-9e60-3921445c90cf.jpg";
+const PROF_P = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/15712479-febc-4c2c-89f3-4626d5d5ab48.jpg";
+const PROF_PD = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/c26c206b-b6a6-4fde-a03d-b53f0ba7d51e.jpg";
 const CUT_ROUND = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/5c40bc97-e1de-4b7f-a0d1-57f849e6f13e.jpg";
 const CUT_STRAIGHT = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/efc7b128-fa4c-4ec2-afe3-f7e839fa0b6e.jpg";
 const INSTALL_CHESS = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/ccc7dba9-4039-425b-925c-ce08f22497ed.jpg";
@@ -77,31 +79,19 @@ export default function Shtaketnik() {
 
       profileTypes={[
         {
-          img: PROFILES_ALL,
-          name: "П-образный 125 мм",
-          desc: "Ширина планки 125 мм, глубина волны 20 мм. Классическая трапеция — самый доступный профиль, подходит под любой стиль и высоту забора.",
-          imgClassName: "h-full max-w-none object-cover",
-          imgStyle: { width: "300%", objectPosition: "0% center" },
-        },
-        {
-          img: PROFILES_ALL,
-          name: "Полукруглый 130 мм",
-          desc: "Ширина планки 130 мм, высота волны 18 мм. Округлый силуэт с центральным ребром жёсткости — премиальный вид, безопасный верх.",
-          imgClassName: "h-full max-w-none object-cover",
-          imgStyle: { width: "300%", objectPosition: "50% center" },
-        },
-        {
-          img: PROFILES_ALL,
+          img: PROF_M,
           name: "М-образный 87 мм",
-          desc: "Ширина планки 87 мм, высота 9 мм. Узкий профиль с двойным ребром жёсткости — изящный силуэт, экономит материал на длинных пролётах.",
-          imgClassName: "h-full max-w-none object-cover",
-          imgStyle: { width: "300%", objectPosition: "100% center" },
+          desc: "Узкий профиль шириной 87 мм с двойным ребром жёсткости — не «играет» от ветра, держит форму на пролётах до 2.5 м. На фото: RAL 7024 «Графитовый серый», полукруглый рез верха.",
         },
         {
-          img: PROFILES_ALL,
-          name: "Фигурный (decor)",
-          desc: "Резной верх — пика, корона, волна. Делается под заказ из любого профиля выше.",
-          imgClassName: "max-w-full max-h-full w-auto h-auto object-contain",
+          img: PROF_P,
+          name: "П-образный 125 мм",
+          desc: "Классическая трапеция шириной 125 мм, глубина волны 20 мм. Самый доступный профиль, подходит под любой стиль и высоту забора. На фото: RAL 8017 «Шоколад».",
+        },
+        {
+          img: PROF_PD,
+          name: "ПД-образный 130 мм (полукруглый)",
+          desc: "Округлый силуэт шириной 130 мм с центральным ребром жёсткости и высотой волны 18 мм. Премиальный вид, безопасный верх. На фото: RAL 8017 «Шоколад».",
         },
       ]}
 
