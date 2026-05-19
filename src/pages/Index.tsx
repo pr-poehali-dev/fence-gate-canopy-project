@@ -15,13 +15,13 @@ import CalculatorWizard from "@/components/CalculatorWizard";
 
 // ── Изображения ─────────────────────────────────────────────────────────────
 const IMGS = {
-  hero:        "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/196086a1-d5c9-4caa-a2f6-4d0f7532182f.jpg",
+  hero:        "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/2079e15b-8c94-41fe-af55-22ca5d4a8c4d.jpg",
   portfolio:   "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/d0c5373a-0046-48b2-aba5-5d4847056985.jpg",
   profnastil:  "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/05b3de60-7f13-42d7-bc76-76327b8db6b9.jpg",
   kovka:       "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/884f6229-a60c-45db-baf0-1c2a081a42de.jpg",
   mesh3d:      "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/0f46f0bc-e0e1-4e23-aeb0-c70f71f3644b.jpg",
   gates:       "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/ff877075-afb4-4e02-a676-3bece261bb22.jpg",
-  canopy:      "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/b271c1dc-936d-470d-b060-7293cd888f0f.jpg",
+  canopy:      "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/b7745cb1-a649-4a25-9b07-e95c906f6fbc.jpg",
   euro:        "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/81e66b5f-be0c-4f79-a8a9-63ff2cc60584.jpg",
   foundation:  "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/a05b59ea-6634-4972-8292-732a7a06a1d3.jpg",
   gazebo:      "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/5c71ebc7-9ec2-4322-957b-f72950d9e5af.jpg",

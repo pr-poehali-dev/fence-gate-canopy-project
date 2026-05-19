@@ -1,6 +1,6 @@
 import ServicePage from "@/components/ServicePage";
 
-const HERO = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/ece778d8-73e4-4bbe-9f26-232c2b9b69c2.jpg";
+const HERO = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/b7745cb1-a649-4a25-9b07-e95c906f6fbc.jpg";
 const SPEC = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/d64b0cdf-11a9-4786-91c1-b6d471fc6382.jpg";
 const ONE  = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/403ab89e-476e-4b55-bdcb-bed17a93cedb.jpg";
 
