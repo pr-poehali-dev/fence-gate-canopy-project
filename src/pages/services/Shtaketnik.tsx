@@ -10,6 +10,8 @@ const CUT_ROUND = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963f
 const CUT_STRAIGHT = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/efc7b128-fa4c-4ec2-afe3-f7e839fa0b6e.jpg";
 const INSTALL_CHESS = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/ccc7dba9-4039-425b-925c-ce08f22497ed.jpg";
 const INSTALL_SINGLE = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/b83cd4b5-9a56-4745-987d-9e2208df2561.jpg";
+const ORIENT_HORIZ = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/b34c0ef5-1aed-4f68-af68-51e99a6ea5ce.jpg";
+const ORIENT_VERT = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/a21b8fcd-c1d4-40ee-9baa-341d9834ebe1.jpg";
 
 const P1 = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/a09f72fb-e0f1-4b8d-81e3-6c8e9fe71d0b.jpg";
 const P2 = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/86dc400a-a244-4829-a08f-2cb7c250ec44.jpg";
@@ -118,6 +120,19 @@ export default function Shtaketnik() {
           img: INSTALL_SINGLE,
           name: "Однорядная (с просветом)",
           desc: "Классическая нашивка в один ряд с зазором 30–50 мм между планками. Самый экономичный вариант — расход минимальный. Через зазоры видно участок, но забор смотрится лёгким и аккуратным. Подходит для дач, садов и палисадников. На фото — RAL 8017 «Шоколад», зазор 30 мм.",
+        },
+      ]}
+
+      orientations={[
+        {
+          img: ORIENT_HORIZ,
+          name: "Горизонтальная установка",
+          desc: "Планки крепятся горизонтально между двумя столбами — модный «ранчо» или «жалюзи»-стиль. Подходит для длинных периметров, выглядит современно и аккуратно. Реальный объект СтальГрупп: КП в Подмосковье, RAL 9003 «Белый», высота 2.0 м, длина 180 м.",
+        },
+        {
+          img: ORIENT_VERT,
+          name: "Вертикальная установка",
+          desc: "Классическая нашивка планок сверху вниз — самая распространённая. Хорошо комбинируется с воротами и калиткой в едином стиле. Реальный объект СтальГрупп: частный дом, RAL 7024 «Графитовый серый», шахматка, откатные ворота 4 м в комплекте.",
         },
       ]}
 

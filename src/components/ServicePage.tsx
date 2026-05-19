@@ -81,6 +81,7 @@ export interface ServiceProps {
   profileTypes:      { img: string; name: string; desc: string; imgStyle?: React.CSSProperties; imgClassName?: string }[];
   topCuts?:          { img: string; name: string; desc: string }[];
   installTypes?:     { img: string; name: string; desc: string }[];
+  orientations?:     { img: string; name: string; desc: string }[];
   ralColors:         RalColor[];
 
   // Доп. комплектующие
@@ -539,6 +540,30 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string }) {
                     <div className="p-5">
                       <div className="font-oswald font-semibold text-white text-lg mb-1.5">{it.name}</div>
                       <div className="text-white/55 text-sm leading-relaxed">{it.desc}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* Способ установки */}
+          {p.orientations && p.orientations.length > 0 && (
+            <>
+              <h3 className="font-oswald font-bold text-xl text-white mb-5">Способ установки</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-12">
+                {p.orientations.map(or => (
+                  <div key={or.name} className="bg-[#141720] border border-[#1e2230] hover:border-orange-500/40 rounded-2xl overflow-hidden transition-all hover:-translate-y-1">
+                    <div className="aspect-[16/9] overflow-hidden">
+                      <img
+                        src={or.img}
+                        alt={or.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="p-5">
+                      <div className="font-oswald font-semibold text-white text-lg mb-1.5">{or.name}</div>
+                      <div className="text-white/55 text-sm leading-relaxed">{or.desc}</div>
                     </div>
                   </div>
                 ))}
