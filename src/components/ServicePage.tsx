@@ -78,7 +78,7 @@ export interface ServiceProps {
   specImg:           string;
 
   // Варианты и цвета
-  profileTypes:      { img: string; name: string; desc: string }[];
+  profileTypes:      { img: string; name: string; desc: string; imgStyle?: React.CSSProperties; imgClassName?: string }[];
   ralColors:         RalColor[];
 
   // Доп. комплектующие
@@ -480,11 +480,12 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string }) {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
             {p.profileTypes.map(pt => (
               <div key={pt.name} className="bg-[#141720] border border-[#1e2230] hover:border-orange-500/40 rounded-2xl overflow-hidden transition-all hover:-translate-y-1">
-                <div className="aspect-square bg-white flex items-center justify-center p-3">
+                <div className="aspect-square bg-white flex items-center justify-center p-3 overflow-hidden">
                   <img
                     src={pt.img}
                     alt={pt.name}
-                    className="max-w-full max-h-full w-auto h-auto object-contain"
+                    style={pt.imgStyle}
+                    className={pt.imgClassName || "max-w-full max-h-full w-auto h-auto object-contain"}
                   />
                 </div>
                 <div className="p-4">

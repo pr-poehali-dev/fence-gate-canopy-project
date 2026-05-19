@@ -3,6 +3,8 @@ import ServicePage from "@/components/ServicePage";
 const HERO = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/81e66b5f-be0c-4f79-a8a9-63ff2cc60584.jpg";
 const SPEC = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/e0d77d2c-8f9f-40dc-b64e-507118cbb28f.jpg";
 
+const PROFILES_ALL = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/c233d5b7-4272-4af3-90e1-57c97a477c60.jpg";
+
 const P1 = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/a09f72fb-e0f1-4b8d-81e3-6c8e9fe71d0b.jpg";
 const P2 = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/86dc400a-a244-4829-a08f-2cb7c250ec44.jpg";
 const P3 = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/a79c10b9-f8c9-47b8-8c8e-f9114b137334.jpg";
@@ -70,10 +72,33 @@ export default function Shtaketnik() {
       specImg={SPEC}
 
       profileTypes={[
-        { img: SPEC, name: "Плоский (П-образный)", desc: "Классика. Толщина 100 мм, прямые кромки." },
-        { img: SPEC, name: "М-образный",            desc: "Жёсткий профиль с дополнительным ребром, не «играет» от ветра." },
-        { img: SPEC, name: "Скруглённый",            desc: "Мягкий силуэт, безопасный верх — для семей с детьми." },
-        { img: SPEC, name: "Фигурный (декоративный)", desc: "Резной верх — пика, корона, волна. Премиальный вид." },
+        {
+          img: PROFILES_ALL,
+          name: "М-образный",
+          desc: "Ширина 110.6 мм. Двойное ребро жёсткости — не «играет» от ветра, держит форму на пролётах до 2.5 м.",
+          imgClassName: "h-full w-auto max-w-none object-cover",
+          imgStyle: { objectPosition: "0% center", transform: "scale(3)", transformOrigin: "16% center" },
+        },
+        {
+          img: PROFILES_ALL,
+          name: "ПД-образный (полукруглый)",
+          desc: "Ширина 110.8 мм. Округлый силуэт с центральным ребром — премиальный вид, безопасный верх.",
+          imgClassName: "h-full w-auto max-w-none object-cover",
+          imgStyle: { transform: "scale(3)", transformOrigin: "50% center" },
+        },
+        {
+          img: PROFILES_ALL,
+          name: "П-образный",
+          desc: "Ширина 110.2 мм. Классический трапециевидный профиль — самый доступный, подходит под любой стиль.",
+          imgClassName: "h-full w-auto max-w-none object-cover",
+          imgStyle: { transform: "scale(3)", transformOrigin: "84% center" },
+        },
+        {
+          img: PROFILES_ALL,
+          name: "Фигурный (decor)",
+          desc: "Резной верх — пика, корона, волна. Делается под заказ из любого профиля выше.",
+          imgClassName: "max-w-full max-h-full w-auto h-auto object-contain",
+        },
       ]}
 
       ralColors={[
