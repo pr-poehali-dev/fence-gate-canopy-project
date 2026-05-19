@@ -476,8 +476,12 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string }) {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
             {p.profileTypes.map(pt => (
               <div key={pt.name} className="bg-[#141720] border border-[#1e2230] hover:border-orange-500/40 rounded-2xl overflow-hidden transition-all hover:-translate-y-1">
-                <div className="aspect-square overflow-hidden">
-                  <img src={pt.img} alt={pt.name} className="w-full h-full object-cover" />
+                <div className="aspect-square bg-white flex items-center justify-center p-3">
+                  <img
+                    src={pt.img}
+                    alt={pt.name}
+                    className="max-w-full max-h-full w-auto h-auto object-contain"
+                  />
                 </div>
                 <div className="p-4">
                   <div className="font-oswald font-semibold text-white text-base mb-1">{pt.name}</div>
