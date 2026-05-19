@@ -17,7 +17,7 @@ import CalculatorWizard from "@/components/CalculatorWizard";
 const IMGS = {
   hero:        "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/2079e15b-8c94-41fe-af55-22ca5d4a8c4d.jpg",
   portfolio:   "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/d0c5373a-0046-48b2-aba5-5d4847056985.jpg",
-  profnastil:  "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/05b3de60-7f13-42d7-bc76-76327b8db6b9.jpg",
+  profnastil:  "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/f86747e7-05d4-436c-8ce3-9f802ae0b25f.jpg",
   kovka:       "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/884f6229-a60c-45db-baf0-1c2a081a42de.jpg",
   mesh3d:      "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/0f46f0bc-e0e1-4e23-aeb0-c70f71f3644b.jpg",
   gates:       "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/ff877075-afb4-4e02-a676-3bece261bb22.jpg",

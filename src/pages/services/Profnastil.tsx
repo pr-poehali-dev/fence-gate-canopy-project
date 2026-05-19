@@ -1,7 +1,13 @@
 import ServicePage from "@/components/ServicePage";
 
-const HERO = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/05b3de60-7f13-42d7-bc76-76327b8db6b9.jpg";
-const SPEC = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/95422d6a-689f-4b18-b615-d811646c2c48.jpg";
+// Реальные фото объектов
+const HERO = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/f86747e7-05d4-436c-8ce3-9f802ae0b25f.jpg"; // вид с фасада (лицевая сторона)
+const BACK = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/530aa3a1-da44-4c46-93be-66c6a2ec3b0d.jpg"; // вид сзади (тыльная сторона)
+// Схемы профилей — реальные ТУ-чертежи
+const SCHEME_C21 = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/5f11a16b-9c82-4ded-bcc4-5528ce40c402.jpg";
+const SCHEME_C20 = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/fc020601-97b3-4613-938e-1d3f6553dd66.png";
+const SCHEME_C8  = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/183fdff6-83fe-487f-9c8e-99291c4c7ffa.png";
+const SPEC = SCHEME_C20; // главная техническая схема в блоке «Характеристики»
 
 export default function Profnastil() {
   return (
@@ -40,8 +46,8 @@ export default function Profnastil() {
 
       priceRows={[
         { param: "С8, высота 1.8 м",   zink: "1 200 ₽",  polymer: "1 450 ₽",  premium: "1 850 ₽" },
-        { param: "С10, высота 2.0 м",  zink: "1 350 ₽",  polymer: "1 650 ₽",  premium: "2 100 ₽" },
         { param: "С20, высота 2.0 м",  zink: "1 550 ₽",  polymer: "1 850 ₽",  premium: "2 350 ₽" },
+        { param: "С21, высота 2.0 м",  zink: "1 600 ₽",  polymer: "1 900 ₽",  premium: "2 400 ₽" },
         { param: "МП20, высота 2.0 м", zink: "1 650 ₽",  polymer: "1 950 ₽",  premium: "2 500 ₽" },
         { param: "НС35, высота 2.5 м", zink: "2 250 ₽",  polymer: "2 650 ₽",  premium: "3 350 ₽" },
       ]}
@@ -56,7 +62,7 @@ export default function Profnastil() {
       specs={[
         { param: "Столбы",           value: "Профтруба 60×60×2 мм, длина 3 м, оцинкованная, заглушка пластиковая",          icon: "Box" },
         { param: "Лаги",             value: "Профтруба 40×20×2 мм, 2 ряда (для высоты 1.5–2 м), 3 ряда (для 2.5–3 м)",       icon: "Minus" },
-        { param: "Профлист",         value: "С8 / С10 / С20 / МП20 / НС35. Толщина стали 0.4–0.5 мм",                          icon: "Layers" },
+        { param: "Профлист",         value: "С8 / С20 / С21 / МП20 / НС35. Толщина стали 0.4–0.5 мм",                          icon: "Layers" },
         { param: "Покрытие",         value: "Полиэстер (RR), Пурал (PUR-PA), PVDF — на выбор, толщина 25–35 мкм",              icon: "Paintbrush" },
         { param: "Шаг столбов",      value: "2.5–3.0 м (зависит от ветровой нагрузки региона)",                                  icon: "Ruler" },
         { param: "Глубина бурения", value: "1.2 м (ниже точки промерзания для Москвы и МО)",                                     icon: "ArrowDown" },
@@ -66,10 +72,10 @@ export default function Profnastil() {
       specImg={SPEC}
 
       profileTypes={[
-        { img: SPEC, name: "С8",   desc: "Лёгкий, высота волны 8 мм. До 2 м." },
-        { img: SPEC, name: "С10",  desc: "Самый популярный для забора, h=10 мм." },
-        { img: SPEC, name: "С20",  desc: "Жёсткий, h=20 мм. Промышленный класс." },
-        { img: SPEC, name: "МП20", desc: "С-образный, повышенная жёсткость." },
+        { img: SCHEME_C8,  name: "С8",   desc: "Высота волны 8 мм, ширина 1150 мм. Лёгкий, для заборов до 2 м." },
+        { img: SCHEME_C20, name: "С20",  desc: "Высота волны 20 мм, ширина 1150 мм. Жёсткий, универсальный." },
+        { img: SCHEME_C21, name: "С21",  desc: "Высота волны 21 мм, ширина 1051 мм. Усиленный, под высокий забор." },
+        { img: SCHEME_C20, name: "МП20", desc: "С-образный 20 мм, повышенная жёсткость и устойчивость к ветру." },
       ]}
 
       ralColors={[
@@ -97,18 +103,18 @@ export default function Profnastil() {
       ]}
 
       portfolio={[
-        { img: HERO, location: "Красногорск, частный дом",   size: "120 м" },
-        { img: HERO, location: "Истра, дача",                size: "85 м" },
-        { img: HERO, location: "Подольск, склад",            size: "240 м" },
-        { img: HERO, location: "Химки, автостоянка",         size: "180 м" },
-        { img: HERO, location: "Балашиха, частный дом",      size: "95 м" },
-        { img: HERO, location: "Мытищи, цех",                size: "320 м" },
+        { img: HERO, location: "Красногорск, частный дом — вид с улицы",  size: "120 м" },
+        { img: BACK, location: "Красногорск — внутренняя сторона забора", size: "120 м" },
+        { img: HERO, location: "Истра, дача",                              size: "85 м" },
+        { img: BACK, location: "Подольск, тыльный вид с обрешёткой",      size: "240 м" },
+        { img: HERO, location: "Балашиха, частный дом",                    size: "95 м" },
+        { img: HERO, location: "Мытищи, цех",                              size: "320 м" },
       ]}
 
       faq={[
         {
-          q: "Какой профнастил лучше для забора: С8, С10 или С20?",
-          a: `Для забора стандартной высоты до 2 м оптимальный выбор — С10. Высота волны 10 мм даёт хорошую жёсткость, при этом цена доступная. С8 берут для коротких заборов (до 1.5 м) и временных ограждений — он легче и дешевле. С20 и НС35 — выбор для промышленных объектов с высокой ветровой нагрузкой и для заборов от 2.5 м.`,
+          q: "Какой профнастил лучше для забора: С8, С20 или С21?",
+          a: `Для забора стандартной высоты до 2 м оптимальный выбор — С20 или С21. Высота волны 20–21 мм даёт хорошую жёсткость, лист не «гуляет» от ветра, при этом цена остаётся разумной. С8 берут для коротких заборов (до 1.5 м) и временных ограждений — он легче и дешевле. С21 ширина 1051 мм против 1150 у С20, но волна выше и жёстче. МП20 и НС35 — выбор для промышленных объектов с высокой ветровой нагрузкой и для заборов от 2.5 м.`,
         },
         {
           q: "Не ржавеет ли профнастил со временем?",
