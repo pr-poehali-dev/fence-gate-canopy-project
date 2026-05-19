@@ -439,8 +439,12 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string }) {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-            <div className="bg-[#141720] border border-[#1e2230] rounded-3xl overflow-hidden">
-              <img src={p.specImg} alt="Конструктив" className="w-full h-64 object-cover" />
+            <div className="bg-white border border-[#1e2230] rounded-3xl overflow-hidden flex items-center justify-center p-6 min-h-[16rem] lg:min-h-full">
+              <img
+                src={p.specImg}
+                alt="Конструктив"
+                className="max-w-full max-h-full w-auto h-auto object-contain"
+              />
             </div>
 
             <div className="space-y-3">
