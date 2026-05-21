@@ -134,7 +134,9 @@ export default function Otkatnye() {
       leadTitle="РАСЧЁТ ОТКАТНЫХ ВОРОТ ПО ВАШЕМУ ПРОЁМУ"
       leadOffer="Замерщик приедет с образцами наполнений и каталогом автоматики, замерит проём, проверит грунт. Сделаем 2–3 варианта сметы под разный бюджет. Бесплатно."
       warrantyYears={3}
+      gateScheme="otkatnye"
       showFoundationSchemes
+      showSoilCalculator
       showPaintLevels
     />
   );

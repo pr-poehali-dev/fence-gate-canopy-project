@@ -10,6 +10,10 @@ import { EditableText, EditableImage } from "@/components/InlineEditor";
 import QuickQuoteForm from "@/components/QuickQuoteForm";
 import PaintLevels from "@/components/service/PaintLevels";
 import FoundationSchemes from "@/components/service/FoundationSchemes";
+import FenceAnatomy from "@/components/service/FenceAnatomy";
+import GateSchemes from "@/components/service/GateSchemes";
+import SoilCalculator from "@/components/service/SoilCalculator";
+import NavesSpec from "@/components/service/NavesSpec";
 
 // ─────────────────────────────────────────────────────────────────
 // ТИПЫ ДАННЫХ ШАБЛОНА
@@ -102,6 +106,10 @@ export interface ServiceProps {
   // Опциональные секции (2026 — стандарты, схемы)
   showPaintLevels?:      boolean;  // Блок «3 уровня покраски»
   showFoundationSchemes?: boolean; // SVG-схемы фундаментов
+  fenceAnatomy?:         "profnastil" | "shtaketnik" | "mesh3d" | "rabitsa" | "kovka"; // SVG-анатомия секции
+  gateScheme?:           "otkatnye" | "raspashnye"; // SVG-схема ворот
+  showSoilCalculator?:   boolean; // Калькулятор фундамента по грунту
+  navesSpec?:            "naves" | "ploshadka" | "zaezd"; // Спец-блок навесов/площадок/заездов
   warrantyYears?:        number;   // Гарантия в годах (по умолчанию 3)
 }
 
@@ -114,18 +122,99 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string }) {
   // CMS-данные для перезаписи hero (если задан pageSlug)
   const cms = usePageContent(p.pageSlug || "");
 
-  // SEO
+  // SEO: title, description, canonical, OG, JSON-LD (Service + FAQ + Breadcrumb)
   useEffect(() => {
     document.title = p.metaTitle;
-    let meta = document.querySelector('meta[name="description"]') as HTMLMetaElement | null;
-    if (!meta) {
-      meta = document.createElement("meta");
-      meta.name = "description";
-      document.head.appendChild(meta);
+
+    const upsertMeta = (selector: string, attr: string, attrValue: string, content: string) => {
+      let el = document.querySelector(selector) as HTMLMetaElement | null;
+      if (!el) {
+        el = document.createElement("meta");
+        el.setAttribute(attr, attrValue);
+        document.head.appendChild(el);
+      }
+      el.content = content;
+    };
+    upsertMeta('meta[name="description"]', "name", "description", p.metaDescription);
+    upsertMeta('meta[property="og:title"]', "property", "og:title", p.metaTitle);
+    upsertMeta('meta[property="og:description"]', "property", "og:description", p.metaDescription);
+    upsertMeta('meta[property="og:image"]', "property", "og:image", p.heroImg);
+    upsertMeta('meta[property="og:type"]', "property", "og:type", "article");
+    upsertMeta('meta[name="twitter:title"]', "name", "twitter:title", p.metaTitle);
+    upsertMeta('meta[name="twitter:description"]', "name", "twitter:description", p.metaDescription);
+    upsertMeta('meta[name="twitter:image"]', "name", "twitter:image", p.heroImg);
+
+    // Canonical
+    let canon = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+    if (!canon) {
+      canon = document.createElement("link");
+      canon.rel = "canonical";
+      document.head.appendChild(canon);
     }
-    meta.content = p.metaDescription;
+    const url = `https://stalgrupp.ru/${p.pageSlug || ""}`;
+    canon.href = url;
+    upsertMeta('meta[property="og:url"]', "property", "og:url", url);
+
+    // JSON-LD: Service + FAQPage + Breadcrumb
+    const startPriceNum = Number(String(p.startPrice).replace(/[^\d]/g, "")) || 0;
+    const jsonld = {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Service",
+          name: p.h1,
+          description: p.metaDescription,
+          image: p.heroImg,
+          url,
+          provider: { "@id": "https://stalgrupp.ru/#org" },
+          areaServed: { "@type": "AdministrativeArea", name: "Москва и Московская область" },
+          offers: {
+            "@type": "Offer",
+            price: startPriceNum,
+            priceCurrency: "RUB",
+            availability: "https://schema.org/InStock",
+            url,
+          },
+        },
+        {
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Главная", item: "https://stalgrupp.ru/" },
+            { "@type": "ListItem", position: 2, name: "Услуги", item: "https://stalgrupp.ru/#products" },
+            { "@type": "ListItem", position: 3, name: p.breadcrumb, item: url },
+          ],
+        },
+        ...(p.faq && p.faq.length > 0
+          ? [
+              {
+                "@type": "FAQPage",
+                mainEntity: p.faq.map((f) => ({
+                  "@type": "Question",
+                  name: f.q,
+                  acceptedAnswer: { "@type": "Answer", text: f.a },
+                })),
+              },
+            ]
+          : []),
+      ],
+    };
+    let ld = document.getElementById("service-jsonld") as HTMLScriptElement | null;
+    if (!ld) {
+      ld = document.createElement("script");
+      ld.id = "service-jsonld";
+      ld.type = "application/ld+json";
+      document.head.appendChild(ld);
+    }
+    ld.textContent = JSON.stringify(jsonld);
+
     window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
-  }, [p.metaTitle, p.metaDescription]);
+
+    return () => {
+      // Очистка JSON-LD при смене страницы
+      const el = document.getElementById("service-jsonld");
+      if (el) el.remove();
+    };
+  }, [p.metaTitle, p.metaDescription, p.heroImg, p.pageSlug, p.h1, p.startPrice, p.breadcrumb, p.faq]);
 
   const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
   const lead = useLeadModal({ source: `Услуга: ${p.breadcrumb}` });
@@ -474,8 +563,20 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string }) {
         </div>
       </section>
 
+      {/* ── АНАТОМИЯ СЕКЦИИ ЗАБОРА (опционально) ── */}
+      {p.fenceAnatomy && <FenceAnatomy variant={p.fenceAnatomy} />}
+
+      {/* ── СХЕМА ВОРОТ (опционально) ── */}
+      {p.gateScheme && <GateSchemes type={p.gateScheme} />}
+
+      {/* ── НАВЕС/ПЛОЩАДКА/ЗАЕЗД (опционально) ── */}
+      {p.navesSpec && <NavesSpec variant={p.navesSpec} />}
+
       {/* ── СХЕМЫ ФУНДАМЕНТА (опционально) ── */}
       {p.showFoundationSchemes && <FoundationSchemes />}
+
+      {/* ── КАЛЬКУЛЯТОР ПО ГРУНТУ (опционально) ── */}
+      {p.showSoilCalculator && <SoilCalculator />}
 
       {/* ── 3 УРОВНЯ ПОКРАСКИ (опционально) ── */}
       {p.showPaintLevels && <PaintLevels />}

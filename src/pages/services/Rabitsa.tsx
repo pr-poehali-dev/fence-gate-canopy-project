@@ -93,6 +93,7 @@ export default function Rabitsa() {
       leadTitle="БЫСТРЫЙ РАСЧЁТ ЗАБОРА-РАБИЦЫ"
       leadOffer="Замерщик приедет в день обращения, посчитает с вашего размера участка. Самый быстрый и бюджетный забор."
       warrantyYears={3}
+      fenceAnatomy="rabitsa"
       showFoundationSchemes
     />
   );

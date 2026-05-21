@@ -207,6 +207,7 @@ export default function Shtaketnik() {
       leadTitle="ПОЛУЧИТЕ ТОЧНУЮ СМЕТУ НА ЗАБОР ИЗ ЕВРОШТАКЕТНИКА"
       leadOffer="Замерщик приедет в день обращения, привезёт образцы цветов RAL и составит детальную смету по вашему участку. Бесплатно, без обязательств."
       warrantyYears={3}
+      fenceAnatomy="shtaketnik"
       showFoundationSchemes
       showPaintLevels
     />

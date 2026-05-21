@@ -141,6 +141,7 @@ export default function Profnastil() {
       leadTitle="ТОЧНЫЙ РАСЧЁТ ЗАБОРА ИЗ ПРОФНАСТИЛА"
       leadOffer="Замерщик приедет в день обращения, привезёт каталог профлиста и палитру RAL. Составит детальную смету с разбивкой по позициям. Бесплатно."
       warrantyYears={3}
+      fenceAnatomy="profnastil"
       showFoundationSchemes
       showPaintLevels
     />

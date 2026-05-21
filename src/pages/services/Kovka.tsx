@@ -101,6 +101,7 @@ export default function Kovka() {
       leadTitle="ИНДИВИДУАЛЬНЫЙ ЭСКИЗ КОВКИ"
       leadOffer="Кузнец нарисует ваш эскиз бесплатно. Замерщик приедет с каталогом готовых элементов и образцами патины."
       warrantyYears={3}
+      fenceAnatomy="kovka"
       showFoundationSchemes
       showPaintLevels
     />

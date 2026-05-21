@@ -13,6 +13,9 @@ import AdminContent from "./pages/AdminContent";
 import ErpLogin from "./pages/ErpLogin";
 import ErpDashboard from "./pages/ErpDashboard";
 import ErpEmployees from "./pages/ErpEmployees";
+import ErpCalculator from "./pages/ErpCalculator";
+import ErpDealCard from "./pages/ErpDealCard";
+import ErpDeals from "./pages/ErpDeals";
 import DynamicFavicon from "./components/DynamicFavicon";
 import AdminEditBar from "./components/AdminEditBar";
 import AnalyticsCounters from "./components/AnalyticsCounters";
@@ -29,6 +32,8 @@ import Rabitsa from "./pages/services/Rabitsa";
 import Kalitki from "./pages/services/Kalitki";
 import Besedki from "./pages/services/Besedki";
 import Foundations from "./pages/services/Foundations";
+import Ploshadki from "./pages/services/Ploshadki";
+import Zaezd from "./pages/services/Zaezd";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +55,9 @@ const App = () => (
           <Route path="/erp/login" element={<ErpLogin />} />
           <Route path="/erp" element={<ErpDashboard />} />
           <Route path="/erp/employees" element={<ErpEmployees />} />
+          <Route path="/erp/calc" element={<ErpCalculator />} />
+          <Route path="/erp/deals" element={<ErpDeals />} />
+          <Route path="/erp/deals/:id" element={<ErpDealCard />} />
           <Route path="/max-setup" element={<MaxSetup />} />
           <Route path="/help/max" element={<MaxSetup />} />
           <Route path="/privacy" element={<Privacy />} />
@@ -66,6 +74,8 @@ const App = () => (
           <Route path="/services/kalitki"        element={<Kalitki />} />
           <Route path="/services/besedki"        element={<Besedki />} />
           <Route path="/services/fundamenty"     element={<Foundations />} />
+          <Route path="/services/betonnye-ploschadki" element={<Ploshadki />} />
+          <Route path="/services/zaezd-na-uchastok"   element={<Zaezd />} />
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

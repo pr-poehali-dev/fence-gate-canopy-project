@@ -1,8 +1,29 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin/leads
+Disallow: /admin/content
+Disallow: /erp
+Disallow: /erp/login
+Disallow: /erp/employees
+Disallow: /max-setup
+Disallow: /help/max
+
+User-agent: Yandex
+Allow: /
+Disallow: /admin
+Disallow: /erp
+Clean-param: utm_source&utm_medium&utm_campaign&utm_term&utm_content&yclid&gclid&fbclid
+
 User-agent: Googlebot
 Allow: /
+Disallow: /admin
+Disallow: /erp
 
 User-agent: Bingbot
 Allow: /
+Disallow: /admin
+Disallow: /erp
 
 User-agent: Twitterbot
 Allow: /
@@ -10,5 +31,11 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
-User-agent: *
-Allow: /
+User-agent: GPTBot
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+Sitemap: https://stalgrupp.ru/sitemap.xml
+Host: https://stalgrupp.ru

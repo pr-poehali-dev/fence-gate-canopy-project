@@ -91,6 +91,7 @@ export default function Foundations() {
       leadOffer="Замерщик-инженер определит тип грунта на участке (бурение пробной лунки) и подберёт оптимальный фундамент."
       warrantyYears={3}
       showFoundationSchemes
+      showSoilCalculator
     />
   );
 }

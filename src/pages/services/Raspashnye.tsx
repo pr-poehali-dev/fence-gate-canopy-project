@@ -92,6 +92,7 @@ export default function Raspashnye() {
       leadTitle="РАСЧЁТ РАСПАШНЫХ ВОРОТ"
       leadOffer="Замерщик с каталогом наполнений приедет в день обращения. Сделаем 2 варианта сметы — эконом и премиум."
       warrantyYears={3}
+      gateScheme="raspashnye"
       showFoundationSchemes
       showPaintLevels
     />

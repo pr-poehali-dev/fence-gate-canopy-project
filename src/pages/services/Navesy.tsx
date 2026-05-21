@@ -145,6 +145,7 @@ export default function Navesy() {
       leadTitle="ИНДИВИДУАЛЬНЫЙ ПРОЕКТ НАВЕСА С ВИЗУАЛИЗАЦИЕЙ"
       leadOffer="Замерщик приедет, оценит площадку и существующие постройки. Сделаем 3D-визуализацию навеса под ваш участок и 2–3 варианта сметы. Бесплатно, без обязательств."
       warrantyYears={3}
+      navesSpec="naves"
       showFoundationSchemes
       showPaintLevels
     />

@@ -100,6 +100,7 @@ export default function Mesh3D() {
       leadTitle="ТОЧНЫЙ РАСЧЁТ 3D-ЗАБОРА"
       leadOffer="Замерщик приедет в день обращения, привезёт образцы секций и палитру RAL. Бесплатный расчёт сметы."
       warrantyYears={3}
+      fenceAnatomy="mesh3d"
       showFoundationSchemes
       showPaintLevels
     />
