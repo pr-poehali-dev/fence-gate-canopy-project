@@ -8,6 +8,8 @@ import { sendLead } from "@/lib/api";
 import { usePageContent } from "@/hooks/usePageContent";
 import { EditableText, EditableImage } from "@/components/InlineEditor";
 import QuickQuoteForm from "@/components/QuickQuoteForm";
+import PaintLevels from "@/components/service/PaintLevels";
+import FoundationSchemes from "@/components/service/FoundationSchemes";
 
 // ─────────────────────────────────────────────────────────────────
 // ТИПЫ ДАННЫХ ШАБЛОНА
@@ -96,6 +98,11 @@ export interface ServiceProps {
   // Лид-магнит
   leadTitle:         string;
   leadOffer:         string;
+
+  // Опциональные секции (2026 — стандарты, схемы)
+  showPaintLevels?:      boolean;  // Блок «3 уровня покраски»
+  showFoundationSchemes?: boolean; // SVG-схемы фундаментов
+  warrantyYears?:        number;   // Гарантия в годах (по умолчанию 3)
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -301,7 +308,7 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string }) {
                     <Icon name="ShieldCheck" size={20} className="text-gray-900" />
                   </div>
                   <div>
-                    <div className="font-oswald font-bold text-white text-base">Гарантия 5 лет</div>
+                    <div className="font-oswald font-bold text-white text-base">Гарантия {p.warrantyYears ?? 3} {(p.warrantyYears ?? 3) === 1 ? "год" : (p.warrantyYears ?? 3) < 5 ? "года" : "лет"}</div>
                     <div className="text-white/40 text-xs">По договору</div>
                   </div>
                 </div>
@@ -466,6 +473,12 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string }) {
           </div>
         </div>
       </section>
+
+      {/* ── СХЕМЫ ФУНДАМЕНТА (опционально) ── */}
+      {p.showFoundationSchemes && <FoundationSchemes />}
+
+      {/* ── 3 УРОВНЯ ПОКРАСКИ (опционально) ── */}
+      {p.showPaintLevels && <PaintLevels />}
 
       {/* ── ВАРИАНТЫ ИСПОЛНЕНИЯ + RAL ── */}
       <section className="py-20">
