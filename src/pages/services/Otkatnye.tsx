@@ -1,10 +1,11 @@
 import ServicePage from "@/components/ServicePage";
-import { REAL_PHOTOS } from "@/data/real-photos";
+import { PHOTOS_BY_SERVICE } from "@/data/photos-by-service";
 
-const HERO = REAL_PHOTOS[20];
-const SPEC = REAL_PHOTOS[21];
-const IMG2 = REAL_PHOTOS[22];
-const IMG3 = REAL_PHOTOS[23];
+const PHOTOS = PHOTOS_BY_SERVICE["otkatnye-vorota"];
+const HERO = PHOTOS[0];
+const SPEC = PHOTOS[1];
+const IMG2 = PHOTOS[2];
+const IMG3 = PHOTOS[3];
 
 export default function Otkatnye() {
   return (

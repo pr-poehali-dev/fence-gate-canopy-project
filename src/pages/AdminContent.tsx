@@ -125,6 +125,22 @@ const PRESET_PAGES: { slug: string; title: string; blocks: { key: string; type: 
       { key: "description", type: "html",  label: "Описание" },
     ],
   },
+  {
+    slug: "services/betonnye-ploschadki", title: "Услуга: Бетонные площадки",
+    blocks: [
+      { key: "hero_title",  type: "html",  label: "Заголовок" },
+      { key: "hero_image",  type: "image", label: "Главное фото" },
+      { key: "description", type: "html",  label: "Описание" },
+    ],
+  },
+  {
+    slug: "services/zaezd-na-uchastok", title: "Услуга: Заезд на участок",
+    blocks: [
+      { key: "hero_title",  type: "html",  label: "Заголовок" },
+      { key: "hero_image",  type: "image", label: "Главное фото" },
+      { key: "description", type: "html",  label: "Описание" },
+    ],
+  },
 ];
 
 interface UnifiedBlock extends ContentBlock {

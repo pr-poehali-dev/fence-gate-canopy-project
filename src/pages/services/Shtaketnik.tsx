@@ -1,22 +1,23 @@
 import ServicePage from "@/components/ServicePage";
-import { REAL_PHOTOS } from "@/data/real-photos";
+import { PHOTOS_BY_SERVICE } from "@/data/photos-by-service";
 
-const HERO = REAL_PHOTOS[4];
-const SPEC = REAL_PHOTOS[5];
+const PHOTOS = PHOTOS_BY_SERVICE["shtaketnik"];
+const HERO = PHOTOS[0];
+const SPEC = PHOTOS[1];
 
-const PROF_M = REAL_PHOTOS[6];
-const PROF_P = REAL_PHOTOS[7];
-const PROF_PD = REAL_PHOTOS[5];
-const CUT_ROUND = REAL_PHOTOS[6];
-const CUT_STRAIGHT = REAL_PHOTOS[7];
-const INSTALL_CHESS = REAL_PHOTOS[4];
-const INSTALL_SINGLE = REAL_PHOTOS[5];
-const ORIENT_HORIZ = REAL_PHOTOS[6];
-const ORIENT_VERT = REAL_PHOTOS[7];
+const PROF_M = PHOTOS[2];
+const PROF_P = PHOTOS[3];
+const PROF_PD = PHOTOS[1];
+const CUT_ROUND = PHOTOS[2];
+const CUT_STRAIGHT = PHOTOS[3];
+const INSTALL_CHESS = PHOTOS[0];
+const INSTALL_SINGLE = PHOTOS[1];
+const ORIENT_HORIZ = PHOTOS[2];
+const ORIENT_VERT = PHOTOS[3];
 
-const P1 = REAL_PHOTOS[4];
-const P2 = REAL_PHOTOS[5];
-const P3 = REAL_PHOTOS[6];
+const P1 = PHOTOS[0];
+const P2 = PHOTOS[1];
+const P3 = PHOTOS[2];
 
 export default function Shtaketnik() {
   return (

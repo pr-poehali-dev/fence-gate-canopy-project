@@ -15,20 +15,27 @@ import CalculatorWizard from "@/components/CalculatorWizard";
 import RealPhotosGallery from "@/components/RealPhotosGallery";
 
 import { REAL_PHOTOS } from "@/data/real-photos";
+import { heroForService } from "@/data/photos-by-service";
 
 // ── Изображения ─────────────────────────────────────────────────────────────
-// Реальные фото объектов СтальГрупп с Яндекс.Диска (импорт 2026-05-22)
+// Берём hero-фото каждой услуги из централизованного справочника:
+// один источник правды, никаких повторений между услугами.
 const IMGS = {
-  hero:        REAL_PHOTOS[7],   // лучший пейзажный план — на hero
+  hero:        REAL_PHOTOS[0],
   portfolio:   REAL_PHOTOS[13],
-  profnastil:  REAL_PHOTOS[8],
-  kovka:       REAL_PHOTOS[34],
-  mesh3d:      REAL_PHOTOS[19],
-  gates:       REAL_PHOTOS[10],
-  canopy:      REAL_PHOTOS[15],
-  euro:        REAL_PHOTOS[22],
-  foundation:  REAL_PHOTOS[28],
-  gazebo:      REAL_PHOTOS[31],
+  profnastil:  heroForService("profnastil"),
+  euro:        heroForService("shtaketnik"),
+  mesh3d:      heroForService("3d-setka"),
+  setka:       heroForService("setka-rabitsa"),
+  kovka:       heroForService("kovka"),
+  gates:       heroForService("otkatnye-vorota"),
+  raspashnye:  heroForService("raspashnye-vorota"),
+  kalitki:     heroForService("kalitki"),
+  canopy:      heroForService("navesy"),
+  gazebo:      heroForService("besedki"),
+  foundation:  heroForService("fundamenty"),
+  ploshadki:   heroForService("betonnye-ploschadki"),
+  zaezd:       heroForService("zaezd-na-uchastok"),
 };
 
 const NAV_ITEMS = [
@@ -45,14 +52,16 @@ const PRODUCTS: { img: string; title: string; desc: string; price: string; badge
   { img: IMGS.profnastil, title: "Профнастил",          desc: "Оцинкованный С8/С10/МП20, покрытие полиэстер или пурал. Срок службы 25+ лет.",       price: "от 2 800 ₽/м.п.", badge: "Хит",     href: "/services/profnastil" },
   { img: IMGS.euro,       title: "Евроштакетник",       desc: "Двусторонний металлический штакетник. Пропускает свет, современный дизайн.",         price: "от 3 400 ₽/м.п.", badge: null,      href: "/services/shtaketnik" },
   { img: IMGS.gates,      title: "Откатные ворота",     desc: "Консольные откатные ворота под автоматику. Любое наполнение, до 8 м проёма.",        price: "от 75 000 ₽",     badge: null,      href: "/services/otkatnye-vorota" },
-  { img: IMGS.gates,      title: "Распашные ворота",    desc: "1–2 створки на петлях. Бюджет, надёжность, готовность к автоматике.",                 price: "от 42 000 ₽",     badge: null,      href: "/services/raspashnye-vorota" },
+  { img: IMGS.raspashnye, title: "Распашные ворота",    desc: "1–2 створки на петлях. Бюджет, надёжность, готовность к автоматике.",                 price: "от 42 000 ₽",     badge: null,      href: "/services/raspashnye-vorota" },
   { img: IMGS.canopy,     title: "Навесы для авто",     desc: "Арочные, двухскатные, односкатные. Поликарбонат и профнастил. Под ключ.",            price: "от 3 200 ₽/м²",  badge: null,      href: "/services/navesy" },
   { img: IMGS.kovka,      title: "Ковка художественная", desc: "Горячая и холодная ковка по индивидуальным эскизам. Антикоррозийная обработка.",     price: "от 5 500 ₽/м.п.", badge: "Премиум", href: "/services/kovka" },
   { img: IMGS.mesh3d,     title: "3D-сетка сварная",    desc: "Прутки Ø4–6 мм, ячейка 50×200 мм. Антивандальные, для частных домов и КП.",          price: "от 1 900 ₽/м.п.", badge: null,      href: "/services/3d-setka" },
   { img: IMGS.gazebo,     title: "Беседки и пергола",   desc: "Металлические беседки 3×3 / 4×4 / 6×4 м. С мангалом, кровлей, освещением.",          price: "от 85 000 ₽",     badge: null,      href: "/services/besedki" },
-  { img: IMGS.profnastil, title: "Калитки металлические", desc: "В тон забора: профнастил, штакетник, ковка. С врезным замком и петлями.",         price: "от 9 500 ₽",      badge: null,      href: "/services/kalitki" },
+  { img: IMGS.kalitki,    title: "Калитки металлические", desc: "В тон забора: профнастил, штакетник, ковка. С врезным замком и петлями.",         price: "от 9 500 ₽",      badge: null,      href: "/services/kalitki" },
   { img: IMGS.foundation, title: "Фундаменты под забор", desc: "Бутование, бетонирование, винтовые сваи, ленточный. Подбор по типу грунта.",        price: "от 650 ₽/м.п.",   badge: null,      href: "/services/fundamenty" },
-  { img: IMGS.profnastil, title: "Сетка-рабица",         desc: "Оцинкованная Ø2 мм или с ПВХ-покрытием. Быстрый монтаж, дачный вариант.",            price: "от 950 ₽/м.п.",   badge: "Эконом",  href: "/services/setka-rabitsa" },
+  { img: IMGS.setka,      title: "Сетка-рабица",         desc: "Оцинкованная Ø2 мм или с ПВХ-покрытием. Быстрый монтаж, дачный вариант.",            price: "от 950 ₽/м.п.",   badge: "Эконом",  href: "/services/setka-rabitsa" },
+  { img: IMGS.ploshadki,  title: "Бетонные площадки",    desc: "Площадки под авто и хозблоки. Подготовка основания, армирование, заливка М300.",     price: "от 1 850 ₽/м²",   badge: null,      href: "/services/betonnye-ploschadki" },
+  { img: IMGS.zaezd,      title: "Заезд на участок",     desc: "Обустройство въезда: дренаж, труба, бетонирование. Подъезд к воротам в любую погоду.", price: "от 28 000 ₽",     badge: null,      href: "/services/zaezd-na-uchastok" },
 ];
 
 const SERVICES = [
@@ -70,7 +79,7 @@ const PORTFOLIO_ITEMS = [
   { title: "3D-ограждение склада в Астрецово",         tag: "Промышленный", img: IMGS.mesh3d },
   { title: "Откатные ворота FAAC, КП «Назарьево»",     tag: "Автоматика",   img: IMGS.gates },
   { title: "Навес для авто 36 м², Реутов",             tag: "Навес",        img: IMGS.canopy },
-  { title: "Евроштакетник + беседка, Балашиха",        tag: "Под ключ",     img: IMGS.gazebo },
+  { title: "Евроштакетник + беседка, Балашиха",        tag: "Под ключ",     img: IMGS.euro },
 ];
 
 /*REMOVE_START*/

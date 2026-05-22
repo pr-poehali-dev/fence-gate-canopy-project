@@ -1,10 +1,11 @@
 import ServicePage from "@/components/ServicePage";
-import { REAL_PHOTOS } from "@/data/real-photos";
+import { PHOTOS_BY_SERVICE } from "@/data/photos-by-service";
 
-const HERO = REAL_PHOTOS[32];
-const SPEC = REAL_PHOTOS[33];
-const ONE  = REAL_PHOTOS[34];
-const EXTRA = REAL_PHOTOS[35];
+const PHOTOS = PHOTOS_BY_SERVICE["navesy"];
+const HERO = PHOTOS[0];
+const SPEC = PHOTOS[1];
+const ONE  = PHOTOS[2];
+const EXTRA = PHOTOS[3];
 
 export default function Navesy() {
   return (

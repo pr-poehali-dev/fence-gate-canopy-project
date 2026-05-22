@@ -1,10 +1,11 @@
 import ServicePage from "@/components/ServicePage";
-import { REAL_PHOTOS } from "@/data/real-photos";
+import { PHOTOS_BY_SERVICE } from "@/data/photos-by-service";
 
-const HERO = REAL_PHOTOS[16];
-const IMG = REAL_PHOTOS[17];
-const IMG2 = REAL_PHOTOS[18];
-const IMG3 = REAL_PHOTOS[19];
+const PHOTOS = PHOTOS_BY_SERVICE["kovka"];
+const HERO = PHOTOS[0];
+const IMG = PHOTOS[1];
+const IMG2 = PHOTOS[2];
+const IMG3 = PHOTOS[3];
 
 export default function Kovka() {
   return (
