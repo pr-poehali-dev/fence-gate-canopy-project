@@ -141,6 +141,37 @@ const PRESET_PAGES: { slug: string; title: string; blocks: { key: string; type: 
       { key: "description", type: "html",  label: "Описание" },
     ],
   },
+  {
+    slug: "services/zabor-na-rostverke", title: "Услуга: Заборы на ростверке",
+    blocks: [
+      { key: "hero_title",  type: "html",  label: "Заголовок" },
+      { key: "hero_image",  type: "image", label: "Главное фото" },
+      { key: "description", type: "html",  label: "Описание" },
+    ],
+  },
+  {
+    slug: "services/kirpichnye-stolby", title: "Услуга: Кирпичные столбы",
+    blocks: [
+      { key: "hero_title",  type: "html",  label: "Заголовок" },
+      { key: "hero_image",  type: "image", label: "Главное фото" },
+      { key: "description", type: "html",  label: "Описание" },
+    ],
+  },
+  {
+    slug: "services/bloki-stolby", title: "Услуга: Столбы из блоков",
+    blocks: [
+      { key: "hero_title",  type: "html",  label: "Заголовок" },
+      { key: "hero_image",  type: "image", label: "Главное фото" },
+      { key: "description", type: "html",  label: "Описание" },
+    ],
+  },
+  {
+    slug: "shemy-chertezi", title: "Каталог: Схемы и чертежи",
+    blocks: [
+      { key: "hero_title",   type: "html",  label: "Заголовок страницы" },
+      { key: "hero_subtitle", type: "html", label: "Подзаголовок" },
+    ],
+  },
 ];
 
 interface UnifiedBlock extends ContentBlock {

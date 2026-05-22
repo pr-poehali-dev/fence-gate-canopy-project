@@ -93,18 +93,19 @@ def _list_media(cur, service=None):
     if service:
         cur.execute(
             "SELECT id, url, s3_key, service, position, caption, alt_text, "
-            "width, height, size_bytes, is_hidden, created_at "
-            "FROM media_library WHERE service = %s ORDER BY position, id",
+            "width, height, size_bytes, is_hidden, is_hero, created_at "
+            "FROM media_library WHERE service = %s "
+            "ORDER BY is_hero DESC, position, id",
             (service,)
         )
     else:
         cur.execute(
             "SELECT id, url, s3_key, service, position, caption, alt_text, "
-            "width, height, size_bytes, is_hidden, created_at "
-            "FROM media_library ORDER BY service NULLS LAST, position, id"
+            "width, height, size_bytes, is_hidden, is_hero, created_at "
+            "FROM media_library ORDER BY service NULLS LAST, is_hero DESC, position, id"
         )
     cols = ['id', 'url', 's3_key', 'service', 'position', 'caption', 'alt_text',
-            'width', 'height', 'size_bytes', 'is_hidden', 'created_at']
+            'width', 'height', 'size_bytes', 'is_hidden', 'is_hero', 'created_at']
     return [dict(zip(cols, row)) for row in cur.fetchall()]
 
 
@@ -218,7 +219,32 @@ def handler(event, context):
             if action == 'untag':
                 mid = int(body.get('id') or 0)
                 cur.execute(
-                    "UPDATE media_library SET service = NULL, position = 0, updated_at = NOW() "
+                    "UPDATE media_library SET service = NULL, position = 0, is_hero = FALSE, "
+                    "updated_at = NOW() WHERE id = %s",
+                    (mid,)
+                )
+                conn.commit()
+                return _resp(200, {'ok': True})
+
+            if action == 'set_hero':
+                mid = int(body.get('id') or 0)
+                if not mid:
+                    return _resp(400, {'error': 'id required'})
+                cur.execute("SELECT service FROM media_library WHERE id = %s", (mid,))
+                row = cur.fetchone()
+                if not row:
+                    return _resp(404, {'error': 'not_found'})
+                service = row[0]
+                if not service:
+                    return _resp(400, {'error': 'photo must be tagged first'})
+                # сбрасываем флаг у других фото этой услуги
+                cur.execute(
+                    "UPDATE media_library SET is_hero = FALSE, updated_at = NOW() "
+                    "WHERE service = %s AND id != %s",
+                    (service, mid)
+                )
+                cur.execute(
+                    "UPDATE media_library SET is_hero = TRUE, position = 0, updated_at = NOW() "
                     "WHERE id = %s",
                     (mid,)
                 )

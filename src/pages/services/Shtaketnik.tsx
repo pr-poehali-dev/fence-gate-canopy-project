@@ -1,25 +1,25 @@
 import ServicePage from "@/components/ServicePage";
-import { PHOTOS_BY_SERVICE } from "@/data/photos-by-service";
-
-const PHOTOS = PHOTOS_BY_SERVICE["shtaketnik"];
-const HERO = PHOTOS[0];
-const SPEC = PHOTOS[1];
-
-const PROF_M = PHOTOS[2];
-const PROF_P = PHOTOS[3];
-const PROF_PD = PHOTOS[1];
-const CUT_ROUND = PHOTOS[2];
-const CUT_STRAIGHT = PHOTOS[3];
-const INSTALL_CHESS = PHOTOS[0];
-const INSTALL_SINGLE = PHOTOS[1];
-const ORIENT_HORIZ = PHOTOS[2];
-const ORIENT_VERT = PHOTOS[3];
-
-const P1 = PHOTOS[0];
-const P2 = PHOTOS[1];
-const P3 = PHOTOS[2];
+import { useMediaByService } from "@/hooks/useMediaByService";
 
 export default function Shtaketnik() {
+  const PHOTOS = useMediaByService("shtaketnik");
+  const HERO = PHOTOS[0];
+  const SPEC = PHOTOS[1];
+
+  const PROF_M = PHOTOS[2];
+  const PROF_P = PHOTOS[3];
+  const PROF_PD = PHOTOS[1];
+  const CUT_ROUND = PHOTOS[2];
+  const CUT_STRAIGHT = PHOTOS[3];
+  const INSTALL_CHESS = PHOTOS[0];
+  const INSTALL_SINGLE = PHOTOS[1];
+  const ORIENT_HORIZ = PHOTOS[2];
+  const ORIENT_VERT = PHOTOS[3];
+
+  const P1 = PHOTOS[0];
+  const P2 = PHOTOS[1];
+  const P3 = PHOTOS[2];
+
   return (
     <ServicePage
       pageSlug="services/shtaketnik"

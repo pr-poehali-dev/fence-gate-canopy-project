@@ -1,13 +1,13 @@
 import ServicePage from "@/components/ServicePage";
-import { PHOTOS_BY_SERVICE } from "@/data/photos-by-service";
-
-const PHOTOS = PHOTOS_BY_SERVICE["navesy"];
-const HERO = PHOTOS[0];
-const SPEC = PHOTOS[1];
-const ONE  = PHOTOS[2];
-const EXTRA = PHOTOS[3];
+import { useMediaByService } from "@/hooks/useMediaByService";
 
 export default function Navesy() {
+  const PHOTOS = useMediaByService("navesy");
+  const HERO = PHOTOS[0];
+  const SPEC = PHOTOS[1];
+  const ONE  = PHOTOS[2];
+  const EXTRA = PHOTOS[3];
+
   return (
     <ServicePage
       pageSlug="services/navesy"

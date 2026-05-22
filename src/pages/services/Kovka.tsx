@@ -1,13 +1,13 @@
 import ServicePage from "@/components/ServicePage";
-import { PHOTOS_BY_SERVICE } from "@/data/photos-by-service";
-
-const PHOTOS = PHOTOS_BY_SERVICE["kovka"];
-const HERO = PHOTOS[0];
-const IMG = PHOTOS[1];
-const IMG2 = PHOTOS[2];
-const IMG3 = PHOTOS[3];
+import { useMediaByService } from "@/hooks/useMediaByService";
 
 export default function Kovka() {
+  const PHOTOS = useMediaByService("kovka");
+  const HERO = PHOTOS[0];
+  const IMG = PHOTOS[1];
+  const IMG2 = PHOTOS[2];
+  const IMG3 = PHOTOS[3];
+
   return (
     <ServicePage
       pageSlug="services/kovka"

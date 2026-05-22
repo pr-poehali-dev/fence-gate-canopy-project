@@ -1,17 +1,17 @@
 import ServicePage from "@/components/ServicePage";
-import { PHOTOS_BY_SERVICE } from "@/data/photos-by-service";
-
-const PHOTOS = PHOTOS_BY_SERVICE["profnastil"];
-// Реальные фото объектов
-const HERO = PHOTOS[0]; // вид с фасада (лицевая сторона)
-const BACK = PHOTOS[1]; // вид сзади (тыльная сторона)
-// Схемы профилей — используем реальные фото
-const SCHEME_C21 = PHOTOS[2];
-const SCHEME_C20 = PHOTOS[3];
-const SCHEME_C8  = PHOTOS[1];
-const SPEC = SCHEME_C20; // главная техническая схема в блоке «Характеристики»
+import { useMediaByService } from "@/hooks/useMediaByService";
 
 export default function Profnastil() {
+  const PHOTOS = useMediaByService("profnastil");
+  // Реальные фото объектов
+  const HERO = PHOTOS[0]; // вид с фасада (лицевая сторона)
+  const BACK = PHOTOS[1]; // вид сзади (тыльная сторона)
+  // Схемы профилей — используем реальные фото
+  const SCHEME_C21 = PHOTOS[2];
+  const SCHEME_C20 = PHOTOS[3];
+  const SCHEME_C8  = PHOTOS[1];
+  const SPEC = SCHEME_C20; // главная техническая схема в блоке «Характеристики»
+
   return (
     <ServicePage
       pageSlug="services/profnastil"

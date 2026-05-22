@@ -35,6 +35,10 @@ import Besedki from "./pages/services/Besedki";
 import Foundations from "./pages/services/Foundations";
 import Ploshadki from "./pages/services/Ploshadki";
 import Zaezd from "./pages/services/Zaezd";
+import RostverkFence from "./pages/services/RostverkFence";
+import BrickColumns from "./pages/services/BrickColumns";
+import BlockColumns from "./pages/services/BlockColumns";
+import SchematicsCatalog from "./pages/services/SchematicsCatalog";
 
 const queryClient = new QueryClient();
 
@@ -78,6 +82,12 @@ const App = () => (
           <Route path="/services/fundamenty"     element={<Foundations />} />
           <Route path="/services/betonnye-ploschadki" element={<Ploshadki />} />
           <Route path="/services/zaezd-na-uchastok"   element={<Zaezd />} />
+
+          {/* Новые услуги — заборы на ростверке, кирпичные/блочные столбы, каталог схем */}
+          <Route path="/zabory/na-rostverke"        element={<RostverkFence />} />
+          <Route path="/zabory/kirpichnye-stolby"   element={<BrickColumns />} />
+          <Route path="/zabory/bloki-stolby"        element={<BlockColumns />} />
+          <Route path="/shemy-chertezi"             element={<SchematicsCatalog />} />
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

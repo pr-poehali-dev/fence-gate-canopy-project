@@ -36,6 +36,13 @@ export const PHOTOS_BY_SERVICE: Record<string, string[]> = {
   fundamenty:           slice(60, 6),   // 60..65
   "betonnye-ploschadki": slice(66, 6),  // 66..71
   "zaezd-na-uchastok":  slice(72, 6),   // 72..77
+
+  // Новые услуги — берём фолбэки из существующего пула REAL_PHOTOS
+  // (со смещениями, чтобы наборы были детерминированы и различались).
+  "zabor-na-rostverke": slice(60, 6),   // фундаменты + забор: разделяют с fundamenty
+  "kirpichnye-stolby":  slice(40, 6),   // премиум-сегмент: берём из пула ворот/кованых
+  "bloki-stolby":       slice(45, 6),   // блочные столбы — соседний срез
+  "shemy-chertezi":     slice(0, 8),    // каталог схем: показывает превью разных услуг
 };
 
 /**

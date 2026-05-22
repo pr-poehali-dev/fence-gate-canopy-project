@@ -7,6 +7,7 @@ import { generatePriceListPDF } from "@/lib/priceListPDF";
 import { sendLead } from "@/lib/api";
 import { usePageContent } from "@/hooks/usePageContent";
 import { EditableText, EditableImage } from "@/components/InlineEditor";
+import EditablePhoto from "@/components/EditablePhoto";
 import QuickQuoteForm from "@/components/QuickQuoteForm";
 import PaintLevels from "@/components/service/PaintLevels";
 import FoundationSchemes from "@/components/service/FoundationSchemes";
@@ -84,11 +85,11 @@ export interface ServiceProps {
   specImg:           string;
 
   // Варианты и цвета
-  profileTypes:      { img: string; name: string; desc: string; imgStyle?: React.CSSProperties; imgClassName?: string }[];
+  profileTypes?:     { img: string; name: string; desc: string; imgStyle?: React.CSSProperties; imgClassName?: string }[];
   topCuts?:          { img: string; name: string; desc: string }[];
   installTypes?:     { img: string; name: string; desc: string }[];
   orientations?:     { img: string; name: string; desc: string }[];
-  ralColors:         RalColor[];
+  ralColors?:        RalColor[];
 
   // Доп. комплектующие
   extras:            { icon: string; name: string; price: string; desc: string }[];
@@ -116,11 +117,16 @@ export interface ServiceProps {
 // ─────────────────────────────────────────────────────────────────
 // ШАБЛОН
 // ─────────────────────────────────────────────────────────────────
-export default function ServicePage(p: ServiceProps & { pageSlug?: string }) {
+export default function ServicePage(p: ServiceProps & { pageSlug?: string; mediaSlug?: string }) {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
-  const [activeRal, setActiveRal] = useState<string>(p.ralColors[0]?.ral || "");
+  const [activeRal, setActiveRal] = useState<string>(p.ralColors?.[0]?.ral || "");
   // CMS-данные для перезаписи hero (если задан pageSlug)
   const cms = usePageContent(p.pageSlug || "");
+  // slug для медиа-библиотеки (по умолчанию вычисляем из pageSlug)
+  const mediaSlug = p.mediaSlug || (p.pageSlug || "").replace(/^services\//, "");
+  // локальные оптимистичные оверрайды фото после редактирования через библиотеку
+  const [heroOverride, setHeroOverride] = useState<string | null>(null);
+  const [portfolioOverride, setPortfolioOverride] = useState<Record<number, string>>({});
 
   // SEO: title, description, canonical, OG, JSON-LD (Service + FAQ + Breadcrumb)
   useEffect(() => {
@@ -380,7 +386,17 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string }) {
 
             <div className="relative">
               <div className="aspect-[4/3] rounded-3xl overflow-hidden border border-[#1e2230] shadow-2xl">
-                {p.pageSlug ? (
+                {mediaSlug ? (
+                  <EditablePhoto
+                    src={heroOverride || cms("hero_image", p.heroImg)}
+                    alt={p.h1}
+                    className="w-full h-full object-cover"
+                    service={mediaSlug}
+                    mode="hero"
+                    label="Сменить главное фото"
+                    onChange={(url) => setHeroOverride(url)}
+                  />
+                ) : p.pageSlug ? (
                   <EditableImage
                     page={p.pageSlug} blockKey="hero_image"
                     value={cms("hero_image")} fallback={p.heroImg} alt={p.h1}
@@ -582,6 +598,7 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string }) {
       {p.showPaintLevels && <PaintLevels />}
 
       {/* ── ВАРИАНТЫ ИСПОЛНЕНИЯ + RAL ── */}
+      {((p.profileTypes && p.profileTypes.length > 0) || (p.ralColors && p.ralColors.length > 0)) && (
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
@@ -593,6 +610,8 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string }) {
           </div>
 
           {/* Типы профиля */}
+          {p.profileTypes && p.profileTypes.length > 0 && (
+          <>
           <h3 className="font-oswald font-bold text-xl text-white mb-5">Типы профиля</h3>
           <div className={`grid grid-cols-2 ${p.profileTypes.length === 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-4'} gap-4 mb-12`}>
             {p.profileTypes.map(pt => (
@@ -612,6 +631,8 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string }) {
               </div>
             ))}
           </div>
+          </>
+          )}
 
           {/* Типы реза верха */}
           {p.topCuts && p.topCuts.length > 0 && (
@@ -686,6 +707,8 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string }) {
           )}
 
           {/* Палитра RAL */}
+          {p.ralColors && p.ralColors.length > 0 && (
+          <>
           <h3 className="font-oswald font-bold text-xl text-white mb-5">Цветовая палитра RAL</h3>
           <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
             {p.ralColors.map(c => (
@@ -707,8 +730,11 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string }) {
           <p className="text-white/40 text-xs mt-5 text-center">
             Доступно более 200 оттенков по каталогу RAL Classic. Возможна имитация дерева и камня (PrintPattern).
           </p>
+          </>
+          )}
         </div>
       </section>
+      )}
 
       {/* ── ДОП. КОМПЛЕКТУЮЩИЕ ── */}
       <section className="py-20 bg-[#0a0c10]">
@@ -750,10 +776,24 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string }) {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {p.portfolio.map((item, i) => (
+            {p.portfolio.map((item, i) => {
+              const curImg = portfolioOverride[i] || item.img;
+              return (
               <div key={i} className="group rounded-2xl overflow-hidden bg-[#141720] border border-[#1e2230] hover:border-orange-500/40 transition-all">
                 <div className="aspect-[4/3] overflow-hidden">
-                  <img src={item.img} alt={item.location} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  {mediaSlug ? (
+                    <EditablePhoto
+                      src={curImg}
+                      alt={item.location}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      service={mediaSlug}
+                      mode="any"
+                      label="Сменить"
+                      onChange={(url) => setPortfolioOverride(prev => ({ ...prev, [i]: url }))}
+                    />
+                  ) : (
+                    <img src={curImg} alt={item.location} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  )}
                 </div>
                 <div className="p-4 flex items-center justify-between">
                   <div className="flex items-center gap-2 text-white text-sm">
@@ -763,7 +803,8 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string }) {
                   <span className="text-orange-400 font-oswald font-bold text-sm">{item.size}</span>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>

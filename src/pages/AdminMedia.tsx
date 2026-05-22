@@ -38,6 +38,10 @@ const SERVICES: { slug: string; label: string; icon: string }[] = [
   { slug: "fundamenty",          label: "Фундаменты",        icon: "Layers" },
   { slug: "betonnye-ploschadki", label: "Бетонные площадки", icon: "Square" },
   { slug: "zaezd-na-uchastok",   label: "Заезд на участок",  icon: "Car" },
+  { slug: "zabor-na-rostverke",  label: "Забор на ростверке", icon: "Layers" },
+  { slug: "kirpichnye-stolby",   label: "Кирпичные столбы",   icon: "Building" },
+  { slug: "bloki-stolby",        label: "Блочные столбы",     icon: "Building" },
+  { slug: "shemy-chertezi",      label: "Схемы и чертежи",    icon: "FileText" },
 ];
 
 const FILTERS = [
