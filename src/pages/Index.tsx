@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import ContactForm from "@/components/ContactForm";
-import SiteLogo from "@/components/SiteLogo";
+import SiteHeader from "@/components/SiteHeader";
 import { COMPANY } from "@/lib/company";
 import { useLeadModal } from "@/hooks/useLeadModal";
 import { generatePriceListPDF } from "@/lib/priceListPDF";
@@ -38,15 +38,6 @@ const IMGS = {
   zaezd:       heroForService("zaezd-na-uchastok"),
   stolby:      heroForService("stolby"),
 };
-
-const NAV_ITEMS = [
-  { id: "home",       label: "Главная" },
-  { id: "products",   label: "Услуги" },
-  { id: "calculator", label: "Калькулятор" },
-  { id: "steps",      label: "Этапы" },
-  { id: "delivery",   label: "Доставка" },
-  { id: "contacts",   label: "Контакты" },
-];
 
 // ── Продукция ────────────────────────────────────────────────────────────────
 const PRODUCTS: { img: string; title: string; desc: string; price: string; badge: string | null; href?: string }[] = [
@@ -535,7 +526,6 @@ function useScrollReveal() {
 
 // ── Главная страница ──────────────────────────────────────────────────────────
 export default function Index() {
-  const [menuOpen, setMenuOpen] = useState(false);
   useScrollReveal();
 
   // SEO: гео-зависимые мета-теги для Москвы и МО
@@ -552,7 +542,6 @@ export default function Index() {
 
   const scrollTo = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
-    setMenuOpen(false);
   };
 
   const lead = useLeadModal();
@@ -595,66 +584,7 @@ export default function Index() {
       {lead.node}
 
       {/* NAV */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-[#1e2230]"
-        style={{ background: "rgba(13,15,20,0.93)", backdropFilter: "blur(16px)" }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <SiteLogo size="md" />
-
-            <div className="hidden lg:flex items-center gap-5">
-              {NAV_ITEMS.map(({ id, label }) => (
-                <button key={id} onClick={() => scrollTo(id)} className="nav-link text-sm">{label}</button>
-              ))}
-            </div>
-
-            <div className="hidden lg:flex items-center gap-4">
-              <Link to="/reviews" className="text-white/60 hover:text-orange-400 text-sm flex items-center gap-1.5 transition-colors">
-                <Icon name="Star" size={14} className="text-orange-400" /> Отзывы
-              </Link>
-              <div className="text-right leading-tight">
-                <a href="tel:+78001234567" className="flex items-center gap-1.5 text-orange-400 font-oswald font-medium hover:text-orange-300 transition-colors text-sm justify-end">
-                  <Icon name="Phone" size={14} />
-                  8 800 123-45-67
-                </a>
-                <div className="text-[10px] text-white/35 mt-0.5 flex items-center justify-end gap-1">
-                  <Icon name="Clock" size={10} /> Пн–Сб 8:00–20:00
-                </div>
-              </div>
-              <button className="btn-outline-orange px-4 py-2 rounded-lg text-xs"
-                onClick={() => lead.open({ title: "Заказать звонок", source: "Шапка: Заказать звонок" })}>
-                Заказать звонок
-              </button>
-              <button className="btn-orange px-5 py-2 rounded-lg text-sm" onClick={() => scrollTo("calculator")}>
-                Рассчитать
-              </button>
-            </div>
-
-            <button onClick={() => setMenuOpen(!menuOpen)} className="lg:hidden text-white/70 hover:text-white">
-              <Icon name={menuOpen ? "X" : "Menu"} size={24} />
-            </button>
-          </div>
-        </div>
-
-        {menuOpen && (
-          <div className="lg:hidden border-t border-[#1e2230] bg-[#0d0f14] px-4 py-4 space-y-1">
-            {NAV_ITEMS.map(({ id, label }) => (
-              <button key={id} onClick={() => scrollTo(id)}
-                className="block w-full text-left py-2 px-3 rounded text-white/70 hover:text-white hover:bg-[#141720] transition-all text-sm">
-                {label}
-              </button>
-            ))}
-            <Link to="/reviews" onClick={() => setMenuOpen(false)}
-              className="block w-full text-left py-2 px-3 rounded text-orange-400 hover:bg-[#141720] transition-all text-sm flex items-center gap-2">
-              <Icon name="Star" size={14} /> Отзывы клиентов
-            </Link>
-            <div className="pt-3 border-t border-[#1e2230]">
-              <button className="btn-orange w-full py-3 rounded-lg text-sm" onClick={() => scrollTo("calculator")}>
-                Рассчитать стоимость
-              </button>
-            </div>
-          </div>
-        )}
-      </nav>
+      <SiteHeader />
 
       {/* HERO */}
       <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden grid-pattern">

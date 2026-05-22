@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import MaxChatPicker from "@/components/MaxChatPicker";
 import MaxPhoneFinder from "@/components/admin/MaxPhoneFinder";
+import MediaPickerModal from "@/components/MediaPickerModal";
 import {
   fetchPrices, fetchReviews, loginAdmin, verifyAdmin,
   updatePrices, moderateReview, deleteReview, adminToken,
@@ -33,6 +34,7 @@ export default function Admin() {
   const [settingsSaving, setSettingsSaving] = useState(false);
   const [settingsSaved, setSettingsSaved] = useState(false);
   const [chatPickerOpen, setChatPickerOpen] = useState(false);
+  const [mediaPicker, setMediaPicker] = useState<{ field: keyof SiteSettings } | null>(null);
   const [emailTesting, setEmailTesting] = useState(false);
   const [emailTestResult, setEmailTestResult] = useState("");
 
@@ -1117,13 +1119,24 @@ export default function Admin() {
                   <label className="text-white/70 text-xs font-medium mb-1.5 block">
                     Картинка для соцсетей (URL) — что покажется при шаринге ссылки в WhatsApp, Telegram, VK
                   </label>
-                  <input
-                    type="text"
-                    value={settings.seo_og_image || ""}
-                    onChange={e => onSettingChange("seo_og_image", e.target.value)}
-                    placeholder="https://cdn.poehali.dev/.../my-image.jpg"
-                    className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none"
-                  />
+                  <div className="flex items-stretch gap-2">
+                    <input
+                      type="text"
+                      value={settings.seo_og_image || ""}
+                      onChange={e => onSettingChange("seo_og_image", e.target.value)}
+                      placeholder="https://cdn.poehali.dev/.../my-image.jpg"
+                      className="flex-1 bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setMediaPicker({ field: "seo_og_image" })}
+                      className="px-4 py-2 bg-[#0d1017] hover:bg-orange-500/10 text-white/70 hover:text-orange-300 border border-[#1e2230] hover:border-orange-500/50 rounded-xl transition-all flex items-center gap-1.5 text-xs whitespace-nowrap"
+                      title="Выбрать фото из медиа-библиотеки"
+                    >
+                      <Icon name="ImagePlus" size={14} />
+                      Из библиотеки
+                    </button>
+                  </div>
                   {settings.seo_og_image && (
                     <img src={settings.seo_og_image} alt="" className="mt-2 max-h-32 rounded-lg border border-[#1e2230]" />
                   )}
@@ -1252,6 +1265,18 @@ export default function Admin() {
           </div>
         )}
       </main>
+
+      {/* Глобальный пикер фото из медиа-библиотеки для image-полей настроек */}
+      <MediaPickerModal
+        open={!!mediaPicker}
+        mode="pick"
+        currentUrl={mediaPicker ? (settings[mediaPicker.field] || "") : ""}
+        onClose={() => setMediaPicker(null)}
+        onPicked={(url) => {
+          if (mediaPicker) onSettingChange(mediaPicker.field, url);
+          setMediaPicker(null);
+        }}
+      />
     </div>
   );
 }

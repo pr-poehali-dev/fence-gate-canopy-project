@@ -14,13 +14,14 @@ interface MediaItem {
 
 interface Props {
   open: boolean;
-  service: string;
+  /** Если задан — открываем сразу фото этой услуги (с кнопкой «Все фото») */
+  service?: string;
   /** Текущий выбранный url (подсветим в галерее) */
   currentUrl?: string;
-  /** "hero" — кнопка «Сделать главным», "any" — просто выбрать фото */
-  mode?: "hero" | "any";
+  /** "hero" — кнопка «Сделать главным», "any" — просто выбрать фото, "pick" — без привязки к услуге */
+  mode?: "hero" | "any" | "pick";
   onClose: () => void;
-  /** Когда юзер выбрал фото — отдаём id (и url) наверх */
+  /** Когда юзер выбрал фото — отдаём url (и id) наверх */
   onPicked: (url: string, id: number) => void;
 }
 
@@ -29,17 +30,23 @@ export default function MediaPickerModal({
 }: Props) {
   const [items, setItems] = useState<MediaItem[]>([]);
   const [allItems, setAllItems] = useState<MediaItem[]>([]);
-  const [showAll, setShowAll] = useState(false);
+  // Без сервиса — сразу показываем «Все фото»
+  const [showAll, setShowAll] = useState(!service);
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{ done: number; total: number } | null>(null);
+  const [search, setSearch] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const load = async () => {
     setLoading(true);
     try {
-      const r1 = await fetch(`${API.media}?action=list&service=${encodeURIComponent(service)}`);
-      const j1 = await r1.json();
-      setItems((j1.items || []).filter((i: MediaItem) => !i.is_hidden));
+      if (service) {
+        const r1 = await fetch(`${API.media}?action=list&service=${encodeURIComponent(service)}`);
+        const j1 = await r1.json();
+        setItems((j1.items || []).filter((i: MediaItem) => !i.is_hidden));
+      } else {
+        setItems([]);
+      }
 
       const r2 = await fetch(`${API.media}?action=list`);
       const j2 = await r2.json();
@@ -53,7 +60,15 @@ export default function MediaPickerModal({
 
   useEffect(() => { if (open) load(); }, [open, service]);
 
-  const visible = useMemo(() => showAll ? allItems : items, [showAll, items, allItems]);
+  const visible = useMemo(() => {
+    const source = showAll ? allItems : items;
+    if (!search.trim()) return source;
+    const q = search.trim().toLowerCase();
+    return source.filter(i =>
+      (i.service || "").toLowerCase().includes(q) ||
+      i.url.toLowerCase().includes(q)
+    );
+  }, [showAll, items, allItems, search]);
 
   const fileToBase64 = (f: File): Promise<string> => new Promise((res, rej) => {
     const r = new FileReader();
@@ -91,6 +106,12 @@ export default function MediaPickerModal({
   };
 
   const onPick = async (it: MediaItem) => {
+    // режим "pick" — просто отдаём url, без привязки к услуге
+    if (mode === "pick" || !service) {
+      onPicked(it.url, it.id);
+      onClose();
+      return;
+    }
     // если у фото не выставлен сервис — выставим
     if (it.service !== service) {
       await fetch(API.media, {
@@ -122,10 +143,10 @@ export default function MediaPickerModal({
         <div className="flex items-center justify-between px-4 py-3 border-b border-[#1e2230]">
           <div>
             <h2 className="font-oswald text-lg font-bold text-white">
-              {mode === "hero" ? "Выбрать главное фото" : "Выбрать фото"}
+              {mode === "hero" ? "Выбрать главное фото" : "Выбрать фото из библиотеки"}
             </h2>
             <p className="text-white/40 text-xs mt-0.5">
-              Услуга: <span className="text-orange-400">{service}</span> · {items.length} фото
+              {service ? (<>Услуга: <span className="text-orange-400">{service}</span> · {items.length} фото · всего {allItems.length}</>) : (<>Всего в библиотеке: {allItems.length} фото</>)}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -150,28 +171,42 @@ export default function MediaPickerModal({
           </div>
         </div>
 
-        {/* Переключатель источника */}
-        <div className="flex gap-2 px-4 py-2 border-b border-[#1e2230]">
-          <button
-            onClick={() => setShowAll(false)}
-            className={`text-xs px-3 py-1.5 rounded-lg ${
-              !showAll
-                ? "bg-orange-500 text-gray-900 font-bold"
-                : "bg-[#141720] border border-[#1e2230] text-white/70"
-            }`}
-          >
-            Этой услуги ({items.length})
-          </button>
-          <button
-            onClick={() => setShowAll(true)}
-            className={`text-xs px-3 py-1.5 rounded-lg ${
-              showAll
-                ? "bg-orange-500 text-gray-900 font-bold"
-                : "bg-[#141720] border border-[#1e2230] text-white/70"
-            }`}
-          >
-            Все фото ({allItems.length})
-          </button>
+        {/* Переключатель источника + поиск */}
+        <div className="flex flex-wrap gap-2 px-4 py-2 border-b border-[#1e2230] items-center">
+          {service && (
+            <>
+              <button
+                onClick={() => setShowAll(false)}
+                className={`text-xs px-3 py-1.5 rounded-lg ${
+                  !showAll
+                    ? "bg-orange-500 text-gray-900 font-bold"
+                    : "bg-[#141720] border border-[#1e2230] text-white/70"
+                }`}
+              >
+                Этой услуги ({items.length})
+              </button>
+              <button
+                onClick={() => setShowAll(true)}
+                className={`text-xs px-3 py-1.5 rounded-lg ${
+                  showAll
+                    ? "bg-orange-500 text-gray-900 font-bold"
+                    : "bg-[#141720] border border-[#1e2230] text-white/70"
+                }`}
+              >
+                Все фото ({allItems.length})
+              </button>
+            </>
+          )}
+          <div className="flex-1 min-w-[160px] relative">
+            <Icon name="Search" size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-white/30" />
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Поиск по услуге или имени файла"
+              className="w-full bg-[#141720] border border-[#1e2230] rounded-lg pl-8 pr-3 py-1.5 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-orange-500/50"
+            />
+          </div>
         </div>
 
         {/* Прогресс загрузки */}
@@ -236,7 +271,7 @@ export default function MediaPickerModal({
 
         {/* Подсказка */}
         <div className="px-4 py-2 border-t border-[#1e2230] text-[11px] text-white/40">
-          Кликните по фото, чтобы {mode === "hero" ? "сделать его главным" : "добавить в услугу"}.
+          Кликните по фото, чтобы {mode === "hero" ? "сделать его главным" : mode === "pick" || !service ? "выбрать" : "добавить в услугу"}.
         </div>
       </div>
     </div>

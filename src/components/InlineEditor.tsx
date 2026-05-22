@@ -3,6 +3,7 @@ import Icon from "@/components/ui/icon";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { saveContentBlocks, uploadContentImage, ContentBlockType } from "@/lib/api";
 import { toast } from "sonner";
+import MediaPickerModal from "@/components/MediaPickerModal";
 
 interface BaseProps {
   page: string;
@@ -111,9 +112,24 @@ export function EditableImage({
 }: EditableImageProps) {
   const isAdmin = useIsAdmin();
   const [open, setOpen] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const src = value && value.trim() ? value : (fallback || "");
+
+  const saveUrl = async (url: string) => {
+    try {
+      await saveContentBlocks([{
+        page_slug: page, block_key: blockKey, block_type: "image", value: url,
+      }]);
+      toast.success("Фото обновлено");
+      setOpen(false);
+      setPickerOpen(false);
+      window.dispatchEvent(new CustomEvent("cms:invalidate", { detail: { page } }));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Ошибка сохранения");
+    }
+  };
 
   const img = src
     ? <img src={src} alt={alt || blockKey} className={imgClassName} loading="lazy" />
@@ -171,21 +187,40 @@ export function EditableImage({
                 if (f) handleFile(f);
               }}
             />
-            <button
-              type="button"
-              disabled={uploading}
-              onClick={() => fileRef.current?.click()}
-              className="w-full py-3 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              {uploading
-                ? <><Icon name="Loader2" className="animate-spin" size={18} /> Загрузка…</>
-                : <><Icon name="Upload" size={18} /> Выбрать файл</>}
-            </button>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                disabled={uploading}
+                onClick={() => fileRef.current?.click()}
+                className="py-3 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {uploading
+                  ? <><Icon name="Loader2" className="animate-spin" size={18} /> Загрузка…</>
+                  : <><Icon name="Upload" size={18} /> С устройства</>}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setOpen(false); setPickerOpen(true); }}
+                disabled={uploading}
+                className="py-3 bg-slate-800 text-white rounded-lg font-semibold hover:bg-slate-900 disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                <Icon name="ImagePlus" size={18} /> Из библиотеки
+              </button>
+            </div>
             <p className="text-xs text-slate-500 mt-3 text-center">
               Любой формат: JPG, PNG, WebP, AVIF, HEIC, SVG, GIF, BMP, TIFF, ICO
             </p>
           </div>
         </div>
+      )}
+      {pickerOpen && (
+        <MediaPickerModal
+          open={pickerOpen}
+          currentUrl={src}
+          mode="pick"
+          onClose={() => setPickerOpen(false)}
+          onPicked={(url) => saveUrl(url)}
+        />
       )}
     </>
   );

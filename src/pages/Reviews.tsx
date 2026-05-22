@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Icon from "@/components/ui/icon";
+import SiteHeader from "@/components/SiteHeader";
 import { fetchReviews, submitReview, ReviewItem } from "@/lib/api";
 
 const SERVICES = ["Профнастил", "Евроштакетник", "Откатные ворота", "Распашные ворота", "Навесы", "Беседки", "Ковка", "3D-сетка", "Калитки", "Другое"];
@@ -74,24 +75,9 @@ export default function ReviewsPage() {
   return (
     <div className="min-h-screen" style={{ background: "var(--dark-bg)" }}>
       {/* NAV */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-[#1e2230]"
-        style={{ background: "rgba(13,15,20,0.93)", backdropFilter: "blur(16px)" }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
-              <Icon name="Fence" size={18} className="text-gray-900" />
-            </div>
-            <div className="font-oswald font-bold text-white text-lg tracking-wider">
-              СТАЛЬ<span className="text-orange-400">ГРУПП</span>
-            </div>
-          </Link>
-          <a href="tel:+78001234567" className="text-orange-400 flex items-center gap-2 text-sm">
-            <Icon name="Phone" size={15} /> 8 800 123-45-67
-          </a>
-        </div>
-      </nav>
+      <SiteHeader />
 
-      <div className="pt-20 pb-2 bg-[#0a0c10] border-b border-[#1e2230]">
+      <div className="pb-2 bg-[#0a0c10] border-b border-[#1e2230]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-2 text-xs">
           <Link to="/" className="text-white/40 hover:text-orange-400">Главная</Link>
           <Icon name="ChevronRight" size={12} className="text-white/25" />

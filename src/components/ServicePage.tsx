@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Icon from "@/components/ui/icon";
-import SiteLogo from "@/components/SiteLogo";
+import SiteHeader from "@/components/SiteHeader";
 import { useLeadModal } from "@/hooks/useLeadModal";
 import { generatePriceListPDF } from "@/lib/priceListPDF";
 import { sendLead } from "@/lib/api";
@@ -266,37 +266,10 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
       {lead.node}
 
       {/* ── ШАПКА ── */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-[#1e2230]"
-        style={{ background: "rgba(13,15,20,0.93)", backdropFilter: "blur(16px)" }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <SiteLogo size="md" />
-
-            <div className="hidden lg:flex items-center gap-4">
-              <div className="text-right leading-tight">
-                <a href="tel:+78001234567" className="flex items-center gap-1.5 text-orange-400 font-oswald font-medium hover:text-orange-300 transition-colors text-sm justify-end">
-                  <Icon name="Phone" size={14} />
-                  8 800 123-45-67
-                </a>
-                <div className="text-[10px] text-white/35 mt-0.5 flex items-center justify-end gap-1">
-                  <Icon name="Clock" size={10} /> Пн–Сб 8:00–20:00
-                </div>
-              </div>
-              <button className="btn-orange px-5 py-2 rounded-lg text-sm"
-                onClick={() => lead.open({ title: "Вызвать замерщика", subtitle: "Бесплатный замер в день обращения." })}>
-                Вызвать замерщика
-              </button>
-            </div>
-
-            <a href="tel:+78001234567" className="lg:hidden text-orange-400">
-              <Icon name="Phone" size={22} />
-            </a>
-          </div>
-        </div>
-      </nav>
+      <SiteHeader />
 
       {/* ── ХЛЕБНЫЕ КРОШКИ ── */}
-      <div className="pt-20 pb-2 bg-[#0a0c10] border-b border-[#1e2230]">
+      <div className="pb-2 bg-[#0a0c10] border-b border-[#1e2230]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-2 text-xs">
           <Link to="/" className="text-white/40 hover:text-orange-400 transition-colors">Главная</Link>
           <Icon name="ChevronRight" size={12} className="text-white/25" />

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import RichEditor from "@/components/RichEditor";
+import MediaPickerModal from "@/components/MediaPickerModal";
 import {
   adminToken, verifyAdmin,
   fetchAllContentPages, fetchPageContentAdmin, saveContentBlocks,
@@ -428,6 +429,7 @@ interface BlockProps {
 
 function BlockEditor({ block, onChange, onRemove }: BlockProps) {
   const [uploading, setUploading] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const pickImage = async (file: File) => {
     setUploading(true);
@@ -510,6 +512,15 @@ function BlockEditor({ block, onChange, onRemove }: BlockProps) {
               <input type="file" accept="image/*" className="hidden"
                 onChange={e => { const f = e.target.files?.[0]; if (f) pickImage(f); e.target.value = ""; }} />
             </label>
+            <button
+              type="button"
+              onClick={() => setPickerOpen(true)}
+              className="text-xs px-4 py-2 bg-[#0d1017] hover:bg-orange-500/10 text-white/70 hover:text-orange-300 border border-[#1e2230] hover:border-orange-500/50 rounded-lg transition-all flex items-center gap-1.5"
+              title="Выбрать фото из медиа-библиотеки"
+            >
+              <Icon name="ImagePlus" size={14} />
+              Из библиотеки
+            </button>
             {block.value && (
               <button onClick={() => onChange({ value: "" })}
                 className="text-xs px-3 py-2 text-red-400/70 hover:text-red-400 hover:bg-red-500/10 rounded-lg flex items-center gap-1.5">
@@ -517,9 +528,31 @@ function BlockEditor({ block, onChange, onRemove }: BlockProps) {
               </button>
             )}
           </div>
-          <input type="text" value={block.value || ""} onChange={e => onChange({ value: e.target.value })}
-            placeholder="или вставьте URL картинки вручную"
-            className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-lg px-3 py-2 text-xs text-white/70 placeholder:text-white/25 focus:outline-none font-mono" />
+          <div className="flex items-stretch gap-2">
+            <input type="text" value={block.value || ""} onChange={e => onChange({ value: e.target.value })}
+              placeholder="или вставьте URL картинки вручную"
+              className="flex-1 bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-lg px-3 py-2 text-xs text-white/70 placeholder:text-white/25 focus:outline-none font-mono" />
+            <button
+              type="button"
+              onClick={() => setPickerOpen(true)}
+              className="text-xs px-3 py-2 bg-[#0d1017] hover:bg-orange-500/10 text-white/70 hover:text-orange-300 border border-[#1e2230] hover:border-orange-500/50 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap"
+              title="Выбрать фото из медиа-библиотеки"
+            >
+              <Icon name="ImagePlus" size={14} />
+              Из библиотеки
+            </button>
+          </div>
+          <MediaPickerModal
+            open={pickerOpen}
+            mode="pick"
+            currentUrl={block.value || ""}
+            onClose={() => setPickerOpen(false)}
+            onPicked={(url) => {
+              onChange({ value: url });
+              setPickerOpen(false);
+              toast.success("Фото выбрано из библиотеки");
+            }}
+          />
         </div>
       )}
     </div>

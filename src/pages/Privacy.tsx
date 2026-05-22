@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import Icon from "@/components/ui/icon";
+import SiteHeader from "@/components/SiteHeader";
 import { COMPANY } from "@/lib/company";
 
 export default function Privacy() {
@@ -11,17 +12,7 @@ export default function Privacy() {
 
   return (
     <div className="min-h-screen" style={{ background: "var(--dark-bg)" }}>
-      <header className="bg-[#0d0f14] border-b border-[#1e2230] px-4 py-4">
-        <div className="max-w-3xl mx-auto flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 text-white/70 hover:text-orange-400 transition-colors">
-            <Icon name="ArrowLeft" size={18} />
-            <span className="text-sm">На главную</span>
-          </Link>
-          <div className="font-oswald font-bold text-white tracking-wider">
-            СТАЛЬ<span className="text-orange-400">ГРУПП</span>
-          </div>
-        </div>
-      </header>
+      <SiteHeader />
 
       <main className="max-w-3xl mx-auto px-4 py-12 text-white/80">
         <h1 className="font-oswald font-bold text-3xl sm:text-4xl text-white mb-3">

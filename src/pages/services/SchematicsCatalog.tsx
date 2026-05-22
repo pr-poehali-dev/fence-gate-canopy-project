@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import Icon from "@/components/ui/icon";
-import SiteLogo from "@/components/SiteLogo";
+import SiteHeader from "@/components/SiteHeader";
 import { useLeadModal } from "@/hooks/useLeadModal";
 import { useMediaByService } from "@/hooks/useMediaByService";
 
@@ -124,27 +124,10 @@ export default function SchematicsCatalog() {
       {lead.node}
 
       {/* ── ШАПКА ── */}
-      <nav
-        className="fixed top-0 left-0 right-0 z-50 border-b border-[#1e2230]"
-        style={{ background: "rgba(13,15,20,0.93)", backdropFilter: "blur(16px)" }}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <SiteLogo size="md" />
-
-            <Link
-              to="/"
-              className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#1e2230] hover:border-orange-500/50 text-white/70 hover:text-orange-400 transition-colors text-sm"
-            >
-              <Icon name="ChevronLeft" size={16} />
-              <span className="hidden sm:inline">Назад на главную</span>
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <SiteHeader />
 
       {/* ── ХЛЕБНЫЕ КРОШКИ ── */}
-      <div className="pt-20 pb-2 bg-[#0a0c10] border-b border-[#1e2230]">
+      <div className="pb-2 bg-[#0a0c10] border-b border-[#1e2230]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-2 text-xs">
           <Link to="/" className="text-white/40 hover:text-orange-400 transition-colors">
             Главная
