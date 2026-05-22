@@ -112,6 +112,13 @@ export interface ServiceProps {
   showSoilCalculator?:   boolean; // Калькулятор фундамента по грунту
   navesSpec?:            "naves" | "ploshadka" | "zaezd"; // Спец-блок навесов/площадок/заездов
   warrantyYears?:        number;   // Гарантия в годах (по умолчанию 3)
+
+  /** Произвольная вёрстка, вставляется сразу после Hero-секции (до блока «О конструкции»).
+   *  Используется, например, для ленты табов с типами услуги. */
+  afterHero?:            React.ReactNode;
+  /** Произвольная вёрстка, вставляется после блока цен / типов фундамента.
+   *  Используется, например, для секций с детализацией каждого типа услуги. */
+  afterPrices?:          React.ReactNode;
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -433,6 +440,9 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
         </div>
       </section>
 
+      {/* ── СЛОТ: ТАБЫ С ТИПАМИ УСЛУГИ (опционально) ── */}
+      {p.afterHero}
+
       {/* ── ОПИСАНИЕ И ЗАДАЧИ ── */}
       <section className="py-20 bg-[#0a0c10]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -541,6 +551,9 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
           </div>
         </div>
       </section>
+
+      {/* ── СЛОТ: РАСШИРЕННЫЕ СЕКЦИИ ПО ТИПАМ УСЛУГИ (опционально) ── */}
+      {p.afterPrices}
 
       {/* ── ТЕХНИЧЕСКИЕ СТАНДАРТЫ ── */}
       <section className="py-20 bg-[#0a0c10]">

@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Reviews from "./pages/Reviews";
@@ -35,9 +35,7 @@ import Besedki from "./pages/services/Besedki";
 import Foundations from "./pages/services/Foundations";
 import Ploshadki from "./pages/services/Ploshadki";
 import Zaezd from "./pages/services/Zaezd";
-import RostverkFence from "./pages/services/RostverkFence";
-import BrickColumns from "./pages/services/BrickColumns";
-import BlockColumns from "./pages/services/BlockColumns";
+import Stolby from "./pages/services/Stolby";
 import SchematicsCatalog from "./pages/services/SchematicsCatalog";
 
 const queryClient = new QueryClient();
@@ -83,10 +81,16 @@ const App = () => (
           <Route path="/services/betonnye-ploschadki" element={<Ploshadki />} />
           <Route path="/services/zaezd-na-uchastok"   element={<Zaezd />} />
 
-          {/* Новые услуги — заборы на ростверке, кирпичные/блочные столбы, каталог схем */}
-          <Route path="/zabory/na-rostverke"        element={<RostverkFence />} />
-          <Route path="/zabory/kirpichnye-stolby"   element={<BrickColumns />} />
-          <Route path="/zabory/bloki-stolby"        element={<BlockColumns />} />
+          {/* Объединённые услуги (категории с типами на табах) */}
+          <Route path="/uslugi/fundamenty"          element={<Foundations />} />
+          <Route path="/uslugi/stolby"              element={<Stolby />} />
+
+          {/* Старые маршруты — теперь редиректы на категории с якорями к нужному табу */}
+          <Route path="/zabory/na-rostverke"        element={<Navigate to="/uslugi/fundamenty#tab-rostverk" replace />} />
+          <Route path="/zabory/kirpichnye-stolby"   element={<Navigate to="/uslugi/stolby#tab-kirpich" replace />} />
+          <Route path="/zabory/bloki-stolby"        element={<Navigate to="/uslugi/stolby#tab-bloki" replace />} />
+
+          {/* Каталог схем */}
           <Route path="/shemy-chertezi"             element={<SchematicsCatalog />} />
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

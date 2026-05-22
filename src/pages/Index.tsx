@@ -36,10 +36,7 @@ const IMGS = {
   foundation:  heroForService("fundamenty"),
   ploshadki:   heroForService("betonnye-ploschadki"),
   zaezd:       heroForService("zaezd-na-uchastok"),
-  rostverk:    heroForService("zabor-na-rostverke"),
-  kirpich:     heroForService("kirpichnye-stolby"),
-  bloki:       heroForService("bloki-stolby"),
-  shemy:       heroForService("shemy-chertezi"),
+  stolby:      heroForService("stolby"),
 };
 
 const NAV_ITEMS = [
@@ -66,10 +63,8 @@ const PRODUCTS: { img: string; title: string; desc: string; price: string; badge
   { img: IMGS.setka,      title: "Сетка-рабица",         desc: "Оцинкованная Ø2 мм или с ПВХ-покрытием. Быстрый монтаж, дачный вариант.",            price: "от 950 ₽/м.п.",   badge: "Эконом",  href: "/services/setka-rabitsa" },
   { img: IMGS.ploshadki,  title: "Бетонные площадки",    desc: "Площадки под авто и хозблоки. Подготовка основания, армирование, заливка М300.",     price: "от 1 850 ₽/м²",   badge: null,      href: "/services/betonnye-ploschadki" },
   { img: IMGS.zaezd,      title: "Заезд на участок",     desc: "Обустройство въезда: дренаж, труба, бетонирование. Подъезд к воротам в любую погоду.", price: "от 28 000 ₽",     badge: null,      href: "/services/zaezd-na-uchastok" },
-  { img: IMGS.rostverk,   title: "Заборы на ростверке",  desc: "Ленточный фундамент для тяжёлых заборов с кирпичом и ковкой. Не боится пучения грунта.", price: "от 4 200 ₽/м.п.", badge: null,      href: "/zabory/na-rostverke" },
-  { img: IMGS.kirpich,    title: "Кирпичные столбы",     desc: "Премиум-классика — кирпич + любое заполнение (профнастил, штакетник, ковка, 3D-сетка).", price: "от 8 500 ₽/м.п.", badge: "Премиум", href: "/zabory/kirpichnye-stolby" },
-  { img: IMGS.bloki,      title: "Столбы из блоков",     desc: "Декоративные блоки «рваный камень», в 1.5–2 раза дешевле кирпича, монтаж быстрее.",      price: "от 6 500 ₽/м.п.", badge: null,      href: "/zabory/bloki-stolby" },
-  { img: IMGS.shemy,      title: "Схемы и чертежи",       desc: "Каталог технических рисунков и узлов: фундаменты, столбы, ворота, сечения профилей.",   price: "Бесплатно",        badge: null,      href: "/shemy-chertezi" },
+  { img: IMGS.stolby,     title: "Столбы для забора",    desc: "Кирпичные, из декоративных блоков, профильная труба",                                    price: "от 1 200 ₽",       badge: null,      href: "/uslugi/stolby" },
+  { img: IMGS.profnastil, title: "Схемы и чертежи",      desc: "Каталог технических рисунков и узлов",                                                   price: "Бесплатно",        badge: null,      href: "/shemy-chertezi" },
 ];
 
 const SERVICES = [
