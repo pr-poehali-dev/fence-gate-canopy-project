@@ -1,8 +1,10 @@
 import ServicePage from "@/components/ServicePage";
+import { REAL_PHOTOS } from "@/data/real-photos";
 
-const HERO = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/b7745cb1-a649-4a25-9b07-e95c906f6fbc.jpg";
-const SPEC = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/d64b0cdf-11a9-4786-91c1-b6d471fc6382.jpg";
-const ONE  = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/403ab89e-476e-4b55-bdcb-bed17a93cedb.jpg";
+const HERO = REAL_PHOTOS[32];
+const SPEC = REAL_PHOTOS[33];
+const ONE  = REAL_PHOTOS[34];
+const EXTRA = REAL_PHOTOS[35];
 
 export default function Navesy() {
   return (
@@ -71,7 +73,7 @@ export default function Navesy() {
         { img: HERO, name: "Арочный",      desc: "Дуга, классика. Хорошо отводит снег и дождь." },
         { img: SPEC, name: "Двухскатный", desc: "Силуэт домика, симметричный, эстетика." },
         { img: ONE,  name: "Односкатный",  desc: "Уклон в одну сторону. Простой и экономный." },
-        { img: HERO, name: "Полукруг",     desc: "Веерный свод, парадный вид над входом." },
+        { img: EXTRA, name: "Полукруг",     desc: "Веерный свод, парадный вид над входом." },
       ]}
 
       ralColors={[
@@ -100,7 +102,7 @@ export default function Navesy() {
         { img: HERO, location: "Истра, навес на 2 авто",   size: "36 м²" },
         { img: SPEC, location: "Красногорск, терраса",     size: "24 м²" },
         { img: ONE,  location: "Подольск, козырёк",         size: "12 м²" },
-        { img: HERO, location: "Балашиха, беседка",         size: "16 м²" },
+        { img: EXTRA, location: "Балашиха, беседка",         size: "16 м²" },
         { img: SPEC, location: "Одинцово, навес у бассейна", size: "42 м²" },
         { img: ONE,  location: "Мытищи, входная группа",    size: "8 м²" },
       ]}

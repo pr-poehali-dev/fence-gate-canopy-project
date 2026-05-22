@@ -1,6 +1,10 @@
 import ServicePage from "@/components/ServicePage";
+import { REAL_PHOTOS } from "@/data/real-photos";
 
-const IMG = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/bf0415ba-1e17-4841-9b0b-4253257277c6.jpg";
+const HERO = REAL_PHOTOS[3];
+const IMG = REAL_PHOTOS[8];
+const IMG2 = REAL_PHOTOS[13];
+const IMG3 = REAL_PHOTOS[18];
 
 export default function Zaezd() {
   return (
@@ -21,7 +25,7 @@ export default function Zaezd() {
       ]}
       startPrice="28 000 ₽"
       priceUnit="заезд 6 м с трубой Ø 300 мм, под ключ"
-      heroImg={IMG}
+      heroImg={HERO}
 
       aboutTitle="Заезд через канаву — это инженерное сооружение"
       aboutText={`Многие думают, что заезд — это «насыпать щебня и положить трубу». На деле — это инженерное сооружение с расчётом потока воды, защитой от размыва и согласованием. Если сделать неправильно: труба забивается через год, канава переполняется, дорогу размывает, и вы получаете предписание от администрации убрать заезд.
@@ -61,9 +65,9 @@ export default function Zaezd() {
 
       profileTypes={[
         { img: IMG, name: "ПНД Ø 300 мм",         desc: "Для дренажной канавы, до 5 л/с." },
-        { img: IMG, name: "ПНД Ø 400 мм",         desc: "Стандарт для ливневой канавы, до 15 л/с." },
-        { img: IMG, name: "ПНД Ø 500 мм",         desc: "Для магистральных канав, до 30 л/с." },
-        { img: IMG, name: "Двойной заезд (2×500)", desc: "Большая канава с интенсивным стоком." },
+        { img: IMG2, name: "ПНД Ø 400 мм",         desc: "Стандарт для ливневой канавы, до 15 л/с." },
+        { img: IMG3, name: "ПНД Ø 500 мм",         desc: "Для магистральных канав, до 30 л/с." },
+        { img: HERO, name: "Двойной заезд (2×500)", desc: "Большая канава с интенсивным стоком." },
       ]}
 
       ralColors={[
@@ -80,9 +84,9 @@ export default function Zaezd() {
       ]}
 
       portfolio={[
-        { img: IMG, location: "Истра, заезд 6 м с трубой Ø 400",    size: "Ø 400 мм" },
-        { img: IMG, location: "Чапаевка, два заезда + парковка",     size: "8+6 м" },
-        { img: IMG, location: "Подольск, асфальтовое покрытие",       size: "Ø 500 мм" },
+        { img: HERO, location: "Истра, заезд 6 м с трубой Ø 400",    size: "Ø 400 мм" },
+        { img: IMG2, location: "Чапаевка, два заезда + парковка",     size: "8+6 м" },
+        { img: IMG3, location: "Подольск, асфальтовое покрытие",       size: "Ø 500 мм" },
         { img: IMG, location: "Назарьево, КП «Лесной»",                size: "Ø 300 мм" },
       ]}
 

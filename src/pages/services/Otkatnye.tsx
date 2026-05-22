@@ -1,7 +1,10 @@
 import ServicePage from "@/components/ServicePage";
+import { REAL_PHOTOS } from "@/data/real-photos";
 
-const HERO = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/ff877075-afb4-4e02-a676-3bece261bb22.jpg";
-const SPEC = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/bf0415ba-1e17-4841-9b0b-4253257277c6.jpg";
+const HERO = REAL_PHOTOS[20];
+const SPEC = REAL_PHOTOS[21];
+const IMG2 = REAL_PHOTOS[22];
+const IMG3 = REAL_PHOTOS[23];
 
 export default function Otkatnye() {
   return (
@@ -68,9 +71,9 @@ export default function Otkatnye() {
 
       profileTypes={[
         { img: SPEC, name: "Профнастил",      desc: "Бюджет, любой цвет, глухое полотно." },
-        { img: SPEC, name: "Евроштакетник",   desc: "Изящный вид, двусторонняя покраска." },
-        { img: SPEC, name: "Ковка + сэндвич", desc: "Премиум. Кованые элементы + утепление." },
-        { img: SPEC, name: "Без зашивки",      desc: "Только каркас под последующую отделку." },
+        { img: IMG2, name: "Евроштакетник",   desc: "Изящный вид, двусторонняя покраска." },
+        { img: IMG3, name: "Ковка + сэндвич", desc: "Премиум. Кованые элементы + утепление." },
+        { img: HERO, name: "Без зашивки",      desc: "Только каркас под последующую отделку." },
       ]}
 
       ralColors={[
@@ -95,11 +98,11 @@ export default function Otkatnye() {
 
       portfolio={[
         { img: HERO, location: "Истра, КП «Лесной»",         size: "4.5 м" },
-        { img: HERO, location: "Красногорск, частный дом",   size: "4 м" },
-        { img: HERO, location: "Одинцово, склад",            size: "8 м" },
-        { img: HERO, location: "Балашиха, автоцентр",        size: "6 м" },
+        { img: SPEC, location: "Красногорск, частный дом",   size: "4 м" },
+        { img: IMG2, location: "Одинцово, склад",            size: "8 м" },
+        { img: IMG3, location: "Балашиха, автоцентр",        size: "6 м" },
         { img: HERO, location: "Подольск, частный дом",      size: "4 м" },
-        { img: HERO, location: "Мытищи, база отдыха",        size: "5 м" },
+        { img: IMG2, location: "Мытищи, база отдыха",        size: "5 м" },
       ]}
 
       faq={[

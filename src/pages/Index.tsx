@@ -12,19 +12,23 @@ import EditableBgPhoto from "@/components/EditableBgPhoto";
 import { EditableText, EditableImage } from "@/components/InlineEditor";
 import QuickQuoteForm from "@/components/QuickQuoteForm";
 import CalculatorWizard from "@/components/CalculatorWizard";
+import RealPhotosGallery from "@/components/RealPhotosGallery";
+
+import { REAL_PHOTOS } from "@/data/real-photos";
 
 // ── Изображения ─────────────────────────────────────────────────────────────
+// Реальные фото объектов СтальГрупп с Яндекс.Диска (импорт 2026-05-22)
 const IMGS = {
-  hero:        "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/2079e15b-8c94-41fe-af55-22ca5d4a8c4d.jpg",
-  portfolio:   "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/d0c5373a-0046-48b2-aba5-5d4847056985.jpg",
-  profnastil:  "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/f86747e7-05d4-436c-8ce3-9f802ae0b25f.jpg",
-  kovka:       "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/884f6229-a60c-45db-baf0-1c2a081a42de.jpg",
-  mesh3d:      "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/0f46f0bc-e0e1-4e23-aeb0-c70f71f3644b.jpg",
-  gates:       "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/ff877075-afb4-4e02-a676-3bece261bb22.jpg",
-  canopy:      "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/b7745cb1-a649-4a25-9b07-e95c906f6fbc.jpg",
-  euro:        "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/81e66b5f-be0c-4f79-a8a9-63ff2cc60584.jpg",
-  foundation:  "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/a05b59ea-6634-4972-8292-732a7a06a1d3.jpg",
-  gazebo:      "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/5c71ebc7-9ec2-4322-957b-f72950d9e5af.jpg",
+  hero:        REAL_PHOTOS[7],   // лучший пейзажный план — на hero
+  portfolio:   REAL_PHOTOS[13],
+  profnastil:  REAL_PHOTOS[8],
+  kovka:       REAL_PHOTOS[34],
+  mesh3d:      REAL_PHOTOS[19],
+  gates:       REAL_PHOTOS[10],
+  canopy:      REAL_PHOTOS[15],
+  euro:        REAL_PHOTOS[22],
+  foundation:  REAL_PHOTOS[28],
+  gazebo:      REAL_PHOTOS[31],
 };
 
 const NAV_ITEMS = [
@@ -829,6 +833,9 @@ export default function Index() {
           </div>
         </div>
       </section>
+
+      {/* НАШИ РАБОТЫ — реальные фото */}
+      <RealPhotosGallery />
 
       {/* ПРОДУКЦИЯ */}
       <section id="products" className="py-24 bg-[#0a0c10]">

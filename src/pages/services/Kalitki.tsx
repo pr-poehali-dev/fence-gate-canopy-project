@@ -1,6 +1,10 @@
 import ServicePage from "@/components/ServicePage";
+import { REAL_PHOTOS } from "@/data/real-photos";
 
-const IMG = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/05b3de60-7f13-42d7-bc76-76327b8db6b9.jpg";
+const HERO = REAL_PHOTOS[28];
+const IMG = REAL_PHOTOS[29];
+const IMG2 = REAL_PHOTOS[30];
+const IMG3 = REAL_PHOTOS[31];
 
 export default function Kalitki() {
   return (
@@ -21,7 +25,7 @@ export default function Kalitki() {
       ]}
       startPrice="9 500 ₽"
       priceUnit="стандартная калитка 1×2 м, профнастил"
-      heroImg={IMG}
+      heroImg={HERO}
 
       aboutTitle="Калитка — лицо вашего участка"
       aboutText={`Калитка — самый часто используемый элемент периметра. Поэтому важны не только эстетика, но и надёжность фурнитуры: качественный замок, петли без скрипа, удобная ручка.
@@ -58,9 +62,9 @@ export default function Kalitki() {
 
       profileTypes={[
         { img: IMG, name: "Профнастил",    desc: "Бюджет, в цвет забора." },
-        { img: IMG, name: "Евроштакетник", desc: "Двусторонняя покраска." },
-        { img: IMG, name: "Кованая",        desc: "Премиум, индивидуальный эскиз." },
-        { img: IMG, name: "Со стеклом",     desc: "С декоративной вставкой из закалённого стекла." },
+        { img: IMG2, name: "Евроштакетник", desc: "Двусторонняя покраска." },
+        { img: IMG3, name: "Кованая",        desc: "Премиум, индивидуальный эскиз." },
+        { img: HERO, name: "Со стеклом",     desc: "С декоративной вставкой из закалённого стекла." },
       ]}
 
       ralColors={[
@@ -78,9 +82,9 @@ export default function Kalitki() {
       ]}
 
       portfolio={[
-        { img: IMG, location: "Люберцы, дом с домофоном",   size: "1×2 м" },
-        { img: IMG, location: "Чапаевка, кованая калитка",  size: "1×2.2 м" },
-        { img: IMG, location: "Назарьево, узкая 0.8 м",     size: "0.8×2 м" },
+        { img: HERO, location: "Люберцы, дом с домофоном",   size: "1×2 м" },
+        { img: IMG2, location: "Чапаевка, кованая калитка",  size: "1×2.2 м" },
+        { img: IMG3, location: "Назарьево, узкая 0.8 м",     size: "0.8×2 м" },
       ]}
 
       faq={[

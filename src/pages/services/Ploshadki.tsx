@@ -1,6 +1,10 @@
 import ServicePage from "@/components/ServicePage";
+import { REAL_PHOTOS } from "@/data/real-photos";
 
-const IMG = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/bf0415ba-1e17-4841-9b0b-4253257277c6.jpg";
+const HERO = REAL_PHOTOS[2];
+const IMG = REAL_PHOTOS[7];
+const IMG2 = REAL_PHOTOS[12];
+const IMG3 = REAL_PHOTOS[17];
 
 export default function Ploshadki() {
   return (
@@ -21,7 +25,7 @@ export default function Ploshadki() {
       ]}
       startPrice="1 850 ₽"
       priceUnit="за 1 м² площадки под легковой авто, под ключ с материалами"
-      heroImg={IMG}
+      heroImg={HERO}
 
       aboutTitle="Бетонная площадка — это не «залить и забыть»"
       aboutText={`Бетонная площадка под авто — инженерное сооружение, которое должно выдерживать вес машины, циклы заморозки-разморозки и не лопаться от пучения грунта. Делаем по технологии монолитного пола: 5 слоёв с геотекстилем, дренажем из щебня, армированной плитой М300 с компенсационными швами.
@@ -61,9 +65,9 @@ export default function Ploshadki() {
 
       profileTypes={[
         { img: IMG, name: "Затирка вертолётом", desc: "Гладкая ровная поверхность с минимальной пористостью." },
-        { img: IMG, name: "Железнение",         desc: "Втирание сухого цемента — упрочнение верхнего слоя." },
-        { img: IMG, name: "Шлифовка под лак",   desc: "Полированный бетон, премиум-вид, для гаражей и террас." },
-        { img: IMG, name: "Метлой (антискольз.)", desc: "Шершавая фактура для уклонов и зон с дождём." },
+        { img: IMG2, name: "Железнение",         desc: "Втирание сухого цемента — упрочнение верхнего слоя." },
+        { img: IMG3, name: "Шлифовка под лак",   desc: "Полированный бетон, премиум-вид, для гаражей и террас." },
+        { img: HERO, name: "Метлой (антискольз.)", desc: "Шершавая фактура для уклонов и зон с дождём." },
       ]}
 
       ralColors={[
@@ -80,9 +84,9 @@ export default function Ploshadki() {
       ]}
 
       portfolio={[
-        { img: IMG, location: "Истра, парковка 2 авто",      size: "32 м²" },
-        { img: IMG, location: "Красногорск, под навесом",    size: "48 м²" },
-        { img: IMG, location: "Подольск, зона BBQ",          size: "24 м²" },
+        { img: HERO, location: "Истра, парковка 2 авто",      size: "32 м²" },
+        { img: IMG2, location: "Красногорск, под навесом",    size: "48 м²" },
+        { img: IMG3, location: "Подольск, зона BBQ",          size: "24 м²" },
         { img: IMG, location: "Балашиха, заезд для грузовика", size: "60 м²" },
       ]}
 

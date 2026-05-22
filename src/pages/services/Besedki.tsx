@@ -1,6 +1,10 @@
 import ServicePage from "@/components/ServicePage";
+import { REAL_PHOTOS } from "@/data/real-photos";
 
-const IMG = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/ece778d8-73e4-4bbe-9f26-232c2b9b69c2.jpg";
+const HERO = REAL_PHOTOS[36];
+const IMG = REAL_PHOTOS[37];
+const IMG2 = REAL_PHOTOS[38];
+const IMG3 = REAL_PHOTOS[39];
 
 export default function Besedki() {
   return (
@@ -21,7 +25,7 @@ export default function Besedki() {
       ]}
       startPrice="85 000 ₽"
       priceUnit="беседка 3×3 м под ключ с кровлей"
-      heroImg={IMG}
+      heroImg={HERO}
 
       aboutTitle="Беседка из металла — навсегда"
       aboutText={`Металлическая беседка превосходит деревянную по сроку службы (50+ лет vs 15–20) и не требует ежегодной обработки от грибка и насекомых.
@@ -61,9 +65,9 @@ export default function Besedki() {
 
       profileTypes={[
         { img: IMG, name: "Квадратная",     desc: "Классика 3×3, 4×4." },
-        { img: IMG, name: "Прямоугольная", desc: "Банкетная зона 6×4, 8×4." },
-        { img: IMG, name: "Шестигранная",   desc: "Премиум, обзор на 360°." },
-        { img: IMG, name: "Пергола",         desc: "Без сплошной кровли, под виноград." },
+        { img: IMG2, name: "Прямоугольная", desc: "Банкетная зона 6×4, 8×4." },
+        { img: IMG3, name: "Шестигранная",   desc: "Премиум, обзор на 360°." },
+        { img: HERO, name: "Пергола",         desc: "Без сплошной кровли, под виноград." },
       ]}
 
       ralColors={[
@@ -81,9 +85,9 @@ export default function Besedki() {
       ]}
 
       portfolio={[
-        { img: IMG, location: "Назарьево, 4×4 беседка",  size: "16 м²" },
-        { img: IMG, location: "Чапаевка, шестигранная", size: "12 м²" },
-        { img: IMG, location: "Астрецово, пергола",      size: "12 м²" },
+        { img: HERO, location: "Назарьево, 4×4 беседка",  size: "16 м²" },
+        { img: IMG2, location: "Чапаевка, шестигранная", size: "12 м²" },
+        { img: IMG3, location: "Астрецово, пергола",      size: "12 м²" },
       ]}
 
       faq={[

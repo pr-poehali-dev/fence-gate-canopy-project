@@ -1,6 +1,10 @@
 import ServicePage from "@/components/ServicePage";
+import { REAL_PHOTOS } from "@/data/real-photos";
 
-const IMG = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/86dc400a-a244-4829-a08f-2cb7c250ec44.jpg";
+const HERO = REAL_PHOTOS[12];
+const IMG = REAL_PHOTOS[13];
+const IMG2 = REAL_PHOTOS[14];
+const IMG3 = REAL_PHOTOS[15];
 
 export default function Rabitsa() {
   return (
@@ -21,7 +25,7 @@ export default function Rabitsa() {
       ]}
       startPrice="950 ₽"
       priceUnit="за погонный метр (h=1.5 м, оцинковка)"
-      heroImg={IMG}
+      heroImg={HERO}
 
       aboutTitle="Сетка-рабица — классика дачного забора"
       aboutText={`Изготавливается из оцинкованной проволоки Ø2 мм методом скручивания. Размер ячейки 50×50 мм. Может натягиваться между столбами или крепиться в готовые секции с рамкой.
@@ -62,9 +66,9 @@ export default function Rabitsa() {
 
       profileTypes={[
         { img: IMG, name: "Натяжная",        desc: "Натягивается между столбами. Эконом." },
-        { img: IMG, name: "В секциях",       desc: "С металлической рамкой. Жёсткий вид." },
-        { img: IMG, name: "С ПВХ-покрытием", desc: "Цветная, защищена от коррозии." },
-        { img: IMG, name: "Спортивная",      desc: "Высота 3–6 м, для площадок." },
+        { img: IMG2, name: "В секциях",       desc: "С металлической рамкой. Жёсткий вид." },
+        { img: IMG3, name: "С ПВХ-покрытием", desc: "Цветная, защищена от коррозии." },
+        { img: HERO, name: "Спортивная",      desc: "Высота 3–6 м, для площадок." },
       ]}
 
       ralColors={[
@@ -80,9 +84,9 @@ export default function Rabitsa() {
       ]}
 
       portfolio={[
-        { img: IMG, location: "Чапаевка, дача 6 соток",      size: "80 м" },
-        { img: IMG, location: "Астрецово, садовое товарищество", size: "180 м" },
-        { img: IMG, location: "Назарьево, между соседями",   size: "45 м" },
+        { img: HERO, location: "Чапаевка, дача 6 соток",      size: "80 м" },
+        { img: IMG2, location: "Астрецово, садовое товарищество", size: "180 м" },
+        { img: IMG3, location: "Назарьево, между соседями",   size: "45 м" },
       ]}
 
       faq={[

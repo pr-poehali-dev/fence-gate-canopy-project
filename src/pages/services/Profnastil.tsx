@@ -1,12 +1,13 @@
 import ServicePage from "@/components/ServicePage";
+import { REAL_PHOTOS } from "@/data/real-photos";
 
 // Реальные фото объектов
-const HERO = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/f86747e7-05d4-436c-8ce3-9f802ae0b25f.jpg"; // вид с фасада (лицевая сторона)
-const BACK = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/530aa3a1-da44-4c46-93be-66c6a2ec3b0d.jpg"; // вид сзади (тыльная сторона)
-// Схемы профилей — реальные ТУ-чертежи
-const SCHEME_C21 = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/5f11a16b-9c82-4ded-bcc4-5528ce40c402.jpg";
-const SCHEME_C20 = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/fc020601-97b3-4613-938e-1d3f6553dd66.png";
-const SCHEME_C8  = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/183fdff6-83fe-487f-9c8e-99291c4c7ffa.png";
+const HERO = REAL_PHOTOS[0]; // вид с фасада (лицевая сторона)
+const BACK = REAL_PHOTOS[1]; // вид сзади (тыльная сторона)
+// Схемы профилей — используем реальные фото
+const SCHEME_C21 = REAL_PHOTOS[2];
+const SCHEME_C20 = REAL_PHOTOS[3];
+const SCHEME_C8  = REAL_PHOTOS[1];
 const SPEC = SCHEME_C20; // главная техническая схема в блоке «Характеристики»
 
 export default function Profnastil() {

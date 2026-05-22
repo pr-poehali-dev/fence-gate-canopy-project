@@ -1,6 +1,10 @@
 import ServicePage from "@/components/ServicePage";
+import { REAL_PHOTOS } from "@/data/real-photos";
 
-const IMG = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/bf0415ba-1e17-4841-9b0b-4253257277c6.jpg";
+const HERO = REAL_PHOTOS[0];
+const IMG = REAL_PHOTOS[5];
+const IMG2 = REAL_PHOTOS[10];
+const IMG3 = REAL_PHOTOS[15];
 
 export default function Foundations() {
   return (
@@ -21,7 +25,7 @@ export default function Foundations() {
       ]}
       startPrice="650 ₽"
       priceUnit="за погонный метр (бутование лёгкого забора)"
-      heroImg={IMG}
+      heroImg={HERO}
 
       aboutTitle="Фундамент — основа долговечности забора"
       aboutText={`Правильный фундамент решает 80% долговечности забора. Неправильный вызывает «гуляние» столбов через 2–3 зимы и переустановку всего ограждения.
@@ -63,9 +67,9 @@ export default function Foundations() {
 
       profileTypes={[
         { img: IMG, name: "Бутование",         desc: "Щебень + трамбовка." },
-        { img: IMG, name: "Бетонирование",     desc: "Цемент М300 на 1.2 м." },
-        { img: IMG, name: "Винтовые сваи",     desc: "Готово в день монтажа." },
-        { img: IMG, name: "Ленточный монолит", desc: "Премиум, с цоколем." },
+        { img: IMG2, name: "Бетонирование",     desc: "Цемент М300 на 1.2 м." },
+        { img: IMG3, name: "Винтовые сваи",     desc: "Готово в день монтажа." },
+        { img: HERO, name: "Ленточный монолит", desc: "Премиум, с цоколем." },
       ]}
 
       ralColors={[]}
@@ -77,9 +81,9 @@ export default function Foundations() {
       ]}
 
       portfolio={[
-        { img: IMG, location: "Назарьево, ленточный 180 м",   size: "180 м" },
-        { img: IMG, location: "Чапаевка, сваи на торфе",      size: "85 столбов" },
-        { img: IMG, location: "Астрецово, бетонирование",     size: "120 столбов" },
+        { img: HERO, location: "Назарьево, ленточный 180 м",   size: "180 м" },
+        { img: IMG2, location: "Чапаевка, сваи на торфе",      size: "85 столбов" },
+        { img: IMG3, location: "Астрецово, бетонирование",     size: "120 столбов" },
       ]}
 
       faq={[

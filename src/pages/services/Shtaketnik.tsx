@@ -1,21 +1,22 @@
 import ServicePage from "@/components/ServicePage";
+import { REAL_PHOTOS } from "@/data/real-photos";
 
-const HERO = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/38af28b8-31ba-4557-bce3-e68c55e652a0.jpg";
-const SPEC = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/44d5ac56-87ae-48a2-9774-d0b19b6a5de3.jpg";
+const HERO = REAL_PHOTOS[4];
+const SPEC = REAL_PHOTOS[5];
 
-const PROF_M = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/6cc32be8-9c98-4a55-9e60-3921445c90cf.jpg";
-const PROF_P = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/15712479-febc-4c2c-89f3-4626d5d5ab48.jpg";
-const PROF_PD = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/c26c206b-b6a6-4fde-a03d-b53f0ba7d51e.jpg";
-const CUT_ROUND = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/5c40bc97-e1de-4b7f-a0d1-57f849e6f13e.jpg";
-const CUT_STRAIGHT = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/efc7b128-fa4c-4ec2-afe3-f7e839fa0b6e.jpg";
-const INSTALL_CHESS = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/ccc7dba9-4039-425b-925c-ce08f22497ed.jpg";
-const INSTALL_SINGLE = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/b83cd4b5-9a56-4745-987d-9e2208df2561.jpg";
-const ORIENT_HORIZ = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/b34c0ef5-1aed-4f68-af68-51e99a6ea5ce.jpg";
-const ORIENT_VERT = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/a21b8fcd-c1d4-40ee-9baa-341d9834ebe1.jpg";
+const PROF_M = REAL_PHOTOS[6];
+const PROF_P = REAL_PHOTOS[7];
+const PROF_PD = REAL_PHOTOS[5];
+const CUT_ROUND = REAL_PHOTOS[6];
+const CUT_STRAIGHT = REAL_PHOTOS[7];
+const INSTALL_CHESS = REAL_PHOTOS[4];
+const INSTALL_SINGLE = REAL_PHOTOS[5];
+const ORIENT_HORIZ = REAL_PHOTOS[6];
+const ORIENT_VERT = REAL_PHOTOS[7];
 
-const P1 = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/a2d5d769-5a87-4e5f-8469-1445ffd91ca0.jpg";
-const P2 = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/5d958160-34c8-48f5-a1a6-b1dee8f035e1.jpg";
-const P3 = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/9cc561bd-cc64-41e1-861c-58f089163fc0.jpg";
+const P1 = REAL_PHOTOS[4];
+const P2 = REAL_PHOTOS[5];
+const P3 = REAL_PHOTOS[6];
 
 export default function Shtaketnik() {
   return (

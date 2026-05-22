@@ -1,6 +1,10 @@
 import ServicePage from "@/components/ServicePage";
+import { REAL_PHOTOS } from "@/data/real-photos";
 
-const IMG = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/ff877075-afb4-4e02-a676-3bece261bb22.jpg";
+const HERO = REAL_PHOTOS[24];
+const IMG = REAL_PHOTOS[25];
+const IMG2 = REAL_PHOTOS[26];
+const IMG3 = REAL_PHOTOS[27];
 
 export default function Raspashnye() {
   return (
@@ -21,7 +25,7 @@ export default function Raspashnye() {
       ]}
       startPrice="42 000 ₽"
       priceUnit="ширина проёма 3.5 м, наполнение профнастил"
-      heroImg={IMG}
+      heroImg={HERO}
 
       aboutTitle="Когда выбирать распашные ворота"
       aboutText={`Распашная схема — самое простое и надёжное решение. Створки крепятся на регулируемые петли с подшипниками к опорным столбам и открываются внутрь или наружу.
@@ -59,9 +63,9 @@ export default function Raspashnye() {
 
       profileTypes={[
         { img: IMG, name: "Профнастил",     desc: "Бюджет, любой цвет." },
-        { img: IMG, name: "Евроштакетник",  desc: "Изящный вид." },
-        { img: IMG, name: "Ковка",           desc: "Премиум, индивидуальный эскиз." },
-        { img: IMG, name: "Сэндвич-панели",  desc: "Утеплённые ворота для гаражей." },
+        { img: IMG2, name: "Евроштакетник",  desc: "Изящный вид." },
+        { img: IMG3, name: "Ковка",           desc: "Премиум, индивидуальный эскиз." },
+        { img: HERO, name: "Сэндвич-панели",  desc: "Утеплённые ворота для гаражей." },
       ]}
 
       ralColors={[
@@ -78,9 +82,9 @@ export default function Raspashnye() {
       ]}
 
       portfolio={[
-        { img: IMG, location: "Люберцы, частный дом",       size: "3.5 м" },
-        { img: IMG, location: "Чапаевка, дача",              size: "3 м" },
-        { img: IMG, location: "Назарьево, КП «Лесной»",     size: "4 м" },
+        { img: HERO, location: "Люберцы, частный дом",       size: "3.5 м" },
+        { img: IMG2, location: "Чапаевка, дача",              size: "3 м" },
+        { img: IMG3, location: "Назарьево, КП «Лесной»",     size: "4 м" },
         { img: IMG, location: "Астрецово, кованые ворота",  size: "3.5 м" },
       ]}
 

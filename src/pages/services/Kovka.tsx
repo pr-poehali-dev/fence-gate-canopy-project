@@ -1,6 +1,10 @@
 import ServicePage from "@/components/ServicePage";
+import { REAL_PHOTOS } from "@/data/real-photos";
 
-const IMG = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/a79c10b9-f8c9-47b8-8c8e-f9114b137334.jpg";
+const HERO = REAL_PHOTOS[16];
+const IMG = REAL_PHOTOS[17];
+const IMG2 = REAL_PHOTOS[18];
+const IMG3 = REAL_PHOTOS[19];
 
 export default function Kovka() {
   return (
@@ -21,7 +25,7 @@ export default function Kovka() {
       ]}
       startPrice="5 500 ₽"
       priceUnit="за погонный метр (стандартный кованый забор)"
-      heroImg={IMG}
+      heroImg={HERO}
 
       aboutTitle="Художественная ковка — искусство в металле"
       aboutText={`Используем технологию горячей ковки: пруток нагревается в горне до 1100 °C и куётся вручную на наковальне. Это даёт уникальный текстурированный рисунок, который невозможно повторить штамповкой.
@@ -62,9 +66,9 @@ export default function Kovka() {
 
       profileTypes={[
         { img: IMG, name: "Классика",     desc: "Завитки и пики, традиционный стиль." },
-        { img: IMG, name: "Барокко",      desc: "Сложные узоры, ажурные элементы." },
-        { img: IMG, name: "Модерн",       desc: "Лаконичные линии, минимализм." },
-        { img: IMG, name: "Авторский",    desc: "По вашему эскизу или фото." },
+        { img: IMG2, name: "Барокко",      desc: "Сложные узоры, ажурные элементы." },
+        { img: IMG3, name: "Модерн",       desc: "Лаконичные линии, минимализм." },
+        { img: HERO, name: "Авторский",    desc: "По вашему эскизу или фото." },
       ]}
 
       ralColors={[
@@ -84,12 +88,12 @@ export default function Kovka() {
       ]}
 
       portfolio={[
-        { img: IMG, location: "Назарьево, усадьба",          size: "120 м" },
+        { img: HERO, location: "Назарьево, усадьба",          size: "120 м" },
         { img: IMG, location: "Истра, частный дом",           size: "85 м" },
-        { img: IMG, location: "Астрецово, кованые ворота",   size: "4 м" },
-        { img: IMG, location: "Чапаевка, перила парадные",   size: "12 м" },
-        { img: IMG, location: "Люберцы, козырёк кованый",    size: "1 шт" },
-        { img: IMG, location: "Реутов, балконные ограждения", size: "6 шт" },
+        { img: IMG2, location: "Астрецово, кованые ворота",   size: "4 м" },
+        { img: IMG3, location: "Чапаевка, перила парадные",   size: "12 м" },
+        { img: HERO, location: "Люберцы, козырёк кованый",    size: "1 шт" },
+        { img: IMG2, location: "Реутов, балконные ограждения", size: "6 шт" },
       ]}
 
       faq={[

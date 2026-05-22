@@ -1,6 +1,10 @@
 import ServicePage from "@/components/ServicePage";
+import { REAL_PHOTOS } from "@/data/real-photos";
 
-const IMG = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/files/86dc400a-a244-4829-a08f-2cb7c250ec44.jpg";
+const HERO = REAL_PHOTOS[8];
+const IMG = REAL_PHOTOS[9];
+const IMG2 = REAL_PHOTOS[10];
+const IMG3 = REAL_PHOTOS[11];
 
 export default function Mesh3D() {
   return (
@@ -21,7 +25,7 @@ export default function Mesh3D() {
       ]}
       startPrice="1 900 ₽"
       priceUnit="за погонный метр (высота 2 м, пруток Ø5 мм)"
-      heroImg={IMG}
+      heroImg={HERO}
 
       aboutTitle="Современный сварной 3D-забор"
       aboutText={`Секции изготавливаются из горячеоцинкованного прутка диаметром 4–6 мм, с двойными V-образными изгибами для жёсткости. Сверху наносится полимерное покрытие RAL по каталогу.
@@ -62,9 +66,9 @@ export default function Mesh3D() {
 
       profileTypes={[
         { img: IMG, name: "Стандарт 50×200", desc: "Универсал для частных домов." },
-        { img: IMG, name: "Антивандал 75×150", desc: "Школы, КП, охранные периметры." },
-        { img: IMG, name: "Спортивный", desc: "Стадионы, площадки. Высота от 3 м." },
-        { img: IMG, name: "С пиками сверху", desc: "Дополнительная защита периметра." },
+        { img: IMG2, name: "Антивандал 75×150", desc: "Школы, КП, охранные периметры." },
+        { img: IMG3, name: "Спортивный", desc: "Стадионы, площадки. Высота от 3 м." },
+        { img: HERO, name: "С пиками сверху", desc: "Дополнительная защита периметра." },
       ]}
 
       ralColors={[
@@ -83,12 +87,12 @@ export default function Mesh3D() {
       ]}
 
       portfolio={[
-        { img: IMG, location: "Астрецово, школа №12",       size: "240 м" },
+        { img: HERO, location: "Астрецово, школа №12",       size: "240 м" },
         { img: IMG, location: "Назарьево, КП «Лесной»",    size: "180 м" },
-        { img: IMG, location: "Чапаевка, частный дом",      size: "85 м" },
-        { img: IMG, location: "Люберцы, детский сад №5",   size: "320 м" },
+        { img: IMG2, location: "Чапаевка, частный дом",      size: "85 м" },
+        { img: IMG3, location: "Люберцы, детский сад №5",   size: "320 м" },
         { img: IMG, location: "Реутов, спортплощадка",     size: "120 м" },
-        { img: IMG, location: "Балашиха, складская база", size: "450 м" },
+        { img: IMG2, location: "Балашиха, складская база", size: "450 м" },
       ]}
 
       faq={[
