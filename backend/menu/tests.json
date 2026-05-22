@@ -1,0 +1,29 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "GET публичное меню — дерево",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "GET flat без админа — 401",
+      "method": "GET",
+      "path": "/?flat=1",
+      "expectedStatus": 401
+    },
+    {
+      "name": "POST без авторизации — 401",
+      "method": "POST",
+      "path": "/",
+      "expectedStatus": 401,
+      "body": "{\"action\":\"upsert\",\"label\":\"X\"}"
+    }
+  ]
+}

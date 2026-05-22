@@ -11,6 +11,8 @@ import Admin from "./pages/Admin";
 import AdminLeads from "./pages/AdminLeads";
 import AdminContent from "./pages/AdminContent";
 import AdminMedia from "./pages/AdminMedia";
+import AdminMenu from "./pages/AdminMenu";
+import AdminPrices from "./pages/AdminPrices";
 import ErpLogin from "./pages/ErpLogin";
 import ErpDashboard from "./pages/ErpDashboard";
 import ErpEmployees from "./pages/ErpEmployees";
@@ -56,6 +58,8 @@ const App = () => (
           <Route path="/admin/leads" element={<AdminLeads />} />
           <Route path="/admin/content" element={<AdminContent />} />
           <Route path="/admin/media" element={<AdminMedia />} />
+          <Route path="/admin/menu" element={<AdminMenu />} />
+          <Route path="/admin/prices" element={<AdminPrices />} />
           <Route path="/erp/login" element={<ErpLogin />} />
           <Route path="/erp" element={<ErpDashboard />} />
           <Route path="/erp/employees" element={<ErpEmployees />} />

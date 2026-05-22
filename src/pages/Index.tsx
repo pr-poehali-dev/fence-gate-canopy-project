@@ -1238,8 +1238,13 @@ export default function Index() {
 
             {/* Лого + о компании */}
             <div>
-              <div className="mb-4">
-                <SiteLogo size="md" />
+              <div className="mb-4 flex items-center gap-2">
+                <div className="w-9 h-9 bg-orange-500 rounded-lg flex items-center justify-center">
+                  <Icon name="Fence" size={18} className="text-gray-900" />
+                </div>
+                <div className="font-oswald font-bold text-white text-xl leading-none">
+                  Сталь<span className="text-orange-400">Групп</span>
+                </div>
               </div>
               <p className="text-white/40 text-sm leading-relaxed mb-4">
                 Производим и устанавливаем заборы, ворота, навесы и беседки под ключ. 1 200+ сданных объектов по всей России.

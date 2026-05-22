@@ -295,6 +295,12 @@ export default function Admin() {
             <Link to="/admin/media" className="text-green-300/90 hover:text-green-300 text-xs flex items-center gap-1 px-2.5 py-1 border border-green-500/30 hover:border-green-500/60 rounded-lg transition-all">
               <Icon name="Image" size={13} /> Медиа
             </Link>
+            <Link to="/admin/menu" className="text-sky-300/90 hover:text-sky-300 text-xs flex items-center gap-1 px-2.5 py-1 border border-sky-500/30 hover:border-sky-500/60 rounded-lg transition-all">
+              <Icon name="Menu" size={13} /> Меню сайта
+            </Link>
+            <Link to="/admin/prices" className="text-amber-300/90 hover:text-amber-300 text-xs flex items-center gap-1 px-2.5 py-1 border border-amber-500/30 hover:border-amber-500/60 rounded-lg transition-all">
+              <Icon name="DollarSign" size={13} /> Цены услуг
+            </Link>
             <Link to="/erp" className="text-cyan-300/90 hover:text-cyan-300 text-xs flex items-center gap-1 px-2.5 py-1 border border-cyan-500/30 hover:border-cyan-500/60 rounded-lg transition-all">
               <Icon name="Building2" size={13} /> ERP
             </Link>

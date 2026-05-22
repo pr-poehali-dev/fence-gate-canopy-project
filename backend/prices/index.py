@@ -18,9 +18,12 @@ def _auth_ok(headers, conn):
 def handler(event: dict, context) -> dict:
     """
     CRUD цен.
-    GET  /        — список цен (публично)
-    PUT  /        — обновить цены (только админ)
-    POST /        — добавить цену (только админ)
+    GET    /        — список цен (публично)
+    PUT    /        — обновить цены пачкой (только админ)
+    POST   /        — добавить/обновить цену (только админ).
+                      Поддерживается action="upsert" с полями
+                      id?, slug, title, price, unit, category.
+    DELETE /?id=N   — удалить цену (только админ)
     """
     method = event.get('httpMethod', 'GET')
     if method == 'OPTIONS':
@@ -28,7 +31,7 @@ def handler(event: dict, context) -> dict:
             'statusCode': 200,
             'headers': {
                 'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
+                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
                 'Access-Control-Allow-Headers': 'Content-Type, X-Auth-Token',
                 'Access-Control-Max-Age': '86400'
             },
@@ -77,11 +80,42 @@ def handler(event: dict, context) -> dict:
                     'body': json.dumps({'ok': True, 'updated': len(items)})}
 
         if method == 'POST':
+            action = body.get('action') or ''
             slug = (body.get('slug') or '').replace("'", "''")
             title = (body.get('title') or '').replace("'", "''")
             price = float(body.get('price') or 0)
             unit = (body.get('unit') or 'руб').replace("'", "''")
             category = (body.get('category') or 'fence').replace("'", "''")
+
+            if action == 'upsert':
+                # Если передан id — обновляем существующую запись
+                # (slug может измениться), иначе вставляем новую через
+                # ON CONFLICT(slug) DO UPDATE.
+                mid = int(body.get('id') or 0)
+                with conn.cursor() as cur:
+                    if mid:
+                        cur.execute(
+                            f"UPDATE prices SET slug='{slug}', title='{title}', "
+                            f"price={price}, unit='{unit}', category='{category}', "
+                            f"updated_at=NOW() WHERE id={mid}"
+                        )
+                        conn.commit()
+                        return {'statusCode': 200, 'headers': cors,
+                                'body': json.dumps({'ok': True, 'id': mid})}
+                    cur.execute(
+                        f"INSERT INTO prices(slug,title,price,unit,category) "
+                        f"VALUES('{slug}','{title}',{price},'{unit}','{category}') "
+                        f"ON CONFLICT(slug) DO UPDATE SET price=EXCLUDED.price, "
+                        f"title=EXCLUDED.title, unit=EXCLUDED.unit, "
+                        f"category=EXCLUDED.category, updated_at=NOW() "
+                        f"RETURNING id"
+                    )
+                    new_id = cur.fetchone()[0]
+                    conn.commit()
+                return {'statusCode': 200, 'headers': cors,
+                        'body': json.dumps({'ok': True, 'id': new_id})}
+
+            # Старое поведение (без action) — простой upsert по slug
             with conn.cursor() as cur:
                 cur.execute(
                     f"INSERT INTO prices(slug,title,price,unit,category) "
@@ -90,6 +124,21 @@ def handler(event: dict, context) -> dict:
                 )
                 conn.commit()
             return {'statusCode': 200, 'headers': cors, 'body': json.dumps({'ok': True})}
+
+        if method == 'DELETE':
+            qs = event.get('queryStringParameters') or {}
+            try:
+                mid = int(qs.get('id') or 0)
+            except (TypeError, ValueError):
+                mid = 0
+            if not mid:
+                return {'statusCode': 400, 'headers': cors,
+                        'body': json.dumps({'error': 'id_required'})}
+            with conn.cursor() as cur:
+                cur.execute(f"DELETE FROM prices WHERE id={mid}")
+                conn.commit()
+            return {'statusCode': 200, 'headers': cors,
+                    'body': json.dumps({'ok': True})}
 
         return {'statusCode': 405, 'headers': cors,
                 'body': json.dumps({'error': 'method_not_allowed'})}

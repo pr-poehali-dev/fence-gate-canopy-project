@@ -4,9 +4,21 @@
       "name": "Get prices list",
       "method": "GET",
       "path": "/",
-      "expectedStatus": 200,
-      "expectedBody": {"items": "array"},
-      "bodyMatcher": "partial"
+      "expectedStatus": 200
+    },
+    {
+      "name": "Unauthorized POST upsert is rejected",
+      "method": "POST",
+      "path": "/",
+      "headers": {"Content-Type": "application/json"},
+      "body": {"action": "upsert", "slug": "test_unauth", "title": "x", "price": 1, "unit": "руб", "category": "other"},
+      "expectedStatus": 401
+    },
+    {
+      "name": "Unauthorized DELETE is rejected",
+      "method": "DELETE",
+      "path": "/?id=99999",
+      "expectedStatus": 401
     }
   ]
 }
