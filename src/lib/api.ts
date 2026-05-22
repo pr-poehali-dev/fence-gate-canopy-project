@@ -7,6 +7,7 @@ export const API = {
   content: "https://functions.poehali.dev/b32babe3-8a20-4ca6-807a-2a27e30e1da9",
   erp:     "https://functions.poehali.dev/ef34ae34-f37a-4ee9-90e9-0cd540fa5b63",
   erpDeals:"https://functions.poehali.dev/b85d9b0c-fb62-401d-9e86-8659e66d3297",
+  media:   "https://functions.poehali.dev/fdb7dc55-e1be-4615-a71a-c084ee62dc80",
 };
 
 export interface PriceItem {

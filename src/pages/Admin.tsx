@@ -290,6 +290,9 @@ export default function Admin() {
             <Link to="/admin/content" className="text-purple-300/90 hover:text-purple-300 text-xs flex items-center gap-1 px-2.5 py-1 border border-purple-500/30 hover:border-purple-500/60 rounded-lg transition-all">
               <Icon name="FileEdit" size={13} /> Контент
             </Link>
+            <Link to="/admin/media" className="text-green-300/90 hover:text-green-300 text-xs flex items-center gap-1 px-2.5 py-1 border border-green-500/30 hover:border-green-500/60 rounded-lg transition-all">
+              <Icon name="Image" size={13} /> Медиа
+            </Link>
             <Link to="/erp" className="text-cyan-300/90 hover:text-cyan-300 text-xs flex items-center gap-1 px-2.5 py-1 border border-cyan-500/30 hover:border-cyan-500/60 rounded-lg transition-all">
               <Icon name="Building2" size={13} /> ERP
             </Link>
