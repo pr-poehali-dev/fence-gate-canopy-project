@@ -262,19 +262,19 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
   };
 
   return (
-    <div className="min-h-screen" style={{ background: "var(--dark-bg)" }}>
+    <div className="min-h-screen bg-white text-gray-900 font-golos">
       {lead.node}
 
       {/* ── ШАПКА ── */}
       <SiteHeader />
 
       {/* ── ХЛЕБНЫЕ КРОШКИ ── */}
-      <div className="pb-2 bg-[#0a0c10] border-b border-[#1e2230]">
+      <div className="pb-2 bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-2 text-xs">
-          <Link to="/" className="text-white/40 hover:text-orange-400 transition-colors">Главная</Link>
-          <Icon name="ChevronRight" size={12} className="text-white/25" />
-          <Link to="/#products" className="text-white/40 hover:text-orange-400 transition-colors">Продукция</Link>
-          <Icon name="ChevronRight" size={12} className="text-white/25" />
+          <Link to="/" className="text-gray-500 hover:text-orange-400 transition-colors">Главная</Link>
+          <Icon name="ChevronRight" size={12} className="text-gray-400" />
+          <Link to="/#products" className="text-gray-500 hover:text-orange-400 transition-colors">Продукция</Link>
+          <Icon name="ChevronRight" size={12} className="text-gray-400" />
           <span className="text-orange-400">{p.breadcrumb}</span>
         </div>
       </div>
@@ -298,11 +298,11 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
                 <EditableText
                   page={p.pageSlug} blockKey="hero_title"
                   value={cms("hero_title")} html as="h1"
-                  className="font-oswald font-bold text-4xl sm:text-5xl lg:text-6xl text-white leading-tight mb-5"
+                  className="font-oswald font-bold text-4xl sm:text-5xl lg:text-6xl text-gray-900 leading-tight mb-5"
                   fallback={p.h1}
                 />
               ) : (
-                <h1 className="font-oswald font-bold text-4xl sm:text-5xl lg:text-6xl text-white leading-tight mb-5">
+                <h1 className="font-oswald font-bold text-4xl sm:text-5xl lg:text-6xl text-gray-900 leading-tight mb-5">
                   {p.h1}
                 </h1>
               )}
@@ -311,16 +311,16 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
                 <EditableText
                   page={p.pageSlug} blockKey="hero_subtitle"
                   value={cms("hero_subtitle")} html as="div"
-                  className="text-white/60 text-base sm:text-lg mb-6 leading-relaxed max-w-xl prose prose-invert prose-p:my-0"
+                  className="text-gray-600 text-base sm:text-lg mb-6 leading-relaxed max-w-xl prose prose-p:my-0"
                   fallback={p.subtitle}
                 />
               ) : (
-                <p className="text-white/60 text-base sm:text-lg mb-6 leading-relaxed max-w-xl">{p.subtitle}</p>
+                <p className="text-gray-600 text-base sm:text-lg mb-6 leading-relaxed max-w-xl">{p.subtitle}</p>
               )}
 
               <ul className="space-y-2.5 mb-7">
                 {p.benefits.map(b => (
-                  <li key={b} className="flex items-start gap-2.5 text-white/75 text-sm">
+                  <li key={b} className="flex items-start gap-2.5 text-gray-700 text-sm">
                     <Icon name="CheckCircle2" size={18} className="text-orange-400 flex-shrink-0 mt-0.5" />
                     <span>{b}</span>
                   </li>
@@ -329,11 +329,11 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
 
               <div className="flex items-end gap-6 mb-6 flex-wrap">
                 <div>
-                  <div className="text-white/40 text-xs uppercase tracking-wider mb-1">Стартовая цена</div>
+                  <div className="text-gray-500 text-xs uppercase tracking-wider mb-1">Стартовая цена</div>
                   <div className="font-oswald font-bold text-4xl sm:text-5xl text-orange-400 leading-none">
                     от {p.startPrice}
                   </div>
-                  <div className="text-white/40 text-xs mt-1">{p.priceUnit}</div>
+                  <div className="text-gray-500 text-xs mt-1">{p.priceUnit}</div>
                 </div>
               </div>
 
@@ -365,7 +365,7 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
             </div>
 
             <div className="relative">
-              <div className="aspect-[4/3] rounded-3xl overflow-hidden border border-[#1e2230] shadow-2xl">
+              <div className="aspect-[4/3] rounded-3xl overflow-hidden border border-gray-200 shadow-2xl">
                 {mediaSlug ? (
                   <EditablePhoto
                     src={heroOverride || cms("hero_image", p.heroImg)}
@@ -387,14 +387,14 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
                   <img src={cms("hero_image", p.heroImg)} alt={p.h1} className="w-full h-full object-cover" />
                 )}
               </div>
-              <div className="absolute -bottom-5 -left-5 bg-[#141720] border border-orange-500/30 rounded-2xl p-4 shadow-xl">
+              <div className="absolute -bottom-5 -left-5 bg-gray-50 border border-orange-500/30 rounded-2xl p-4 shadow-xl">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
                     <Icon name="ShieldCheck" size={20} className="text-gray-900" />
                   </div>
                   <div>
-                    <div className="font-oswald font-bold text-white text-base">Гарантия {p.warrantyYears ?? 3} {(p.warrantyYears ?? 3) === 1 ? "год" : (p.warrantyYears ?? 3) < 5 ? "года" : "лет"}</div>
-                    <div className="text-white/40 text-xs">По договору</div>
+                    <div className="font-oswald font-bold text-gray-900 text-base">Гарантия {p.warrantyYears ?? 3} {(p.warrantyYears ?? 3) === 1 ? "год" : (p.warrantyYears ?? 3) < 5 ? "года" : "лет"}</div>
+                    <div className="text-gray-500 text-xs">По договору</div>
                   </div>
                 </div>
               </div>
@@ -417,7 +417,7 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
       {p.afterHero}
 
       {/* ── ОПИСАНИЕ И ЗАДАЧИ ── */}
-      <section className="py-20 bg-[#0a0c10]">
+      <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
             <div>
@@ -433,23 +433,23 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
                     page={p.pageSlug} blockKey="about_text"
                     value={cms("about_text")} html as="div"
                     fallback={p.aboutText}
-                    className="text-white/60 leading-relaxed whitespace-pre-line"
+                    className="text-gray-600 leading-relaxed whitespace-pre-line"
                   />
                 </>
               ) : (
                 <>
                   <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-white mb-4">{p.aboutTitle}</h2>
-                  <p className="text-white/60 leading-relaxed whitespace-pre-line">{p.aboutText}</p>
+                  <p className="text-gray-600 leading-relaxed whitespace-pre-line">{p.aboutText}</p>
                 </>
               )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               {p.suitableFor.map(({ icon, title, desc }) => (
-                <div key={title} className="bg-[#141720] border border-[#1e2230] rounded-2xl p-5 hover:border-orange-500/40 transition-colors">
+                <div key={title} className="bg-gray-50 border border-gray-200 rounded-2xl p-5 hover:border-orange-500/40 transition-colors">
                   <Icon name={icon} size={26} className="text-orange-400 mb-3" />
-                  <div className="font-oswald font-semibold text-white text-base mb-1.5">{title}</div>
-                  <div className="text-white/45 text-xs leading-relaxed">{desc}</div>
+                  <div className="font-oswald font-semibold text-gray-900 text-base mb-1.5">{title}</div>
+                  <div className="text-gray-500 text-xs leading-relaxed">{desc}</div>
                 </div>
               ))}
             </div>
@@ -462,32 +462,32 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <span className="section-tag">Прайс</span>
-            <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-white mb-3">
+            <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-gray-900 mb-3">
               ЦЕНЫ <span className="text-orange-400">ОТ ПРОИЗВОДИТЕЛЯ</span>
             </h2>
-            <p className="text-white/50 max-w-xl mx-auto text-sm">Стоимость 1 п.м. забора &laquo;под ключ&raquo; с монтажом и материалами. Цены актуальны на 2026 год.</p>
+            <p className="text-gray-500 max-w-xl mx-auto text-sm">Стоимость 1 п.м. забора &laquo;под ключ&raquo; с монтажом и материалами. Цены актуальны на 2026 год.</p>
           </div>
 
-          <div className="bg-[#141720] border border-[#1e2230] rounded-3xl p-4 sm:p-7 mb-8 overflow-x-auto">
+          <div className="bg-gray-50 border border-gray-200 rounded-3xl p-4 sm:p-7 mb-8 overflow-x-auto">
             <table className="w-full text-sm min-w-[600px]">
               <thead>
-                <tr className="border-b border-[#1e2230]">
-                  <th className="text-left py-4 px-3 text-white/50 font-medium text-xs uppercase tracking-wider">Высота / толщина</th>
-                  <th className="text-center py-4 px-3 text-white/50 font-medium text-xs uppercase tracking-wider">Оцинковка</th>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-4 px-3 text-gray-500 font-medium text-xs uppercase tracking-wider">Высота / толщина</th>
+                  <th className="text-center py-4 px-3 text-gray-500 font-medium text-xs uppercase tracking-wider">Оцинковка</th>
                   <th className="text-center py-4 px-3 text-orange-400 font-medium text-xs uppercase tracking-wider">
                     Полимер
                     <span className="block text-[10px] text-orange-400/60 normal-case font-normal mt-0.5">популярный</span>
                   </th>
-                  <th className="text-center py-4 px-3 text-white/50 font-medium text-xs uppercase tracking-wider">Премиум (двусторонний)</th>
+                  <th className="text-center py-4 px-3 text-gray-500 font-medium text-xs uppercase tracking-wider">Премиум (двусторонний)</th>
                 </tr>
               </thead>
               <tbody>
                 {p.priceRows.map((row, i) => (
-                  <tr key={i} className="border-b border-[#1a1f2e] hover:bg-[#0a0c10]/40 transition-colors">
+                  <tr key={i} className="border-b border-[#1a1f2e] hover:bg-white/40 transition-colors">
                     <td className="py-3.5 px-3 text-white font-medium">{row.param}</td>
-                    <td className="py-3.5 px-3 text-center text-white/70 font-oswald">{row.zink}</td>
+                    <td className="py-3.5 px-3 text-center text-gray-600 font-oswald">{row.zink}</td>
                     <td className="py-3.5 px-3 text-center text-orange-400 font-oswald font-bold">{row.polymer}</td>
-                    <td className="py-3.5 px-3 text-center text-white/70 font-oswald">{row.premium}</td>
+                    <td className="py-3.5 px-3 text-center text-gray-600 font-oswald">{row.premium}</td>
                   </tr>
                 ))}
               </tbody>
@@ -502,21 +502,21 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
                 className={`relative rounded-2xl p-5 border transition-all ${
                   f.recommend
                     ? "bg-orange-500/5 border-orange-500/40 hover:border-orange-500/60"
-                    : "bg-[#141720] border-[#1e2230] hover:border-orange-500/30"
+                    : "bg-gray-50 border-gray-200 hover:border-orange-500/30"
                 }`}>
                 {f.recommend && (
                   <div className="absolute -top-2 left-4 bg-orange-500 text-gray-900 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded">
                     Рекомендуем
                   </div>
                 )}
-                <div className="font-oswald font-bold text-white text-lg mb-1">{f.name}</div>
+                <div className="font-oswald font-bold text-gray-900 text-lg mb-1">{f.name}</div>
                 <div className="text-orange-400 font-oswald font-bold text-xl mb-2">{f.price}</div>
-                <div className="text-white/45 text-xs leading-relaxed">{f.desc}</div>
+                <div className="text-gray-500 text-xs leading-relaxed">{f.desc}</div>
               </div>
             ))}
           </div>
 
-          <div className="mt-8 bg-orange-500/5 border border-orange-500/20 rounded-2xl p-5 text-sm text-white/60 flex items-start gap-3">
+          <div className="mt-8 bg-orange-500/5 border border-orange-500/20 rounded-2xl p-5 text-sm text-gray-600 flex items-start gap-3">
             <Icon name="Info" size={18} className="text-orange-400 flex-shrink-0 mt-0.5" />
             <div>
               <span className="text-orange-400 font-medium">Важно:</span> финальная стоимость зависит от рельефа участка, удалённости и наличия подъезда. Замер и смета — бесплатно, фиксируем цену в договоре.
@@ -529,18 +529,18 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
       {p.afterPrices}
 
       {/* ── ТЕХНИЧЕСКИЕ СТАНДАРТЫ ── */}
-      <section className="py-20 bg-[#0a0c10]">
+      <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <span className="section-tag">Спецификация</span>
-            <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-white mb-3">
+            <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-gray-900 mb-3">
               ТЕХНИЧЕСКИЕ <span className="text-orange-400">СТАНДАРТЫ</span>
             </h2>
-            <p className="text-white/50 max-w-xl mx-auto text-sm">Используем материалы по ГОСТ, чёткие технологические карты на каждом этапе.</p>
+            <p className="text-gray-500 max-w-xl mx-auto text-sm">Используем материалы по ГОСТ, чёткие технологические карты на каждом этапе.</p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-            <div className="bg-white border border-[#1e2230] rounded-3xl overflow-hidden flex items-center justify-center p-6 min-h-[16rem] lg:min-h-full">
+            <div className="bg-white border border-gray-200 rounded-3xl overflow-hidden flex items-center justify-center p-6 min-h-[16rem] lg:min-h-full">
               <img
                 src={p.specImg}
                 alt="Конструктив"
@@ -550,13 +550,13 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
 
             <div className="space-y-3">
               {p.specs.map(s => (
-                <div key={s.param} className="flex items-start gap-4 bg-[#141720] border border-[#1e2230] rounded-xl p-4 hover:border-orange-500/30 transition-colors">
+                <div key={s.param} className="flex items-start gap-4 bg-gray-50 border border-gray-200 rounded-xl p-4 hover:border-orange-500/30 transition-colors">
                   <div className="w-10 h-10 bg-orange-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
                     <Icon name={s.icon || "Wrench"} size={18} className="text-orange-400" />
                   </div>
                   <div className="flex-1">
-                    <div className="text-white/45 text-xs mb-0.5 uppercase tracking-wider">{s.param}</div>
-                    <div className="text-white text-sm font-medium leading-snug">{s.value}</div>
+                    <div className="text-gray-500 text-xs mb-0.5 uppercase tracking-wider">{s.param}</div>
+                    <div className="text-gray-900 text-sm font-medium leading-snug">{s.value}</div>
                   </div>
                 </div>
               ))}
@@ -589,19 +589,19 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <span className="section-tag">Варианты</span>
-            <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-white mb-3">
+            <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-gray-900 mb-3">
               ИСПОЛНЕНИЕ <span className="text-orange-400">И ЦВЕТ</span>
             </h2>
-            <p className="text-white/50 max-w-xl mx-auto text-sm">Подберите профиль и оттенок RAL под архитектуру дома и дизайн участка.</p>
+            <p className="text-gray-500 max-w-xl mx-auto text-sm">Подберите профиль и оттенок RAL под архитектуру дома и дизайн участка.</p>
           </div>
 
           {/* Типы профиля */}
           {p.profileTypes && p.profileTypes.length > 0 && (
           <>
-          <h3 className="font-oswald font-bold text-xl text-white mb-5">Типы профиля</h3>
+          <h3 className="font-oswald font-bold text-xl text-gray-900 mb-5">Типы профиля</h3>
           <div className={`grid grid-cols-2 ${p.profileTypes.length === 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-4'} gap-4 mb-12`}>
             {p.profileTypes.map(pt => (
-              <div key={pt.name} className="bg-[#141720] border border-[#1e2230] hover:border-orange-500/40 rounded-2xl overflow-hidden transition-all hover:-translate-y-1">
+              <div key={pt.name} className="bg-gray-50 border border-gray-200 hover:border-orange-500/40 rounded-2xl overflow-hidden transition-all hover:-translate-y-1">
                 <div className="aspect-square bg-white flex items-center justify-center p-3 overflow-hidden">
                   <img
                     src={pt.img}
@@ -611,8 +611,8 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
                   />
                 </div>
                 <div className="p-4">
-                  <div className="font-oswald font-semibold text-white text-base mb-1">{pt.name}</div>
-                  <div className="text-white/45 text-xs leading-relaxed">{pt.desc}</div>
+                  <div className="font-oswald font-semibold text-gray-900 text-base mb-1">{pt.name}</div>
+                  <div className="text-gray-500 text-xs leading-relaxed">{pt.desc}</div>
                 </div>
               </div>
             ))}
@@ -623,10 +623,10 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
           {/* Типы реза верха */}
           {p.topCuts && p.topCuts.length > 0 && (
             <>
-              <h3 className="font-oswald font-bold text-xl text-white mb-5">Типы реза верха</h3>
+              <h3 className="font-oswald font-bold text-xl text-gray-900 mb-5">Типы реза верха</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-12">
                 {p.topCuts.map(tc => (
-                  <div key={tc.name} className="bg-[#141720] border border-[#1e2230] hover:border-orange-500/40 rounded-2xl overflow-hidden transition-all hover:-translate-y-1">
+                  <div key={tc.name} className="bg-gray-50 border border-gray-200 hover:border-orange-500/40 rounded-2xl overflow-hidden transition-all hover:-translate-y-1">
                     <div className="aspect-[4/3] bg-white flex items-center justify-center p-4 overflow-hidden">
                       <img
                         src={tc.img}
@@ -635,8 +635,8 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
                       />
                     </div>
                     <div className="p-5">
-                      <div className="font-oswald font-semibold text-white text-lg mb-1.5">{tc.name}</div>
-                      <div className="text-white/55 text-sm leading-relaxed">{tc.desc}</div>
+                      <div className="font-oswald font-semibold text-gray-900 text-lg mb-1.5">{tc.name}</div>
+                      <div className="text-gray-600 text-sm leading-relaxed">{tc.desc}</div>
                     </div>
                   </div>
                 ))}
@@ -647,10 +647,10 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
           {/* Тип нашивки */}
           {p.installTypes && p.installTypes.length > 0 && (
             <>
-              <h3 className="font-oswald font-bold text-xl text-white mb-5">Тип нашивки</h3>
+              <h3 className="font-oswald font-bold text-xl text-gray-900 mb-5">Тип нашивки</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-12">
                 {p.installTypes.map(it => (
-                  <div key={it.name} className="bg-[#141720] border border-[#1e2230] hover:border-orange-500/40 rounded-2xl overflow-hidden transition-all hover:-translate-y-1">
+                  <div key={it.name} className="bg-gray-50 border border-gray-200 hover:border-orange-500/40 rounded-2xl overflow-hidden transition-all hover:-translate-y-1">
                     <div className="aspect-[16/9] bg-white flex items-center justify-center p-4 overflow-hidden">
                       <img
                         src={it.img}
@@ -659,8 +659,8 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
                       />
                     </div>
                     <div className="p-5">
-                      <div className="font-oswald font-semibold text-white text-lg mb-1.5">{it.name}</div>
-                      <div className="text-white/55 text-sm leading-relaxed">{it.desc}</div>
+                      <div className="font-oswald font-semibold text-gray-900 text-lg mb-1.5">{it.name}</div>
+                      <div className="text-gray-600 text-sm leading-relaxed">{it.desc}</div>
                     </div>
                   </div>
                 ))}
@@ -671,10 +671,10 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
           {/* Способ установки */}
           {p.orientations && p.orientations.length > 0 && (
             <>
-              <h3 className="font-oswald font-bold text-xl text-white mb-5">Способ установки</h3>
+              <h3 className="font-oswald font-bold text-xl text-gray-900 mb-5">Способ установки</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-12">
                 {p.orientations.map(or => (
-                  <div key={or.name} className="bg-[#141720] border border-[#1e2230] hover:border-orange-500/40 rounded-2xl overflow-hidden transition-all hover:-translate-y-1">
+                  <div key={or.name} className="bg-gray-50 border border-gray-200 hover:border-orange-500/40 rounded-2xl overflow-hidden transition-all hover:-translate-y-1">
                     <div className="aspect-[16/9] overflow-hidden">
                       <img
                         src={or.img}
@@ -683,8 +683,8 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
                       />
                     </div>
                     <div className="p-5">
-                      <div className="font-oswald font-semibold text-white text-lg mb-1.5">{or.name}</div>
-                      <div className="text-white/55 text-sm leading-relaxed">{or.desc}</div>
+                      <div className="font-oswald font-semibold text-gray-900 text-lg mb-1.5">{or.name}</div>
+                      <div className="text-gray-600 text-sm leading-relaxed">{or.desc}</div>
                     </div>
                   </div>
                 ))}
@@ -695,25 +695,25 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
           {/* Палитра RAL */}
           {p.ralColors && p.ralColors.length > 0 && (
           <>
-          <h3 className="font-oswald font-bold text-xl text-white mb-5">Цветовая палитра RAL</h3>
+          <h3 className="font-oswald font-bold text-xl text-gray-900 mb-5">Цветовая палитра RAL</h3>
           <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
             {p.ralColors.map(c => (
               <button
                 key={c.ral}
                 onClick={() => setActiveRal(c.ral)}
                 className={`group rounded-xl overflow-hidden border-2 transition-all ${
-                  activeRal === c.ral ? "border-orange-500 -translate-y-1 shadow-lg shadow-orange-500/20" : "border-[#1e2230] hover:border-orange-500/40"
+                  activeRal === c.ral ? "border-orange-500 -translate-y-1 shadow-lg shadow-orange-500/20" : "border-gray-200 hover:border-orange-500/40"
                 }`}>
                 <div className="aspect-square" style={{ background: c.hex }} />
-                <div className="bg-[#141720] py-2 px-2 text-center">
+                <div className="bg-gray-50 py-2 px-2 text-center">
                   <div className="font-oswald font-bold text-orange-400 text-sm">{c.ral}</div>
-                  <div className="text-white/45 text-[10px] leading-tight">{c.name}</div>
+                  <div className="text-gray-500 text-[10px] leading-tight">{c.name}</div>
                 </div>
               </button>
             ))}
           </div>
 
-          <p className="text-white/40 text-xs mt-5 text-center">
+          <p className="text-gray-500 text-xs mt-5 text-center">
             Доступно более 200 оттенков по каталогу RAL Classic. Возможна имитация дерева и камня (PrintPattern).
           </p>
           </>
@@ -723,27 +723,27 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
       )}
 
       {/* ── ДОП. КОМПЛЕКТУЮЩИЕ ── */}
-      <section className="py-20 bg-[#0a0c10]">
+      <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <span className="section-tag">Комплектация</span>
-            <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-white mb-3">
+            <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-gray-900 mb-3">
               ДОПОЛНИТЕЛЬНЫЕ <span className="text-orange-400">КОМПЛЕКТУЮЩИЕ</span>
             </h2>
-            <p className="text-white/50 max-w-xl mx-auto text-sm">Доукомплектуйте забор всем необходимым — со скидкой при заказе в комплексе.</p>
+            <p className="text-gray-500 max-w-xl mx-auto text-sm">Доукомплектуйте забор всем необходимым — со скидкой при заказе в комплексе.</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {p.extras.map(e => (
-              <div key={e.name} className="group bg-[#141720] border border-[#1e2230] hover:border-orange-500/40 rounded-2xl p-6 transition-all hover:-translate-y-1">
+              <div key={e.name} className="group bg-gray-50 border border-gray-200 hover:border-orange-500/40 rounded-2xl p-6 transition-all hover:-translate-y-1">
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div className="w-12 h-12 bg-orange-500/10 group-hover:bg-orange-500/20 rounded-xl flex items-center justify-center transition-colors">
                     <Icon name={e.icon} size={22} className="text-orange-400" />
                   </div>
                   <div className="text-orange-400 font-oswald font-bold text-sm whitespace-nowrap">{e.price}</div>
                 </div>
-                <div className="font-oswald font-semibold text-white text-base mb-1">{e.name}</div>
-                <div className="text-white/45 text-xs leading-relaxed">{e.desc}</div>
+                <div className="font-oswald font-semibold text-gray-900 text-base mb-1">{e.name}</div>
+                <div className="text-gray-500 text-xs leading-relaxed">{e.desc}</div>
               </div>
             ))}
           </div>
@@ -755,17 +755,17 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <span className="section-tag">Портфолио</span>
-            <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-white mb-3">
+            <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-gray-900 mb-3">
               НАШИ <span className="text-orange-400">РАБОТЫ</span>
             </h2>
-            <p className="text-white/50 max-w-xl mx-auto text-sm">Реальные объекты, сданные за 2024–2026 годы.</p>
+            <p className="text-gray-500 max-w-xl mx-auto text-sm">Реальные объекты, сданные за 2024–2026 годы.</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {p.portfolio.map((item, i) => {
               const curImg = portfolioOverride[i] || item.img;
               return (
-              <div key={i} className="group rounded-2xl overflow-hidden bg-[#141720] border border-[#1e2230] hover:border-orange-500/40 transition-all">
+              <div key={i} className="group rounded-2xl overflow-hidden bg-gray-50 border border-gray-200 hover:border-orange-500/40 transition-all">
                 <div className="aspect-[4/3] overflow-hidden">
                   {mediaSlug ? (
                     <EditablePhoto
@@ -782,8 +782,8 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
                   )}
                 </div>
                 <div className="p-4 flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-white text-sm">
-                    <Icon name="MapPin" size={14} className="text-orange-400" />
+                  <div className="flex items-center gap-2 text-gray-900 text-sm">
+                    <Icon name="MapPin" size={14} className="text-orange-500" />
                     {item.location}
                   </div>
                   <span className="text-orange-400 font-oswald font-bold text-sm">{item.size}</span>
@@ -796,11 +796,11 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
       </section>
 
       {/* ── ЭТАПЫ РАБОТЫ ── */}
-      <section className="py-20 bg-[#0a0c10]">
+      <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <span className="section-tag">Этапы работы</span>
-            <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-white mb-3">
+            <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-gray-900 mb-3">
               КАК МЫ <span className="text-orange-400">РАБОТАЕМ</span>
             </h2>
           </div>
@@ -813,13 +813,13 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
               { n: "04", icon: "Factory",        title: "Производство",   d: "Изготовление секций в нашем цеху. 7–14 дней." },
               { n: "05", icon: "CheckCheck",     title: "Монтаж + акт",   d: "Установка, уборка территории, акт сдачи-приёмки." },
             ].map(({ n, icon, title, d }) => (
-              <div key={n} className="bg-[#141720] border border-[#1e2230] hover:border-orange-500/40 rounded-2xl p-5 text-center transition-all hover:-translate-y-2">
+              <div key={n} className="bg-gray-50 border border-gray-200 hover:border-orange-500/40 rounded-2xl p-5 text-center transition-all hover:-translate-y-2">
                 <div className="w-14 h-14 mx-auto mb-3 bg-orange-500/10 border border-orange-500/30 rounded-full flex items-center justify-center">
                   <Icon name={icon} size={20} className="text-orange-400" />
                 </div>
                 <div className="font-oswald font-bold text-2xl text-orange-400 mb-1">{n}</div>
-                <div className="font-oswald font-semibold text-white text-base mb-1.5">{title}</div>
-                <div className="text-white/45 text-xs leading-relaxed">{d}</div>
+                <div className="font-oswald font-semibold text-gray-900 text-base mb-1.5">{title}</div>
+                <div className="text-gray-500 text-xs leading-relaxed">{d}</div>
               </div>
             ))}
           </div>
@@ -831,30 +831,30 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <span className="section-tag">FAQ</span>
-            <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-white mb-3">
+            <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-gray-900 mb-3">
               ОТВЕТЫ <span className="text-orange-400">НА ВОПРОСЫ</span>
             </h2>
-            <p className="text-white/50 text-sm">Подробно об особенностях, технологиях и нюансах монтажа.</p>
+            <p className="text-gray-500 text-sm">Подробно об особенностях, технологиях и нюансах монтажа.</p>
           </div>
 
           <div className="space-y-3">
             {p.faq.map((item, i) => (
               <div key={i}
-                className={`bg-[#141720] border rounded-2xl overflow-hidden transition-all ${
-                  openFaq === i ? "border-orange-500/40" : "border-[#1e2230] hover:border-orange-500/20"
+                className={`bg-gray-50 border rounded-2xl overflow-hidden transition-all ${
+                  openFaq === i ? "border-orange-500/40" : "border-gray-200 hover:border-orange-500/20"
                 }`}>
                 <button
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   className="w-full text-left p-5 flex items-center justify-between gap-4">
-                  <span className="font-oswald font-semibold text-white text-base sm:text-lg pr-4">{item.q}</span>
+                  <span className="font-oswald font-semibold text-gray-900 text-base sm:text-lg pr-4">{item.q}</span>
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
-                    openFaq === i ? "bg-orange-500 text-gray-900 rotate-45" : "bg-[#0a0c10] text-orange-400"
+                    openFaq === i ? "bg-orange-500 text-gray-900 rotate-45" : "bg-white text-orange-400"
                   }`}>
                     <Icon name="Plus" size={18} />
                   </div>
                 </button>
                 {openFaq === i && (
-                  <div className="px-5 pb-5 text-white/60 text-sm leading-relaxed whitespace-pre-line border-t border-[#1e2230] pt-4">
+                  <div className="px-5 pb-5 text-gray-600 text-sm leading-relaxed whitespace-pre-line border-t border-gray-200 pt-4">
                     {item.a}
                   </div>
                 )}
@@ -879,7 +879,7 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
               <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-white mb-4 leading-tight">
                 {p.leadTitle}
               </h2>
-              <p className="text-white/60 text-base mb-6 max-w-xl">{p.leadOffer}</p>
+              <p className="text-gray-600 text-base mb-6 max-w-xl">{p.leadOffer}</p>
 
               <div className="grid grid-cols-2 gap-3 max-w-md">
                 {[
@@ -888,7 +888,7 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
                   { icon: "FileText",    text: "Смета на email" },
                   { icon: "Gift",        text: "Скидка 5%" },
                 ].map(({ icon, text }) => (
-                  <div key={text} className="flex items-center gap-2 text-sm text-white/70">
+                  <div key={text} className="flex items-center gap-2 text-sm text-gray-600">
                     <Icon name={icon} size={15} className="text-orange-400 flex-shrink-0" />
                     {text}
                   </div>
@@ -897,9 +897,9 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
             </div>
 
             <div className="lg:col-span-2">
-              <div className="bg-[#141720]/95 backdrop-blur border-2 border-orange-500/30 rounded-3xl p-7 shadow-2xl shadow-orange-500/10">
+              <div className="bg-gray-50/95 backdrop-blur border-2 border-orange-500/30 rounded-3xl p-7 shadow-2xl shadow-orange-500/10">
                 <div className="font-oswald font-bold text-2xl text-white mb-1">Точный расчёт</div>
-                <p className="text-white/40 text-xs mb-5">Менеджер перезвонит в течение 15 минут и пришлёт смету</p>
+                <p className="text-gray-500 text-xs mb-5">Менеджер перезвонит в течение 15 минут и пришлёт смету</p>
 
                 <div className="space-y-3">
                   <button onClick={() => lead.open({
@@ -939,9 +939,9 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
       </section>
 
       {/* ── FOOTER (упрощённый) ── */}
-      <footer className="border-t border-[#1e2230] bg-[#0a0c10] py-8">
+      <footer className="border-t border-gray-200 bg-white py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <Link to="/" className="flex items-center gap-3 text-white/40 hover:text-orange-400 transition-colors text-sm">
+          <Link to="/" className="flex items-center gap-3 text-gray-500 hover:text-orange-400 transition-colors text-sm">
             <Icon name="ChevronLeft" size={16} />
             Вернуться на главную
           </Link>

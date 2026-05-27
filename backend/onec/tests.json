@@ -1,0 +1,8 @@
+{
+  "tests": [
+    {"name": "OPTIONS", "method": "OPTIONS", "path": "/", "expectedStatus": 200},
+    {"name": "GET status no auth", "method": "GET", "path": "/?status=1", "expectedStatus": 401},
+    {"name": "GET no param", "method": "GET", "path": "/", "expectedStatus": 400},
+    {"name": "POST no auth", "method": "POST", "path": "/?action=save_settings", "expectedStatus": 401, "body": "{}"}
+  ]
+}

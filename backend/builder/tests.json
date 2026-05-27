@@ -1,0 +1,8 @@
+{
+  "tests": [
+    {"name": "OPTIONS", "method": "OPTIONS", "path": "/", "expectedStatus": 200},
+    {"name": "GET demo page", "method": "GET", "path": "/?slug=akciya", "expectedStatus": 200},
+    {"name": "GET no slug", "method": "GET", "path": "/", "expectedStatus": 400},
+    {"name": "POST no auth", "method": "POST", "path": "/?action=upsert_page", "expectedStatus": 401, "body": "{\"slug\":\"x\"}"}
+  ]
+}

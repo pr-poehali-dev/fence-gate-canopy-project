@@ -130,23 +130,23 @@ export default function Stolby() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0a0c10] text-white">
+    <div className="min-h-screen bg-white text-gray-900">
       {lead.node}
 
       {/* ── ШАПКА ── */}
       <SiteHeader />
 
       {/* ── ХЛЕБНЫЕ КРОШКИ ── */}
-      <div className="pb-2 bg-[#0a0c10] border-b border-[#1e2230]">
+      <div className="pb-2 bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-2 text-xs">
-          <Link to="/" className="text-white/40 hover:text-orange-400 transition-colors">
+          <Link to="/" className="text-gray-500 hover:text-orange-400 transition-colors">
             Главная
           </Link>
-          <Icon name="ChevronRight" size={12} className="text-white/25" />
-          <Link to="/#products" className="text-white/40 hover:text-orange-400 transition-colors">
+          <Icon name="ChevronRight" size={12} className="text-gray-400" />
+          <Link to="/#products" className="text-gray-500 hover:text-orange-400 transition-colors">
             Услуги
           </Link>
-          <Icon name="ChevronRight" size={12} className="text-white/25" />
+          <Icon name="ChevronRight" size={12} className="text-gray-400" />
           <span className="text-orange-400">Столбы для забора</span>
         </div>
       </div>
@@ -201,11 +201,11 @@ export default function Stolby() {
 
               <div className="flex items-end gap-6 mb-6 flex-wrap">
                 <div>
-                  <div className="text-white/40 text-xs uppercase tracking-wider mb-1">Стартовая цена</div>
+                  <div className="text-gray-500 text-xs uppercase tracking-wider mb-1">Стартовая цена</div>
                   <div className="font-oswald font-bold text-4xl sm:text-5xl text-orange-400 leading-none">
                     от 450 ₽
                   </div>
-                  <div className="text-white/40 text-xs mt-1">за столб из профтрубы</div>
+                  <div className="text-gray-500 text-xs mt-1">за столб из профтрубы</div>
                 </div>
               </div>
 
@@ -234,7 +234,7 @@ export default function Stolby() {
             </div>
 
             <div className="relative">
-              <div className="aspect-[4/3] rounded-3xl overflow-hidden border border-[#1e2230] shadow-2xl">
+              <div className="aspect-[4/3] rounded-3xl overflow-hidden border border-gray-200 shadow-2xl">
                 <EditablePhoto
                   src={HERO}
                   alt="Столбы для забора"
@@ -244,14 +244,14 @@ export default function Stolby() {
                   label="Сменить главное фото"
                 />
               </div>
-              <div className="absolute -bottom-5 -left-5 bg-[#141720] border border-orange-500/30 rounded-2xl p-4 shadow-xl">
+              <div className="absolute -bottom-5 -left-5 bg-gray-50 border border-orange-500/30 rounded-2xl p-4 shadow-xl">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
                     <Icon name="ShieldCheck" size={20} className="text-gray-900" />
                   </div>
                   <div>
                     <div className="font-oswald font-bold text-white text-base">Гарантия 3 года</div>
-                    <div className="text-white/40 text-xs">По договору</div>
+                    <div className="text-gray-500 text-xs">По договору</div>
                   </div>
                 </div>
               </div>
@@ -309,7 +309,7 @@ export default function Stolby() {
             </div>
 
             <div>
-              <div className="aspect-[4/3] rounded-2xl overflow-hidden border border-[#1e2230]">
+              <div className="aspect-[4/3] rounded-2xl overflow-hidden border border-gray-200">
                 <EditablePhoto
                   src={IMG}
                   alt="Столбы из профильной трубы"
@@ -325,7 +325,7 @@ export default function Stolby() {
           <h3 className="font-oswald font-bold text-xl text-white mb-5">Цены на столбы из профтрубы</h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
             {PROFTRUBA_ROWS.map((r) => (
-              <div key={r.size} className="bg-[#141720] border border-[#1e2230] rounded-2xl p-5 hover:border-orange-500/40 transition-colors">
+              <div key={r.size} className="bg-gray-50 border border-gray-200 rounded-2xl p-5 hover:border-orange-500/40 transition-colors">
                 <div className="font-oswald font-semibold text-white text-base mb-1">{r.size}</div>
                 <div className="text-orange-400 font-oswald font-bold text-2xl mb-2">{r.price}</div>
                 <div className="text-white/45 text-xs leading-relaxed">{r.desc}</div>
@@ -335,7 +335,7 @@ export default function Stolby() {
 
           {/* Плюсы / минусы */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-            <div className="bg-[#141720] border border-[#1e2230] rounded-2xl p-5">
+            <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5">
               <Icon name="Plus" size={20} className="text-green-400 mb-2" />
               <div className="font-oswald font-semibold text-white text-sm mb-2">Плюсы профтрубы</div>
               <ul className="text-white/55 text-xs space-y-1 leading-relaxed">
@@ -346,7 +346,7 @@ export default function Stolby() {
                 <li>· Срок службы 25–30 лет</li>
               </ul>
             </div>
-            <div className="bg-[#141720] border border-[#1e2230] rounded-2xl p-5">
+            <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5">
               <Icon name="Minus" size={20} className="text-red-400 mb-2" />
               <div className="font-oswald font-semibold text-white text-sm mb-2">Минусы профтрубы</div>
               <ul className="text-white/55 text-xs space-y-1 leading-relaxed">
@@ -366,8 +366,8 @@ export default function Stolby() {
               return (
                 <div
                   key={key}
-                  className={`bg-[#141720] border rounded-2xl overflow-hidden transition-all ${
-                    open ? "border-orange-500/40" : "border-[#1e2230] hover:border-orange-500/20"
+                  className={`bg-gray-50 border rounded-2xl overflow-hidden transition-all ${
+                    open ? "border-orange-500/40" : "border-gray-200 hover:border-orange-500/20"
                   }`}
                 >
                   <button
@@ -378,14 +378,14 @@ export default function Stolby() {
                     <span className="font-oswald font-semibold text-white text-base pr-4">{f.q}</span>
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
-                        open ? "bg-orange-500 text-gray-900 rotate-45" : "bg-[#0a0c10] text-orange-400"
+                        open ? "bg-orange-500 text-gray-900 rotate-45" : "bg-white text-orange-400"
                       }`}
                     >
                       <Icon name="Plus" size={18} />
                     </div>
                   </button>
                   {open && (
-                    <div className="px-5 pb-5 text-white/60 text-sm leading-relaxed border-t border-[#1e2230] pt-4">
+                    <div className="px-5 pb-5 text-white/60 text-sm leading-relaxed border-t border-gray-200 pt-4">
                       {f.a}
                     </div>
                   )}
@@ -397,11 +397,11 @@ export default function Stolby() {
       </section>
 
       {/* ── ТИП 2: КИРПИЧ ── */}
-      <section id="tab-kirpich" className="py-20 bg-[#0a0c10] scroll-mt-20">
+      <section id="tab-kirpich" className="py-20 bg-white scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start mb-10">
             <div className="order-2 lg:order-1">
-              <div className="aspect-[4/3] rounded-2xl overflow-hidden border border-[#1e2230]">
+              <div className="aspect-[4/3] rounded-2xl overflow-hidden border border-gray-200">
                 <EditablePhoto
                   src={IMG2}
                   alt="Кирпичные столбы"
@@ -442,7 +442,7 @@ export default function Stolby() {
           <h3 className="font-oswald font-bold text-xl text-white mb-5">Цены на кирпичные столбы</h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
             {KIRPICH_ROWS.map((r) => (
-              <div key={r.size} className="bg-[#141720] border border-[#1e2230] rounded-2xl p-5 hover:border-orange-500/40 transition-colors">
+              <div key={r.size} className="bg-gray-50 border border-gray-200 rounded-2xl p-5 hover:border-orange-500/40 transition-colors">
                 <div className="font-oswald font-semibold text-white text-base mb-1">{r.size}</div>
                 <div className="text-orange-400 font-oswald font-bold text-2xl mb-2">{r.price}</div>
                 <div className="text-white/45 text-xs leading-relaxed">{r.desc}</div>
@@ -451,7 +451,7 @@ export default function Stolby() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-            <div className="bg-[#141720] border border-[#1e2230] rounded-2xl p-5">
+            <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5">
               <Icon name="Plus" size={20} className="text-green-400 mb-2" />
               <div className="font-oswald font-semibold text-white text-sm mb-2">Плюсы кирпича</div>
               <ul className="text-white/55 text-xs space-y-1 leading-relaxed">
@@ -461,7 +461,7 @@ export default function Stolby() {
                 <li>· Подчёркивает статус, не требует обслуживания</li>
               </ul>
             </div>
-            <div className="bg-[#141720] border border-[#1e2230] rounded-2xl p-5">
+            <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5">
               <Icon name="Minus" size={20} className="text-red-400 mb-2" />
               <div className="font-oswald font-semibold text-white text-sm mb-2">Минусы кирпича</div>
               <ul className="text-white/55 text-xs space-y-1 leading-relaxed">
@@ -481,8 +481,8 @@ export default function Stolby() {
               return (
                 <div
                   key={key}
-                  className={`bg-[#141720] border rounded-2xl overflow-hidden transition-all ${
-                    open ? "border-orange-500/40" : "border-[#1e2230] hover:border-orange-500/20"
+                  className={`bg-gray-50 border rounded-2xl overflow-hidden transition-all ${
+                    open ? "border-orange-500/40" : "border-gray-200 hover:border-orange-500/20"
                   }`}
                 >
                   <button
@@ -493,14 +493,14 @@ export default function Stolby() {
                     <span className="font-oswald font-semibold text-white text-base pr-4">{f.q}</span>
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
-                        open ? "bg-orange-500 text-gray-900 rotate-45" : "bg-[#0a0c10] text-orange-400"
+                        open ? "bg-orange-500 text-gray-900 rotate-45" : "bg-white text-orange-400"
                       }`}
                     >
                       <Icon name="Plus" size={18} />
                     </div>
                   </button>
                   {open && (
-                    <div className="px-5 pb-5 text-white/60 text-sm leading-relaxed border-t border-[#1e2230] pt-4">
+                    <div className="px-5 pb-5 text-white/60 text-sm leading-relaxed border-t border-gray-200 pt-4">
                       {f.a}
                     </div>
                   )}
@@ -543,7 +543,7 @@ export default function Stolby() {
             </div>
 
             <div>
-              <div className="aspect-[4/3] rounded-2xl overflow-hidden border border-[#1e2230]">
+              <div className="aspect-[4/3] rounded-2xl overflow-hidden border border-gray-200">
                 <EditablePhoto
                   src={IMG3}
                   alt="Столбы из декоративных блоков"
@@ -558,7 +558,7 @@ export default function Stolby() {
           <h3 className="font-oswald font-bold text-xl text-white mb-5">Цены на блочные столбы</h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
             {BLOKI_ROWS.map((r) => (
-              <div key={r.size} className="bg-[#141720] border border-[#1e2230] rounded-2xl p-5 hover:border-orange-500/40 transition-colors">
+              <div key={r.size} className="bg-gray-50 border border-gray-200 rounded-2xl p-5 hover:border-orange-500/40 transition-colors">
                 <div className="font-oswald font-semibold text-white text-base mb-1">{r.size}</div>
                 <div className="text-orange-400 font-oswald font-bold text-2xl mb-2">{r.price}</div>
                 <div className="text-white/45 text-xs leading-relaxed">{r.desc}</div>
@@ -567,7 +567,7 @@ export default function Stolby() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-            <div className="bg-[#141720] border border-[#1e2230] rounded-2xl p-5">
+            <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5">
               <Icon name="Plus" size={20} className="text-green-400 mb-2" />
               <div className="font-oswald font-semibold text-white text-sm mb-2">Плюсы блоков</div>
               <ul className="text-white/55 text-xs space-y-1 leading-relaxed">
@@ -578,7 +578,7 @@ export default function Stolby() {
                 <li>· Облицовка не нужна — лицо декоративное</li>
               </ul>
             </div>
-            <div className="bg-[#141720] border border-[#1e2230] rounded-2xl p-5">
+            <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5">
               <Icon name="Minus" size={20} className="text-red-400 mb-2" />
               <div className="font-oswald font-semibold text-white text-sm mb-2">Минусы блоков</div>
               <ul className="text-white/55 text-xs space-y-1 leading-relaxed">
@@ -598,8 +598,8 @@ export default function Stolby() {
               return (
                 <div
                   key={key}
-                  className={`bg-[#141720] border rounded-2xl overflow-hidden transition-all ${
-                    open ? "border-orange-500/40" : "border-[#1e2230] hover:border-orange-500/20"
+                  className={`bg-gray-50 border rounded-2xl overflow-hidden transition-all ${
+                    open ? "border-orange-500/40" : "border-gray-200 hover:border-orange-500/20"
                   }`}
                 >
                   <button
@@ -610,14 +610,14 @@ export default function Stolby() {
                     <span className="font-oswald font-semibold text-white text-base pr-4">{f.q}</span>
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
-                        open ? "bg-orange-500 text-gray-900 rotate-45" : "bg-[#0a0c10] text-orange-400"
+                        open ? "bg-orange-500 text-gray-900 rotate-45" : "bg-white text-orange-400"
                       }`}
                     >
                       <Icon name="Plus" size={18} />
                     </div>
                   </button>
                   {open && (
-                    <div className="px-5 pb-5 text-white/60 text-sm leading-relaxed border-t border-[#1e2230] pt-4">
+                    <div className="px-5 pb-5 text-white/60 text-sm leading-relaxed border-t border-gray-200 pt-4">
                       {f.a}
                     </div>
                   )}
@@ -629,7 +629,7 @@ export default function Stolby() {
       </section>
 
       {/* ── СРАВНЕНИЕ: КАКОЙ ВЫБРАТЬ? ── */}
-      <section className="py-20 bg-[#0a0c10]">
+      <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <span className="section-tag">Сравнение</span>
@@ -641,10 +641,10 @@ export default function Stolby() {
             </p>
           </div>
 
-          <div className="bg-[#141720] border border-[#1e2230] rounded-3xl p-4 sm:p-7 overflow-x-auto">
+          <div className="bg-gray-50 border border-gray-200 rounded-3xl p-4 sm:p-7 overflow-x-auto">
             <table className="w-full text-sm min-w-[700px]">
               <thead>
-                <tr className="border-b border-[#1e2230]">
+                <tr className="border-b border-gray-200">
                   <th className="text-left py-4 px-3 text-white/50 font-medium text-xs uppercase tracking-wider">
                     Параметр
                   </th>
@@ -672,7 +672,7 @@ export default function Stolby() {
                   { p: "Внешний вид",       a: "Минимализм",    b: "Премиум",      c: "Декоративный" },
                   { p: "Под ковку",         a: "Можно",         b: "Идеально",     c: "Можно" },
                 ].map((r) => (
-                  <tr key={r.p} className="border-b border-[#1a1f2e] hover:bg-[#0a0c10]/40 transition-colors">
+                  <tr key={r.p} className="border-b border-[#1a1f2e] hover:bg-white/40 transition-colors">
                     <td className="py-3.5 px-3 text-white font-medium">{r.p}</td>
                     <td className="py-3.5 px-3 text-center text-white/70 font-oswald">{r.a}</td>
                     <td className="py-3.5 px-3 text-center text-orange-400 font-oswald font-bold">{r.b}</td>
@@ -732,9 +732,9 @@ export default function Stolby() {
             </div>
 
             <div className="lg:col-span-2">
-              <div className="bg-[#141720]/95 backdrop-blur border-2 border-orange-500/30 rounded-3xl p-7 shadow-2xl shadow-orange-500/10">
+              <div className="bg-gray-50/95 backdrop-blur border-2 border-orange-500/30 rounded-3xl p-7 shadow-2xl shadow-orange-500/10">
                 <div className="font-oswald font-bold text-2xl text-white mb-1">Точный расчёт</div>
-                <p className="text-white/40 text-xs mb-5">Менеджер перезвонит в течение 15 минут</p>
+                <p className="text-gray-500 text-xs mb-5">Менеджер перезвонит в течение 15 минут</p>
                 <button
                   onClick={() =>
                     lead.open({
@@ -772,11 +772,11 @@ export default function Stolby() {
       </section>
 
       {/* ── FOOTER ── */}
-      <footer className="border-t border-[#1e2230] bg-[#0a0c10] py-8">
+      <footer className="border-t border-gray-200 bg-white py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <Link
             to="/"
-            className="flex items-center gap-3 text-white/40 hover:text-orange-400 transition-colors text-sm"
+            className="flex items-center gap-3 text-gray-500 hover:text-orange-400 transition-colors text-sm"
           >
             <Icon name="ChevronLeft" size={16} />
             Вернуться на главную

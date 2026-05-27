@@ -12,6 +12,9 @@ import AdminContent from "./pages/AdminContent";
 import AdminMedia from "./pages/AdminMedia";
 import AdminMenu from "./pages/AdminMenu";
 import AdminPrices from "./pages/AdminPrices";
+import AdminBuilder from "./pages/AdminBuilder";
+import AdminOnec from "./pages/AdminOnec";
+import UserPage from "./pages/UserPage";
 import DynamicFavicon from "./components/DynamicFavicon";
 import AdminEditBar from "./components/AdminEditBar";
 import AnalyticsCounters from "./components/AnalyticsCounters";
@@ -53,6 +56,9 @@ const App = () => (
           <Route path="/admin/media" element={<AdminMedia />} />
           <Route path="/admin/menu" element={<AdminMenu />} />
           <Route path="/admin/prices" element={<AdminPrices />} />
+          <Route path="/admin/builder" element={<AdminBuilder />} />
+          <Route path="/admin/onec" element={<AdminOnec />} />
+          <Route path="/p/:slug" element={<UserPage />} />
           <Route path="/max-setup" element={<MaxSetup />} />
           <Route path="/help/max" element={<MaxSetup />} />
           <Route path="/privacy" element={<Privacy />} />
