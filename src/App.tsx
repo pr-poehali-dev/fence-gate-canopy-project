@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,12 +12,6 @@ import AdminContent from "./pages/AdminContent";
 import AdminMedia from "./pages/AdminMedia";
 import AdminMenu from "./pages/AdminMenu";
 import AdminPrices from "./pages/AdminPrices";
-import ErpLogin from "./pages/ErpLogin";
-import ErpDashboard from "./pages/ErpDashboard";
-import ErpEmployees from "./pages/ErpEmployees";
-import ErpCalculator from "./pages/ErpCalculator";
-import ErpDealCard from "./pages/ErpDealCard";
-import ErpDeals from "./pages/ErpDeals";
 import DynamicFavicon from "./components/DynamicFavicon";
 import AdminEditBar from "./components/AdminEditBar";
 import AnalyticsCounters from "./components/AnalyticsCounters";
@@ -60,44 +53,35 @@ const App = () => (
           <Route path="/admin/media" element={<AdminMedia />} />
           <Route path="/admin/menu" element={<AdminMenu />} />
           <Route path="/admin/prices" element={<AdminPrices />} />
-          <Route path="/erp/login" element={<ErpLogin />} />
-          <Route path="/erp" element={<ErpDashboard />} />
-          <Route path="/erp/employees" element={<ErpEmployees />} />
-          <Route path="/erp/calc" element={<ErpCalculator />} />
-          <Route path="/erp/deals" element={<ErpDeals />} />
-          <Route path="/erp/deals/:id" element={<ErpDealCard />} />
           <Route path="/max-setup" element={<MaxSetup />} />
           <Route path="/help/max" element={<MaxSetup />} />
           <Route path="/privacy" element={<Privacy />} />
 
-          {/* Услуги — отдельные страницы */}
-          <Route path="/services/profnastil"     element={<Profnastil />} />
-          <Route path="/services/shtaketnik"     element={<Shtaketnik />} />
-          <Route path="/services/otkatnye-vorota" element={<Otkatnye />} />
-          <Route path="/services/raspashnye-vorota" element={<Raspashnye />} />
-          <Route path="/services/navesy"         element={<Navesy />} />
-          <Route path="/services/3d-setka"       element={<Mesh3D />} />
-          <Route path="/services/kovka"          element={<Kovka />} />
-          <Route path="/services/setka-rabitsa"  element={<Rabitsa />} />
-          <Route path="/services/kalitki"        element={<Kalitki />} />
-          <Route path="/services/besedki"        element={<Besedki />} />
-          <Route path="/services/fundamenty"     element={<Foundations />} />
+          {/* Услуги */}
+          <Route path="/services/profnastil"          element={<Profnastil />} />
+          <Route path="/services/shtaketnik"          element={<Shtaketnik />} />
+          <Route path="/services/otkatnye-vorota"     element={<Otkatnye />} />
+          <Route path="/services/raspashnye-vorota"   element={<Raspashnye />} />
+          <Route path="/services/navesy"              element={<Navesy />} />
+          <Route path="/services/3d-setka"            element={<Mesh3D />} />
+          <Route path="/services/kovka"               element={<Kovka />} />
+          <Route path="/services/setka-rabitsa"       element={<Rabitsa />} />
+          <Route path="/services/kalitki"             element={<Kalitki />} />
+          <Route path="/services/besedki"             element={<Besedki />} />
+          <Route path="/services/fundamenty"          element={<Foundations />} />
           <Route path="/services/betonnye-ploschadki" element={<Ploshadki />} />
           <Route path="/services/zaezd-na-uchastok"   element={<Zaezd />} />
+          <Route path="/uslugi/fundamenty"            element={<Foundations />} />
+          <Route path="/uslugi/stolby"                element={<Stolby />} />
 
-          {/* Объединённые услуги (категории с типами на табах) */}
-          <Route path="/uslugi/fundamenty"          element={<Foundations />} />
-          <Route path="/uslugi/stolby"              element={<Stolby />} />
+          {/* Редиректы старых маршрутов */}
+          <Route path="/zabory/na-rostverke"       element={<Navigate to="/uslugi/fundamenty#tab-rostverk" replace />} />
+          <Route path="/zabory/kirpichnye-stolby"  element={<Navigate to="/uslugi/stolby#tab-kirpich" replace />} />
+          <Route path="/zabory/bloki-stolby"       element={<Navigate to="/uslugi/stolby#tab-bloki" replace />} />
+          <Route path="/erp/*"                     element={<Navigate to="/admin" replace />} />
 
-          {/* Старые маршруты — теперь редиректы на категории с якорями к нужному табу */}
-          <Route path="/zabory/na-rostverke"        element={<Navigate to="/uslugi/fundamenty#tab-rostverk" replace />} />
-          <Route path="/zabory/kirpichnye-stolby"   element={<Navigate to="/uslugi/stolby#tab-kirpich" replace />} />
-          <Route path="/zabory/bloki-stolby"        element={<Navigate to="/uslugi/stolby#tab-bloki" replace />} />
+          <Route path="/shemy-chertezi" element={<SchematicsCatalog />} />
 
-          {/* Каталог схем */}
-          <Route path="/shemy-chertezi"             element={<SchematicsCatalog />} />
-
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

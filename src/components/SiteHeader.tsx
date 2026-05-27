@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import Icon from "@/components/ui/icon";
-import SiteLogo from "@/components/SiteLogo";
 import { useLeadModal } from "@/hooks/useLeadModal";
 import { useSiteMenu } from "@/hooks/useSiteMenu";
 import { usePageContent } from "@/hooks/usePageContent";
@@ -44,26 +43,36 @@ export default function SiteHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-[#0a0c10]/95 backdrop-blur border-b border-[#1e2230]">
-      <div className="hidden md:block bg-[#070809] border-b border-[#1e2230]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-1.5 flex items-center justify-between text-[11px] text-white/50">
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1"><Icon name="MapPin" size={11} className="text-orange-400" /> {region}</span>
-            <span className="flex items-center gap-1"><Icon name="Clock" size={11} className="text-orange-400" /> {workHours}</span>
+    <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-200">
+      <div className="hidden md:block bg-gray-50 border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-1.5 flex items-center justify-between text-[12px] text-gray-600">
+          <div className="flex items-center gap-5">
+            <span className="flex items-center gap-1.5"><Icon name="MapPin" size={12} className="text-orange-500" />{region}</span>
+            <span className="flex items-center gap-1.5"><Icon name="Clock" size={12} className="text-orange-500" />{workHours}</span>
+            <Link to="/reviews" className="hover:text-orange-500">Отзывы</Link>
+            <Link to="/shemy-chertezi" className="hover:text-orange-500">Схемы и чертежи</Link>
           </div>
-          <div className="flex items-center gap-4">
-            <a href={`tel:${phoneTel}`} className="hover:text-orange-400 flex items-center gap-1">
-              <Icon name="Phone" size={11} /> {phone}
+          <div className="flex items-center gap-3">
+            <a href={`tel:${phoneTel}`} className="hover:text-orange-500 flex items-center gap-1 font-semibold">
+              <Icon name="Phone" size={12} /> {phone}
             </a>
-            <Link to="/admin" className="hover:text-orange-400 opacity-50 hover:opacity-100">
-              Админ
-            </Link>
+            <Link to="/admin" className="hover:text-orange-500 opacity-40 hover:opacity-100">Админ</Link>
           </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-6">
-        <SiteLogo />
+        <Link to="/" className="flex items-center gap-2 shrink-0">
+          <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center shadow-md">
+            <Icon name="Fence" size={22} className="text-white" />
+          </div>
+          <div>
+            <div className="font-oswald font-bold text-gray-900 text-xl leading-none">
+              Сталь<span className="text-orange-500">Групп</span>
+            </div>
+            <div className="text-[10px] text-gray-500 mt-0.5">заборы под ключ с 2008 года</div>
+          </div>
+        </Link>
 
         <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center">
           {menu.map(cat => {
@@ -77,24 +86,24 @@ export default function SiteHeader() {
               >
                 <button
                   onClick={(e) => { e.stopPropagation(); setOpenCat(isOpen ? null : cat.id); }}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    isOpen ? "text-orange-400 bg-[#141720]" : "text-white/80 hover:text-orange-400"
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-[14px] font-semibold transition-colors ${
+                    isOpen ? "text-orange-500 bg-orange-50" : "text-gray-700 hover:text-orange-500"
                   }`}
                 >
-                  {cat.icon && <Icon name={cat.icon} size={14} />}
+                  {cat.icon && <Icon name={cat.icon} size={15} />}
                   {cat.label}
                   <Icon name="ChevronDown" size={12} className={`transition-transform ${isOpen ? "rotate-180" : ""}`} />
                 </button>
 
                 {isOpen && (
                   <div
-                    className="absolute top-full left-0 mt-1 w-80 bg-[#0a0c10] border border-[#1e2230] rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150"
+                    className="absolute top-full left-0 mt-1 w-80 bg-white border border-gray-200 rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150"
                     onClick={e => e.stopPropagation()}
                   >
                     {cat.href && (
                       <Link
                         to={cat.href}
-                        className="block px-4 py-3 bg-orange-500/10 border-b border-orange-500/20 text-orange-400 font-bold text-sm hover:bg-orange-500/20"
+                        className="block px-4 py-3 bg-orange-500 text-white font-bold text-sm hover:bg-orange-600"
                       >
                         <div className="flex items-center justify-between">
                           <span>Все {cat.label.toLowerCase()}</span>
@@ -107,20 +116,20 @@ export default function SiteHeader() {
                         <Link
                           key={item.id}
                           to={item.href}
-                          className="block px-3 py-2.5 rounded-lg hover:bg-[#141720] transition-colors group"
+                          className="block px-3 py-2.5 rounded-lg hover:bg-orange-50 transition-colors group"
                         >
                           <div className="flex items-center justify-between">
-                            <span className="text-white text-sm font-medium group-hover:text-orange-400">
+                            <span className="text-gray-900 text-sm font-semibold group-hover:text-orange-600">
                               {item.label}
                             </span>
                             {item.badge && (
-                              <span className="text-[9px] bg-orange-500/20 text-orange-300 px-1.5 py-0.5 rounded font-bold">
+                              <span className="text-[9px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded font-bold">
                                 {item.badge}
                               </span>
                             )}
                           </div>
                           {item.description && (
-                            <div className="text-[11px] text-white/40 mt-0.5">{item.description}</div>
+                            <div className="text-[11px] text-gray-500 mt-0.5">{item.description}</div>
                           )}
                         </Link>
                       ))}
@@ -133,23 +142,20 @@ export default function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <a
-            href={`tel:${phoneTel}`}
-            className="hidden md:flex items-center gap-1.5 text-white/80 hover:text-orange-400 text-sm font-bold"
-          >
-            <Icon name="Phone" size={14} />
-            <span className="hidden xl:inline">{phone}</span>
+          <a href={`tel:${phoneTel}`} className="hidden md:flex flex-col items-end leading-tight">
+            <span className="text-gray-900 font-bold text-base">{phone}</span>
+            <span className="text-[11px] text-gray-500">бесплатный звонок</span>
           </a>
           <button
             onClick={() => openLead("site-header")}
-            className="hidden sm:inline-flex bg-orange-500 hover:bg-orange-400 text-gray-900 font-bold text-sm px-4 py-2.5 rounded-lg items-center gap-2 shadow-lg shadow-orange-500/20"
+            className="hidden sm:inline-flex bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm px-5 py-2.5 rounded-lg items-center gap-2 shadow-md shadow-orange-500/30 hover:shadow-lg transition-all"
           >
-            <Icon name="Calculator" size={14} />
-            Замер бесплатно
+            <Icon name="Phone" size={14} />
+            Заказать звонок
           </button>
           <button
             onClick={() => setMobileOpen(true)}
-            className="lg:hidden w-10 h-10 rounded-lg border border-[#1e2230] text-white flex items-center justify-center"
+            className="lg:hidden w-10 h-10 rounded-lg bg-orange-500 text-white flex items-center justify-center"
           >
             <Icon name="Menu" size={20} />
           </button>
@@ -158,14 +164,16 @@ export default function SiteHeader() {
 
       {mobileOpen && (
         <div className="fixed inset-0 z-[60] lg:hidden">
-          <div className="absolute inset-0 bg-black/80" onClick={() => setMobileOpen(false)} />
-          <div className="absolute right-0 top-0 bottom-0 w-full max-w-sm bg-[#0a0c10] border-l border-[#1e2230] flex flex-col">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-[#1e2230]">
-              <SiteLogo />
-              <button
-                onClick={() => setMobileOpen(false)}
-                className="w-10 h-10 rounded-lg border border-[#1e2230] text-white flex items-center justify-center"
-              >
+          <div className="absolute inset-0 bg-black/60" onClick={() => setMobileOpen(false)} />
+          <div className="absolute right-0 top-0 bottom-0 w-full max-w-sm bg-white flex flex-col shadow-2xl">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+              <div className="flex items-center gap-2">
+                <div className="w-9 h-9 bg-orange-500 rounded-lg flex items-center justify-center">
+                  <Icon name="Fence" size={20} className="text-white" />
+                </div>
+                <span className="font-oswald font-bold text-gray-900 text-lg">Сталь<span className="text-orange-500">Групп</span></span>
+              </div>
+              <button onClick={() => setMobileOpen(false)} className="w-10 h-10 rounded-lg bg-gray-100 text-gray-700 flex items-center justify-center">
                 <Icon name="X" size={18} />
               </button>
             </div>
@@ -173,24 +181,21 @@ export default function SiteHeader() {
               {menu.map(cat => {
                 const isOpen = mobileCat === cat.id;
                 return (
-                  <div key={cat.id} className="border-b border-[#1e2230]">
+                  <div key={cat.id} className="border-b border-gray-100">
                     <button
                       onClick={() => setMobileCat(isOpen ? null : cat.id)}
-                      className="w-full flex items-center justify-between px-4 py-3.5 text-white hover:bg-[#141720]"
+                      className="w-full flex items-center justify-between px-4 py-3.5 text-gray-900 hover:bg-orange-50"
                     >
                       <span className="flex items-center gap-2.5">
-                        {cat.icon && <Icon name={cat.icon} size={16} className="text-orange-400" />}
-                        <span className="font-medium">{cat.label}</span>
+                        {cat.icon && <Icon name={cat.icon} size={16} className="text-orange-500" />}
+                        <span className="font-semibold">{cat.label}</span>
                       </span>
                       <Icon name="ChevronDown" size={16} className={`transition-transform ${isOpen ? "rotate-180" : ""}`} />
                     </button>
                     {isOpen && (
-                      <div className="bg-[#070809]">
+                      <div className="bg-gray-50">
                         {cat.href && (
-                          <Link
-                            to={cat.href}
-                            className="block px-6 py-2.5 text-orange-400 text-sm font-bold border-b border-[#1e2230]"
-                          >
+                          <Link to={cat.href} className="block px-6 py-2.5 text-orange-600 text-sm font-bold border-b border-gray-200">
                             Все {cat.label.toLowerCase()} →
                           </Link>
                         )}
@@ -198,17 +203,15 @@ export default function SiteHeader() {
                           <Link
                             key={item.id}
                             to={item.href}
-                            className="block px-6 py-2.5 text-white/80 text-sm hover:text-orange-400 border-b border-[#141720] last:border-0"
+                            className="block px-6 py-2.5 text-gray-700 text-sm hover:text-orange-500 border-b border-gray-100 last:border-0"
                           >
                             <div className="flex items-center justify-between">
                               {item.label}
                               {item.badge && (
-                                <span className="text-[9px] bg-orange-500/20 text-orange-300 px-1.5 py-0.5 rounded font-bold">
-                                  {item.badge}
-                                </span>
+                                <span className="text-[9px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded font-bold">{item.badge}</span>
                               )}
                             </div>
-                            {item.description && <div className="text-[10px] text-white/30 mt-0.5">{item.description}</div>}
+                            {item.description && <div className="text-[10px] text-gray-500 mt-0.5">{item.description}</div>}
                           </Link>
                         ))}
                       </div>
@@ -217,17 +220,14 @@ export default function SiteHeader() {
                 );
               })}
             </div>
-            <div className="p-4 border-t border-[#1e2230] space-y-2">
-              <a
-                href={`tel:${phoneTel}`}
-                className="flex items-center justify-center gap-2 w-full bg-[#141720] border border-[#1e2230] text-white py-3 rounded-lg font-bold"
-              >
-                <Icon name="Phone" size={16} className="text-orange-400" />
+            <div className="p-4 border-t border-gray-200 space-y-2">
+              <a href={`tel:${phoneTel}`} className="flex items-center justify-center gap-2 w-full bg-gray-100 text-gray-900 py-3 rounded-lg font-bold">
+                <Icon name="Phone" size={16} className="text-orange-500" />
                 {phone}
               </a>
               <button
                 onClick={() => { setMobileOpen(false); openLead("mobile-header"); }}
-                className="w-full bg-orange-500 hover:bg-orange-400 text-gray-900 font-bold py-3 rounded-lg flex items-center justify-center gap-2"
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2"
               >
                 <Icon name="Calculator" size={16} />
                 Бесплатный замер
