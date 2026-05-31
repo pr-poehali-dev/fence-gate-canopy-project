@@ -78,7 +78,7 @@ export interface ServiceProps {
 
   // Прайс
   priceRows:         PriceRow[];
-  foundations:       FoundationOption[];
+  foundations?:      FoundationOption[];
 
   // Спецификация
   specs:             SpecRow[];
@@ -495,26 +495,30 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
           </div>
 
           {/* Фундаменты */}
-          <h3 className="font-oswald font-bold text-2xl text-gray-900 mb-5 text-center">Тип фундамента</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {p.foundations.map(f => (
-              <div key={f.name}
-                className={`relative rounded-2xl p-5 border transition-all ${
-                  f.recommend
-                    ? "bg-orange-500/5 border-orange-500/40 hover:border-orange-500/60"
-                    : "bg-gray-50 border-gray-200 hover:border-orange-500/30"
-                }`}>
-                {f.recommend && (
-                  <div className="absolute -top-2 left-4 bg-orange-500 text-gray-900 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded">
-                    Рекомендуем
+          {p.foundations && p.foundations.length > 0 && (
+            <>
+              <h3 className="font-oswald font-bold text-2xl text-gray-900 mb-5 text-center">Тип фундамента</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {p.foundations.map(f => (
+                  <div key={f.name}
+                    className={`relative rounded-2xl p-5 border transition-all ${
+                      f.recommend
+                        ? "bg-orange-500/5 border-orange-500/40 hover:border-orange-500/60"
+                        : "bg-gray-50 border-gray-200 hover:border-orange-500/30"
+                    }`}>
+                    {f.recommend && (
+                      <div className="absolute -top-2 left-4 bg-orange-500 text-gray-900 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded">
+                        Рекомендуем
+                      </div>
+                    )}
+                    <div className="font-oswald font-bold text-gray-900 text-lg mb-1">{f.name}</div>
+                    <div className="text-orange-400 font-oswald font-bold text-xl mb-2">{f.price}</div>
+                    <div className="text-gray-500 text-xs leading-relaxed">{f.desc}</div>
                   </div>
-                )}
-                <div className="font-oswald font-bold text-gray-900 text-lg mb-1">{f.name}</div>
-                <div className="text-orange-400 font-oswald font-bold text-xl mb-2">{f.price}</div>
-                <div className="text-gray-500 text-xs leading-relaxed">{f.desc}</div>
+                ))}
               </div>
-            ))}
-          </div>
+            </>
+          )}
 
           <div className="mt-8 bg-orange-500/5 border border-orange-500/20 rounded-2xl p-5 text-sm text-gray-600 flex items-start gap-3">
             <Icon name="Info" size={18} className="text-orange-400 flex-shrink-0 mt-0.5" />
