@@ -9,52 +9,31 @@
  * переставить через /admin/content (EditableImage).
  */
 
-import { REAL_PHOTOS } from "./real-photos";
+const CDN = "https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket";
 
-// Хелпер: режет общий массив на куски (start..start+count, без выхода за границы)
-function slice(start: number, count: number): string[] {
-  const out: string[] = [];
-  for (let i = 0; i < count; i++) {
-    out.push(REAL_PHOTOS[(start + i) % REAL_PHOTOS.length]);
-  }
-  return out;
-}
-
-// 13 услуг × 6 фото = 78 — ровно столько у нас и есть.
-// Каждый сегмент непересекающийся.
+// Фото услуг. Заполняем пачками по мере получения от клиента.
+// Первое фото в массиве = главное (hero).
 export const PHOTOS_BY_SERVICE: Record<string, string[]> = {
-  profnastil:           slice(0, 6),    // 0..5
-  shtaketnik:           slice(6, 6),    // 6..11
-  "3d-setka":           slice(12, 6),   // 12..17
-  "setka-rabitsa":      slice(18, 6),   // 18..23
-  kovka:                slice(24, 6),   // 24..29
-  "otkatnye-vorota":    slice(30, 6),   // 30..35
-  "raspashnye-vorota":  slice(36, 6),   // 36..41
-  kalitki:              slice(42, 6),   // 42..47
-  navesy:               slice(48, 6),   // 48..53
-  besedki:              slice(54, 6),   // 54..59
-  fundamenty:           slice(60, 6),   // 60..65
-  "betonnye-ploschadki": slice(66, 6),  // 66..71
-  "zaezd-na-uchastok":  slice(72, 6),   // 72..77
-
-  // Объединённая категория «Столбы» (профтруба + кирпич + блоки)
-  // Детерминированный набор из 10 фото — премиум-сегмент.
-  stolby:               slice(40, 10),  // 40..49: пул ворот/кованых/премиум
-  "shemy-chertezi":     slice(0, 8),    // каталог схем: показывает превью разных услуг
+  profnastil: [
+    `${CDN}/477c91c0-abe2-42e9-b0bb-788f004dd98a.jpg`, // главное фото — забор из профнастила
+    `${CDN}/9694eeb4-892f-46cd-94db-7726358ab3bb.jpg`, // профиль С21-1000
+    `${CDN}/ac964b0b-47d7-46de-b206-68bff8895d41.png`, // профиль С20
+    `${CDN}/c21936bf-c0bc-4b3a-b8b6-3ed8f9da4153.png`, // профиль С8
+  ],
 };
 
 /**
  * Hero-фото = первое в наборе услуги.
  */
 export function heroForService(slug: string): string {
-  return (PHOTOS_BY_SERVICE[slug] || REAL_PHOTOS)[0];
+  return (PHOTOS_BY_SERVICE[slug] || [])[0] || "";
 }
 
 /**
  * Полный набор фото для услуги (для портфолио / схем / альтернатив).
  */
 export function photosForService(slug: string, count: number = 4): string[] {
-  const set = PHOTOS_BY_SERVICE[slug] || REAL_PHOTOS;
+  const set = PHOTOS_BY_SERVICE[slug] || [];
   return set.slice(0, Math.min(count, set.length));
 }
 
@@ -62,6 +41,6 @@ export function photosForService(slug: string, count: number = 4): string[] {
  * Доп. фото (без первого hero).
  */
 export function extraPhotosForService(slug: string, count: number = 3): string[] {
-  const set = PHOTOS_BY_SERVICE[slug] || REAL_PHOTOS;
+  const set = PHOTOS_BY_SERVICE[slug] || [];
   return set.slice(1, 1 + count);
 }
