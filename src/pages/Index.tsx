@@ -267,10 +267,11 @@ export default function Index() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
-                <Icon name="Fence" size={22} className="text-white" />
-              </div>
-              <div className="font-oswald font-bold text-xl">Сталь<span className="text-orange-400">Групп</span></div>
+              <img
+                src="https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/67e71714-0e36-43e2-852e-df4ac5015767.png"
+                alt="СТАЛЬ ГРУП"
+                className="h-12 w-auto bg-white rounded-lg px-2 py-1"
+              />
             </div>
             <p className="text-sm text-white/60">Производство и монтаж заборов в Москве и МО с 2008 года.</p>
           </div>

@@ -63,15 +63,11 @@ export default function SiteHeader() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-6">
         <Link to="/" className="flex items-center gap-2 shrink-0">
-          <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center shadow-md">
-            <Icon name="Fence" size={22} className="text-white" />
-          </div>
-          <div>
-            <div className="font-oswald font-bold text-gray-900 text-xl leading-none">
-              Сталь<span className="text-orange-500">Групп</span>
-            </div>
-            <div className="text-[10px] text-gray-500 mt-0.5">заборы под ключ с 2008 года</div>
-          </div>
+          <img
+            src="https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/67e71714-0e36-43e2-852e-df4ac5015767.png"
+            alt="СТАЛЬ ГРУП — заборы, ворота, навесы под ключ"
+            className="h-12 w-auto"
+          />
         </Link>
 
         <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center">
@@ -168,10 +164,11 @@ export default function SiteHeader() {
           <div className="absolute right-0 top-0 bottom-0 w-full max-w-sm bg-white flex flex-col shadow-2xl">
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
               <div className="flex items-center gap-2">
-                <div className="w-9 h-9 bg-orange-500 rounded-lg flex items-center justify-center">
-                  <Icon name="Fence" size={20} className="text-white" />
-                </div>
-                <span className="font-oswald font-bold text-gray-900 text-lg">Сталь<span className="text-orange-500">Групп</span></span>
+                <img
+                  src="https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/67e71714-0e36-43e2-852e-df4ac5015767.png"
+                  alt="СТАЛЬ ГРУП"
+                  className="h-10 w-auto"
+                />
               </div>
               <button onClick={() => setMobileOpen(false)} className="w-10 h-10 rounded-lg bg-gray-100 text-gray-700 flex items-center justify-center">
                 <Icon name="X" size={18} />
