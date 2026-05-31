@@ -36,7 +36,7 @@
 
     --orange: #f97316;
     --orange-dark: #ea580c;
-    --dark-bg: #ffffff;
+    --page-bg: #ffffff;
     --dark-card: #f9fafb;
     --dark-border: #1e2230;
   }
@@ -52,9 +52,9 @@
     -webkit-tap-highlight-color: transparent;
   }
   body {
-    @apply bg-background text-foreground;
     font-family: "Golos Text", sans-serif;
-    background-color: var(--dark-bg);
+    background-color: var(--page-bg);
+    color: #1f2937;
     scroll-behavior: smooth;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
@@ -156,7 +156,7 @@ form {
   width: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--dark-bg);
+  background: #f0f0f0;
 }
 ::-webkit-scrollbar-thumb {
   background: var(--orange);

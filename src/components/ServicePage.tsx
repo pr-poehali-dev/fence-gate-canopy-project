@@ -427,7 +427,7 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
                   <EditableText
                     page={p.pageSlug} blockKey="about_title"
                     value={cms("about_title")} fallback={p.aboutTitle} as="h2"
-                    className="font-oswald font-bold text-3xl sm:text-4xl text-white mb-4"
+                    className="font-oswald font-bold text-3xl sm:text-4xl text-gray-900 mb-4"
                   />
                   <EditableText
                     page={p.pageSlug} blockKey="about_text"
@@ -438,7 +438,7 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
                 </>
               ) : (
                 <>
-                  <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-white mb-4">{p.aboutTitle}</h2>
+                  <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-gray-900 mb-4">{p.aboutTitle}</h2>
                   <p className="text-gray-600 leading-relaxed whitespace-pre-line">{p.aboutText}</p>
                 </>
               )}
@@ -484,7 +484,7 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
               <tbody>
                 {p.priceRows.map((row, i) => (
                   <tr key={i} className="border-b border-[#1a1f2e] hover:bg-white/40 transition-colors">
-                    <td className="py-3.5 px-3 text-white font-medium">{row.param}</td>
+                    <td className="py-3.5 px-3 text-gray-900 font-medium">{row.param}</td>
                     <td className="py-3.5 px-3 text-center text-gray-600 font-oswald">{row.zink}</td>
                     <td className="py-3.5 px-3 text-center text-orange-400 font-oswald font-bold">{row.polymer}</td>
                     <td className="py-3.5 px-3 text-center text-gray-600 font-oswald">{row.premium}</td>
@@ -495,7 +495,7 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
           </div>
 
           {/* Фундаменты */}
-          <h3 className="font-oswald font-bold text-2xl text-white mb-5 text-center">Тип фундамента</h3>
+          <h3 className="font-oswald font-bold text-2xl text-gray-900 mb-5 text-center">Тип фундамента</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {p.foundations.map(f => (
               <div key={f.name}
