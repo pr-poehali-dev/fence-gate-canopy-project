@@ -82,7 +82,7 @@ export default function QuickQuoteForm({
 
   if (sent) {
     return (
-      <div className="bg-green-500/10 border border-green-500/30 rounded-2xl p-6 text-center">
+      <div className="bg-[#141720]/95 backdrop-blur border border-green-500/40 rounded-2xl p-6 text-center shadow-2xl">
         <div className="w-14 h-14 bg-green-500/15 border-2 border-green-500/40 rounded-full flex items-center justify-center mx-auto mb-3">
           <Icon name="CheckCircle2" size={28} className="text-green-400" />
         </div>
