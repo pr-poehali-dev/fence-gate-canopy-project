@@ -31,6 +31,7 @@ import Rabitsa from "./pages/services/Rabitsa";
 import Kalitki from "./pages/services/Kalitki";
 import Besedki from "./pages/services/Besedki";
 import Foundations from "./pages/services/Foundations";
+import Pokraska from "./pages/services/Pokraska";
 import Ploshadki from "./pages/services/Ploshadki";
 import Zaezd from "./pages/services/Zaezd";
 import Stolby from "./pages/services/Stolby";
@@ -75,6 +76,8 @@ const App = () => (
           <Route path="/services/kalitki"             element={<Kalitki />} />
           <Route path="/services/besedki"             element={<Besedki />} />
           <Route path="/services/fundamenty"          element={<Foundations />} />
+          <Route path="/services/pokraska"            element={<Pokraska />} />
+          <Route path="/uslugi/pokraska"              element={<Pokraska />} />
           <Route path="/services/betonnye-ploschadki" element={<Ploshadki />} />
           <Route path="/services/zaezd-na-uchastok"   element={<Zaezd />} />
           <Route path="/uslugi/fundamenty"            element={<Foundations />} />

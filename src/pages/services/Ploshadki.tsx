@@ -47,13 +47,6 @@ export default function Ploshadki() {
         { param: "Грузовой въезд (200 мм)",            zink: "—",          polymer: "3 200 ₽/м²", premium: "3 950 ₽/м²" },
       ]}
 
-      foundations={[
-        { name: "Подушка щебень+песок", price: "входит",     desc: "Стандартный пирог 300 мм.",         recommend: true },
-        { name: "Дренаж по периметру",  price: "+450 ₽/м.п.", desc: "Для участков с грунтовыми водами.", recommend: false },
-        { name: "Утеплитель ЭППС",       price: "+550 ₽/м²",  desc: "Под отапливаемые гаражи.",          recommend: false },
-        { name: "Тёплый пол (труба)",    price: "+1 200 ₽/м²", desc: "В стяжку, под подогрев площадки.",  recommend: false },
-      ]}
-
       specs={[
         { param: "Класс бетона",     value: "М300 (B22.5) F150 W6 — ГОСТ 26633-2015", icon: "Cuboid" },
         { param: "Армирование",      value: "Сварная сетка ВР-1 100×100×4 мм, защитный слой 30 мм", icon: "Grid3x3" },
@@ -102,7 +95,6 @@ export default function Ploshadki() {
       leadOffer="Замерщик приедет, оценит геометрию, уклон, грунт. Сделаем смету с раскладкой по слоям и арматуре. Бесплатно."
       warrantyYears={3}
       navesSpec="ploshadka"
-      showFoundationSchemes
     />
   );
 }

@@ -48,13 +48,6 @@ export default function Rabitsa() {
         { param: "В секциях h=2.0 м, ПВХ",         zink: "—",       polymer: "2 200 ₽", premium: "—" },
       ]}
 
-      foundations={[
-        { name: "Бутование",      price: "600 ₽/столб", desc: "Оптимум для лёгкого забора-рабицы.", recommend: true },
-        { name: "Бетонирование",  price: "1 200 ₽/столб", desc: "Усиленный, для угловых столбов.", recommend: false },
-        { name: "Забивка",        price: "300 ₽/столб", desc: "Быстро и дёшево, только сухой грунт.", recommend: false },
-        { name: "Присыпка щебнем", price: "0 ₽ 🎁",      desc: "В подарок от 30 м.", recommend: false },
-      ]}
-
       specs={[
         { param: "Проволока сетки", value: "Оцинкованная Ø1.6–2.0 мм или ПВХ Ø2.5 мм",                       icon: "Minus" },
         { param: "Размер ячейки",   value: "50×50 мм (стандарт), 30×30 / 65×65 / 75×75 — на выбор",            icon: "Grid3x3" },
@@ -99,7 +92,6 @@ export default function Rabitsa() {
       leadOffer="Замерщик приедет в день обращения, посчитает с вашего размера участка. Самый быстрый и бюджетный забор."
       warrantyYears={3}
       fenceAnatomy="rabitsa"
-      showFoundationSchemes
     />
   );
 }

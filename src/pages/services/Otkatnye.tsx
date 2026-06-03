@@ -51,13 +51,6 @@ export default function Otkatnye() {
         { param: "Проём 8.0 м, промышленные",     zink: "—",          polymer: "118 000 ₽", premium: "142 000 ₽" },
       ]}
 
-      foundations={[
-        { name: "Бетонный армопояс", price: "12 000 ₽",  desc: "Стандарт. Заливка 2.5×0.5×0.5 м, армирование, закладные.",       recommend: true },
-        { name: "Свайно-ростверковый", price: "18 000 ₽",  desc: "Для слабых грунтов. 4 сваи Ø108 мм + бетонный ростверк.",        recommend: false },
-        { name: "Винтовые сваи",      price: "16 000 ₽",  desc: "Готов в день монтажа. Для торфа, болот, промёрзшего грунта.",   recommend: false },
-        { name: "Плита монолитная",   price: "22 000 ₽",  desc: "Для широких ворот от 6 м или въезда тяжёлой техники.",            recommend: false },
-      ]}
-
       specs={[
         { param: "Несущая балка",       value: "ЭКО 71×65×5 мм (до 5 м) или КСД 95×88×5 мм (5–8 м), сталь Ст3",          icon: "Minus" },
         { param: "Ролики",               value: "Combi Arialdo (Италия) или Alutech, 8 шт. в комплекте",                    icon: "Cog" },
@@ -139,9 +132,7 @@ export default function Otkatnye() {
       leadOffer="Замерщик приедет с образцами наполнений и каталогом автоматики, замерит проём, проверит грунт. Сделаем 2–3 варианта сметы под разный бюджет. Бесплатно."
       warrantyYears={3}
       gateScheme="otkatnye"
-      showFoundationSchemes
       showSoilCalculator
-      showPaintLevels
     />
   );
 }

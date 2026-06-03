@@ -47,11 +47,6 @@ export default function Raspashnye() {
         { param: "Кованые ворота 3.5 м",          zink: "—",         polymer: "от 95 000 ₽", premium: "от 180 000 ₽" },
       ]}
 
-      foundations={[
-        { name: "Бетонирование столбов", price: "1 800 ₽/опора", desc: "Глубина 1.5 м. Стандарт.", recommend: true },
-        { name: "Винтовые сваи",         price: "2 400 ₽/опора", desc: "Слабый грунт.", recommend: false },
-      ]}
-
       specs={[
         { param: "Опорные столбы",  value: "Профтруба 80×80×3 мм, бетонирование на 1.5 м",                icon: "TrendingUp" },
         { param: "Каркас створки",  value: "Профтруба 60×40×2 мм по периметру + рёбра 40×20",              icon: "Box" },
@@ -98,8 +93,6 @@ export default function Raspashnye() {
       leadOffer="Замерщик с каталогом наполнений приедет в день обращения. Сделаем 2 варианта сметы — эконом и премиум."
       warrantyYears={3}
       gateScheme="raspashnye"
-      showFoundationSchemes
-      showPaintLevels
     />
   );
 }

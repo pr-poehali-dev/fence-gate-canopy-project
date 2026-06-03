@@ -47,13 +47,6 @@ export default function Mesh3D() {
         { param: "Антивандальная h=3 м",         zink: "3 200 ₽", polymer: "3 800 ₽", premium: "—" },
       ]}
 
-      foundations={[
-        { name: "Бутование",     price: "800 ₽/столб",  desc: "Щебень + трамбовка, для лёгких 3D-секций оптимально.", recommend: true },
-        { name: "Бетонирование", price: "1 500 ₽/столб", desc: "Универсал. Для всех грунтов.", recommend: false },
-        { name: "Винтовые сваи", price: "2 400 ₽/столб", desc: "Слабые и торфяные грунты.", recommend: false },
-        { name: "Присыпка щебнем", price: "0 ₽ 🎁",      desc: "В подарок от 30 м. Сухие грунты.", recommend: false },
-      ]}
-
       specs={[
         { param: "Пруток секции",  value: "Горячеоцинкованный Ø4–6 мм, с двойным V-изгибом",                icon: "Minus" },
         { param: "Размер ячейки",  value: "50×200 мм (стандарт), 75×150 мм (антивандал)",                   icon: "Grid3x3" },
@@ -106,8 +99,6 @@ export default function Mesh3D() {
       leadOffer="Замерщик приедет в день обращения, привезёт образцы секций и палитру RAL. Бесплатный расчёт сметы."
       warrantyYears={3}
       fenceAnatomy="mesh3d"
-      showFoundationSchemes
-      showPaintLevels
     />
   );
 }

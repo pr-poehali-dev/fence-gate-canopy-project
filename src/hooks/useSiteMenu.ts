@@ -69,6 +69,7 @@ export const FALLBACK_MENU: MenuCategory[] = [
     items: [
       { id: -601, parent_id: -6, label: "Бетонные площадки", href: "/services/betonnye-ploschadki", icon: "", badge: "", description: "От 2 200 ₽/м²",  position: 1, is_hidden: false },
       { id: -602, parent_id: -6, label: "Заезд на участок",  href: "/services/zaezd-na-uchastok",   icon: "", badge: "", description: "От 18 000 ₽",    position: 2, is_hidden: false },
+      { id: -603, parent_id: -6, label: "Покраска",          href: "/services/pokraska",            icon: "", badge: "", description: "Защитное покрытие · гарантия 3 года", position: 3, is_hidden: false },
     ],
   },
   {

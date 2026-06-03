@@ -48,13 +48,6 @@ export default function Besedki() {
         { param: "Шестигранная беседка 4 м",       zink: "—", polymer: "140 000 ₽", premium: "180 000 ₽" },
       ]}
 
-      foundations={[
-        { name: "Бетонные блоки",    price: "950 ₽/опора",  desc: "Для лёгких пергол.", recommend: false },
-        { name: "Бетонирование",     price: "1 600 ₽/опора", desc: "Стандарт.", recommend: true },
-        { name: "Винтовые сваи",     price: "2 400 ₽/опора", desc: "Слабый грунт, быстрый монтаж.", recommend: false },
-        { name: "Монолитная плита",  price: "от 22 000 ₽",   desc: "Для тяжёлых беседок с печью.", recommend: false },
-      ]}
-
       specs={[
         { param: "Опоры",         value: "Профтруба 80×80×3 мм",                               icon: "Box" },
         { param: "Стропила",      value: "Профтруба 40×40×2 мм + раскосы 40×20",                icon: "Triangle" },
@@ -99,8 +92,6 @@ export default function Besedki() {
       leadTitle="ИНДИВИДУАЛЬНЫЙ ПРОЕКТ БЕСЕДКИ"
       leadOffer="Замерщик с дизайнером приедут на участок. Сделаем 3D-визуализацию беседки в вашем саду."
       warrantyYears={3}
-      showFoundationSchemes
-      showPaintLevels
     />
   );
 }

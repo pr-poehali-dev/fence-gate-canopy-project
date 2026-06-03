@@ -46,11 +46,6 @@ export default function Kalitki() {
         { param: "С электрозамком + домофон",     zink: "—",         polymer: "от 24 500 ₽", premium: "—" },
       ]}
 
-      foundations={[
-        { name: "Бетонирование 2 столбов", price: "2 800 ₽", desc: "Стандарт. Глубина 1.2 м.", recommend: true },
-        { name: "Винтовые сваи 2 шт.",     price: "4 800 ₽", desc: "Слабый грунт.", recommend: false },
-      ]}
-
       specs={[
         { param: "Опорные столбы", value: "Профтруба 80×80×3 мм или 60×60×3 мм",                       icon: "Box" },
         { param: "Каркас",          value: "Профтруба 40×40×2 мм + ребро 40×20",                          icon: "Minus" },
@@ -96,8 +91,6 @@ export default function Kalitki() {
       leadTitle="РАСЧЁТ КАЛИТКИ С УСТАНОВКОЙ"
       leadOffer="Замерщик приедет с каталогом замков и петель. Подберём калитку под стиль вашего забора."
       warrantyYears={3}
-      showFoundationSchemes
-      showPaintLevels
     />
   );
 }

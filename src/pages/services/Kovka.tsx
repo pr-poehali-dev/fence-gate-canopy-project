@@ -48,13 +48,6 @@ export default function Kovka() {
         { param: "Кованые перила (за п.м.)",              zink: "—", polymer: "от 4 500 ₽", premium: "от 8 500 ₽" },
       ]}
 
-      foundations={[
-        { name: "Бетонирование",   price: "1 500 ₽/столб", desc: "Стандарт для кованых заборов.", recommend: true },
-        { name: "Ленточный",       price: "3 200 ₽/м",    desc: "Премиум, с цокольной плиткой или кирпичом.", recommend: false },
-        { name: "Винтовые сваи",   price: "2 400 ₽/столб", desc: "Для нестабильных грунтов.", recommend: false },
-        { name: "Бутование",       price: "800 ₽/столб",  desc: "Для лёгких декоративных секций.", recommend: false },
-      ]}
-
       specs={[
         { param: "Технология",        value: "Горячая ковка, ручная обработка на наковальне",                icon: "Flame" },
         { param: "Материал прутка",  value: "Сталь Ст3, квадрат 12×12 или 14×14 мм",                          icon: "Box" },
@@ -107,8 +100,6 @@ export default function Kovka() {
       leadOffer="Кузнец нарисует ваш эскиз бесплатно. Замерщик приедет с каталогом готовых элементов и образцами патины."
       warrantyYears={3}
       fenceAnatomy="kovka"
-      showFoundationSchemes
-      showPaintLevels
     />
   );
 }
