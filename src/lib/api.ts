@@ -9,7 +9,56 @@ export const API = {
   menu:    "https://functions.poehali.dev/0c22aa85-bb9a-4e7e-815a-76ae25252353",
   builder: "https://functions.poehali.dev/064ff0e6-b48d-4f62-9858-d47bbe6df074",
   onec:    "https://functions.poehali.dev/2780474d-2df2-4d35-a3c7-d58ad2b7fea1",
+  chatgpt: "https://functions.poehali.dev/5d8ea31a-04e4-4b07-bebd-02e5a17afdbf",
 };
+
+/**
+ * Генерация подписи и alt-текста для фото по чёрновым данным.
+ * Возвращает { caption, alt } или null при ошибке.
+ */
+export async function generatePhotoCaption(
+  rawInput: string,
+  serviceLabel?: string
+): Promise<{ caption: string; alt: string } | null> {
+  const sys =
+    "Ты копирайтер строительной компании по заборам в Москве и МО. " +
+    "По черновым данным от менеджера составь короткую подпись для портфолио и alt-текст для SEO. " +
+    "Подпись (caption): живая, до 60 символов, формат «Город, объект N м». " +
+    "Alt-текст (alt): описательный, до 90 символов, с типом конструкции, материалом и городом для поиска. " +
+    "Отвечай СТРОГО в формате JSON: {\"caption\":\"...\",\"alt\":\"...\"}. Без пояснений, без markdown.";
+  const user =
+    (serviceLabel ? `Услуга: ${serviceLabel}. ` : "") +
+    `Данные от менеджера: ${rawInput}`;
+
+  try {
+    const r = await fetch(`${API.chatgpt}?action=generate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "openai/gpt-4o-mini",
+        temperature: 0.7,
+        max_tokens: 200,
+        messages: [
+          { role: "system", content: sys },
+          { role: "user", content: user },
+        ],
+      }),
+      signal: AbortSignal.timeout(30000),
+    });
+    if (!r.ok) return null;
+    const d = await r.json();
+    const text: string = d.content || "";
+    const match = text.match(/\{[\s\S]*\}/);
+    if (!match) return null;
+    const parsed = JSON.parse(match[0]);
+    return {
+      caption: String(parsed.caption || "").trim(),
+      alt: String(parsed.alt || "").trim(),
+    };
+  } catch {
+    return null;
+  }
+}
 
 export interface PriceItem {
   id: number;
