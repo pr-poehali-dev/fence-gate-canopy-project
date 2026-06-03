@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useMemo } from "react";
 import { Link } from "react-router-dom";
 import Icon from "@/components/ui/icon";
-import { API, generatePhotoCaption } from "@/lib/api";
+import { API } from "@/lib/api";
 
 interface MediaItem {
   id: number;
@@ -59,27 +59,7 @@ export default function AdminMedia() {
   const [busy, setBusy] = useState<Record<number, boolean>>({});
   const [uploadProgress, setUploadProgress] = useState<{ done: number; total: number } | null>(null);
   const [preview, setPreview] = useState<MediaItem | null>(null);
-  const [aiDraft, setAiDraft] = useState("");
-  const [aiBusy, setAiBusy] = useState(false);
-  const [aiError, setAiError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  async function runAiCaption() {
-    if (!preview || !aiDraft.trim()) return;
-    setAiBusy(true);
-    setAiError("");
-    try {
-      const svcLabel = SERVICES.find(s => s.slug === preview.service)?.label;
-      const res = await generatePhotoCaption(aiDraft.trim(), svcLabel);
-      if (!res) {
-        setAiError("Не удалось сгенерировать. Попробуйте ещё раз.");
-        return;
-      }
-      setPreview(p => p && { ...p, caption: res.caption, alt_text: res.alt });
-    } finally {
-      setAiBusy(false);
-    }
-  }
 
   async function load() {
     setLoading(true);
@@ -310,7 +290,7 @@ export default function AdminMedia() {
                 className="group relative bg-[#141720] border border-[#1e2230] rounded-xl overflow-hidden hover:border-orange-500/50 transition-all"
               >
                 <button
-                  onClick={() => { setPreview(it); setAiDraft(""); setAiError(""); }}
+                  onClick={() => setPreview(it)}
                   className="block w-full aspect-square overflow-hidden bg-black"
                 >
                   <img
@@ -424,34 +404,6 @@ export default function AdminMedia() {
             <div className="w-full lg:w-80 bg-[#141720] border border-[#1e2230] rounded-2xl p-5">
               <div className="text-white/50 text-xs mb-4">
                 #{preview.id} · {preview.width || "?"}×{preview.height || "?"} · {fmtSize(preview.size_bytes)}
-              </div>
-
-              {/* AI-генерация текста */}
-              <div className="bg-[#0a0c10] border border-orange-500/30 rounded-xl p-3 mb-4">
-                <label className="flex items-center gap-1.5 text-xs text-orange-400 font-medium mb-2">
-                  <Icon name="Sparkles" size={13} />
-                  Генерация текста ИИ
-                </label>
-                <textarea
-                  value={aiDraft}
-                  onChange={e => setAiDraft(e.target.value)}
-                  rows={2}
-                  placeholder="Напишите данные: забор 100 м, высота 2 м, Красногорск"
-                  className="w-full bg-[#141720] border border-[#1e2230] rounded-lg text-sm text-white px-3 py-2 mb-2 focus:border-orange-500 outline-none resize-none"
-                />
-                <button
-                  disabled={aiBusy || !aiDraft.trim()}
-                  onClick={runAiCaption}
-                  className="btn-orange w-full py-2 rounded-lg text-sm disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  <Icon name={aiBusy ? "Loader" : "Wand2"} size={14}
-                    className={aiBusy ? "animate-spin" : ""} />
-                  {aiBusy ? "Генерирую..." : "Сгенерировать"}
-                </button>
-                {aiError && <p className="text-red-400 text-[11px] mt-2">{aiError}</p>}
-                <p className="text-white/30 text-[11px] mt-2 leading-snug">
-                  ИИ заполнит поля ниже — проверьте и нажмите «Сохранить».
-                </p>
               </div>
 
               <label className="block text-xs text-white/60 mb-1">Подпись (видна в портфолио)</label>
