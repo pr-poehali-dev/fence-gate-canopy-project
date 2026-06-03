@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import SiteHeader from "@/components/SiteHeader";
-import MasterovitCalculator from "@/components/MasterovitCalculator";
+import CalculatorWizard from "@/components/CalculatorWizard";
 import { useLeadModal } from "@/hooks/useLeadModal";
 import { useSiteMenu } from "@/hooks/useSiteMenu";
 import { useMediaByService } from "@/hooks/useMediaByService";
@@ -192,9 +192,9 @@ export default function Index() {
             <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-gray-900 mb-2">
               УЗНАЙТЕ ЦЕНУ <span className="text-orange-500">ЗА 1 МИНУТУ</span>
             </h2>
-            <p className="text-gray-500 max-w-xl mx-auto">4 простых шага — и вы знаете точную стоимость своего забора</p>
+            <p className="text-gray-500 max-w-xl mx-auto">Пошаговый расчёт — материалы, фундамент, ворота, монтаж и доставка</p>
           </div>
-          <MasterovitCalculator />
+          <CalculatorWizard />
         </div>
       </section>
 

@@ -504,6 +504,70 @@ def _upload_pdf_to_s3(b64data: str, order_num: str) -> str:
         return ''
 
 
+def _save_message(conn, chat_id, direction, sender, text, user_id='', name='', phone=''):
+    """Сохраняет сообщение в историю и обновляет/создаёт диалог."""
+    chat_id = str(chat_id)
+    text = (text or '')[:4000]
+    with conn.cursor() as cur:
+        cur.execute(
+            "INSERT INTO bot_messages (chat_id, direction, sender, text) "
+            "VALUES (%s, %s, %s, %s)",
+            (chat_id, direction, sender, text)
+        )
+        # upsert диалога
+        unread_inc = 1 if direction == 'in' else 0
+        cur.execute("SELECT id FROM bot_dialogs WHERE chat_id = %s", (chat_id,))
+        if cur.fetchone():
+            cur.execute(
+                "UPDATE bot_dialogs SET last_message = %s, last_at = NOW(), "
+                "unread = unread + %s, "
+                "client_name = CASE WHEN %s <> '' THEN %s ELSE client_name END, "
+                "client_phone = CASE WHEN %s <> '' THEN %s ELSE client_phone END, "
+                "user_id = CASE WHEN %s <> '' THEN %s ELSE user_id END "
+                "WHERE chat_id = %s",
+                (text, unread_inc, name, name, phone, phone, str(user_id), str(user_id), chat_id)
+            )
+        else:
+            cur.execute(
+                "INSERT INTO bot_dialogs (chat_id, user_id, client_name, client_phone, "
+                "last_message, unread) VALUES (%s, %s, %s, %s, %s, %s)",
+                (chat_id, str(user_id), name, phone, text, unread_inc)
+            )
+        conn.commit()
+
+
+def _bot_autoreply(text):
+    """Возвращает (reply_text, buttons) для автоответа бота по входящему сообщению.
+
+    buttons — список кнопок [{type:'callback', text:'...', payload:'...'}].
+    """
+    t = (text or '').strip().lower()
+    menu_buttons = [
+        [{'type': 'callback', 'text': '📐 Рассчитать забор', 'payload': 'calc'}],
+        [{'type': 'callback', 'text': '📋 Узнать о заявке', 'payload': 'order'}],
+        [{'type': 'callback', 'text': '👤 Позвать менеджера', 'payload': 'manager'}],
+    ]
+    if t.startswith('/start') or t in ('начать', 'старт', 'привет', 'здравствуйте'):
+        return (
+            'Здравствуйте! 👋 Это бот компании СтальГрупп — заборы и навесы под ключ.\n\n'
+            'Я пришлю ваше КП, отвечу на вопросы или позову менеджера. Выберите действие:',
+            menu_buttons,
+        )
+    if any(w in t for w in ('цена', 'стоимост', 'расчет', 'расчёт', 'сколько')):
+        return (
+            'Рассчитать стоимость можно за 1 минуту на сайте: stalgrupp.ru/#calculator\n'
+            'Или напишите параметры (тип забора, длина, высота) — и менеджер посчитает.',
+            [[{'type': 'callback', 'text': '👤 Позвать менеджера', 'payload': 'manager'}]],
+        )
+    if any(w in t for w in ('менеджер', 'оператор', 'человек', 'позвони', 'звонок')):
+        return ('', [])  # сигнал — звать менеджера (обработаем отдельно)
+    return (
+        'Спасибо за сообщение! Менеджер скоро ответит. '
+        'А пока выберите, что вас интересует:',
+        menu_buttons,
+    )
+
+
 def handler(event: dict, context) -> dict:
     """
     Универсальная функция: настройки сайта + приём заявок + отправка в MAX-бот.
@@ -1247,6 +1311,175 @@ def handler(event: dict, context) -> dict:
                 )
             return {'statusCode': 200, 'headers': cors,
                     'body': json.dumps(result, default=str, ensure_ascii=False)}
+
+        # ── WEBHOOK: входящие сообщения от MAX ────────────────────
+        # MAX шлёт сюда update при каждом сообщении боту. Публичный (без auth).
+        if action == 'webhook' and method == 'POST':
+            try:
+                upd = json.loads(event.get('body') or '{}')
+            except Exception:
+                upd = {}
+            utype = upd.get('update_type') or upd.get('type') or ''
+
+            with conn.cursor() as cur:
+                cur.execute("SELECT key,value FROM site_settings")
+                settings = {r[0]: r[1] for r in cur.fetchall()}
+            bot_token = settings.get('max_bot_token') or ''
+
+            # message_created — обычное сообщение / нажатие callback
+            msg = upd.get('message') or {}
+            cb = upd.get('callback') or {}
+            sender = msg.get('sender') or cb.get('user') or {}
+            recipient = msg.get('recipient') or {}
+            chat_id = (recipient.get('chat_id') or recipient.get('user_id')
+                       or sender.get('user_id') or '')
+            user_id = sender.get('user_id') or ''
+            uname = (sender.get('name') or sender.get('first_name') or '').strip()
+            text = ((msg.get('body') or {}).get('text') or cb.get('payload') or '').strip()
+
+            if not chat_id:
+                return {'statusCode': 200, 'headers': cors, 'body': json.dumps({'ok': True})}
+
+            # Сохраняем входящее
+            _save_message(conn, chat_id, 'in', 'client', text, user_id=user_id, name=uname)
+
+            # Команда /start КП-XXXX — отправляем КП по заявке
+            reply_text, buttons = '', []
+            sent_kp = False
+            low = text.lower()
+            if 'кп' in low or low.startswith('/start кп') or 'order' in low:
+                # ищем последнюю заявку по этому набору (по тексту КП-номера)
+                import re as _re
+                m = _re.search(r'(КП|order)[-_ ]?([A-Za-zА-Яа-я0-9\-]+)', text)
+                ordnum = m.group(2) if m else ''
+                pdf_url = ''
+                with conn.cursor() as cur:
+                    if ordnum:
+                        cur.execute(
+                            "SELECT payload_json FROM leads WHERE order_num ILIKE %s "
+                            "ORDER BY created_at DESC LIMIT 1", (f'%{ordnum}%',)
+                        )
+                    else:
+                        cur.execute(
+                            "SELECT payload_json FROM leads ORDER BY created_at DESC LIMIT 1"
+                        )
+                    row = cur.fetchone()
+                    if row and isinstance(row[0], dict):
+                        pdf_url = row[0].get('pdf_url') or ''
+                if bot_token:
+                    reply = ('Ваше коммерческое предложение готово! 📄'
+                             if pdf_url else
+                             'Заявка принята! Менеджер пришлёт КП в ближайшее время.')
+                    _send_to_max(bot_token, chat_id, reply, phone='', pdf_url=pdf_url)
+                    _save_message(conn, chat_id, 'out', 'bot', reply)
+                    sent_kp = True
+
+            if not sent_kp:
+                reply_text, buttons = _bot_autoreply(text)
+                if not reply_text and not buttons:
+                    # клиент позвал менеджера
+                    with conn.cursor() as cur:
+                        cur.execute(
+                            "UPDATE bot_dialogs SET needs_manager = TRUE WHERE chat_id = %s",
+                            (str(chat_id),)
+                        )
+                        conn.commit()
+                    reply_text = ('Передаю ваш диалог менеджеру 👤 — он ответит здесь в ближайшее время. '
+                                  'Спасибо за ожидание!')
+                    # уведомим менеджера в основной чат
+                    mgr_chat = settings.get('max_chat_id') or ''
+                    if bot_token and mgr_chat:
+                        _send_to_max(
+                            bot_token, mgr_chat,
+                            f'🔔 Клиент {uname or chat_id} просит менеджера в чате бота.\n'
+                            f'Сообщение: {text[:200]}',
+                            phone='', pdf_url=''
+                        )
+                if reply_text and bot_token:
+                    payload_btns = (
+                        [{'type': 'inline_keyboard', 'payload': {'buttons': buttons}}]
+                        if buttons else None
+                    )
+                    st, _ = _max_request(
+                        bot_token, 'POST', '/messages',
+                        params={'chat_id': int(chat_id) if str(chat_id).lstrip('-').isdigit() else chat_id},
+                        json_body={'text': reply_text, 'format': 'markdown',
+                                   **({'attachments': payload_btns} if payload_btns else {})},
+                    )
+                    _save_message(conn, chat_id, 'out', 'bot', reply_text)
+
+            return {'statusCode': 200, 'headers': cors, 'body': json.dumps({'ok': True})}
+
+        # ── СПИСОК ДИАЛОГОВ С БОТОМ (админ) ───────────────────────
+        if action == 'dialogs' and method == 'GET':
+            if not _auth_ok(event.get('headers'), conn):
+                return {'statusCode': 401, 'headers': cors,
+                        'body': json.dumps({'error': 'unauthorized'})}
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT id, chat_id, client_name, client_phone, last_message, "
+                    "last_at, unread, needs_manager FROM bot_dialogs "
+                    "ORDER BY last_at DESC LIMIT 200"
+                )
+                items = [{
+                    'id': r[0], 'chat_id': r[1], 'client_name': r[2], 'client_phone': r[3],
+                    'last_message': r[4], 'last_at': r[5].isoformat() if r[5] else None,
+                    'unread': r[6], 'needs_manager': r[7],
+                } for r in cur.fetchall()]
+            return {'statusCode': 200, 'headers': cors,
+                    'body': json.dumps({'items': items}, default=str)}
+
+        # ── ИСТОРИЯ ОДНОГО ДИАЛОГА (админ) ────────────────────────
+        if action == 'messages' and method == 'GET':
+            if not _auth_ok(event.get('headers'), conn):
+                return {'statusCode': 401, 'headers': cors,
+                        'body': json.dumps({'error': 'unauthorized'})}
+            chat_id = str(qp.get('chat_id') or '').strip()
+            if not chat_id:
+                return {'statusCode': 400, 'headers': cors,
+                        'body': json.dumps({'error': 'chat_id_required'})}
+            safe_cid = chat_id.replace("'", "''")
+            with conn.cursor() as cur:
+                cur.execute(
+                    f"SELECT direction, sender, text, created_at FROM bot_messages "
+                    f"WHERE chat_id = '{safe_cid}' ORDER BY created_at LIMIT 500"
+                )
+                items = [{
+                    'direction': r[0], 'sender': r[1], 'text': r[2],
+                    'created_at': r[3].isoformat() if r[3] else None,
+                } for r in cur.fetchall()]
+                cur.execute(
+                    f"UPDATE bot_dialogs SET unread = 0 WHERE chat_id = '{safe_cid}'"
+                )
+                conn.commit()
+            return {'statusCode': 200, 'headers': cors,
+                    'body': json.dumps({'items': items}, default=str)}
+
+        # ── ОТВЕТ МЕНЕДЖЕРА КЛИЕНТУ (админ) ───────────────────────
+        if action == 'reply' and method == 'POST':
+            if not _auth_ok(event.get('headers'), conn):
+                return {'statusCode': 401, 'headers': cors,
+                        'body': json.dumps({'error': 'unauthorized'})}
+            body = json.loads(event.get('body') or '{}')
+            chat_id = str(body.get('chat_id') or '').strip()
+            text = (body.get('text') or '').strip()
+            if not chat_id or not text:
+                return {'statusCode': 400, 'headers': cors,
+                        'body': json.dumps({'error': 'chat_id_and_text_required'})}
+            with conn.cursor() as cur:
+                cur.execute("SELECT value FROM site_settings WHERE key='max_bot_token'")
+                row = cur.fetchone()
+                bot_token = (row[0] if row else '') or ''
+            ok, info = _send_to_max(bot_token, chat_id, text, phone='', pdf_url='')
+            _save_message(conn, chat_id, 'out', 'manager', text)
+            with conn.cursor() as cur:
+                cur.execute(
+                    "UPDATE bot_dialogs SET needs_manager = FALSE WHERE chat_id = %s",
+                    (chat_id,)
+                )
+                conn.commit()
+            return {'statusCode': 200, 'headers': cors,
+                    'body': json.dumps({'ok': bool(ok), 'info': info}, default=str)}
 
         return {'statusCode': 400, 'headers': cors,
                 'body': json.dumps({'error': 'unknown_action_or_method'})}

@@ -14,6 +14,7 @@ import AdminMenu from "./pages/AdminMenu";
 import AdminPrices from "./pages/AdminPrices";
 import AdminBuilder from "./pages/AdminBuilder";
 import AdminOnec from "./pages/AdminOnec";
+import AdminChats from "./pages/AdminChats";
 import UserPage from "./pages/UserPage";
 import DynamicFavicon from "./components/DynamicFavicon";
 import AdminEditBar from "./components/AdminEditBar";
@@ -59,6 +60,7 @@ const App = () => (
           <Route path="/admin/prices" element={<AdminPrices />} />
           <Route path="/admin/builder" element={<AdminBuilder />} />
           <Route path="/admin/onec" element={<AdminOnec />} />
+          <Route path="/admin/chats" element={<AdminChats />} />
           <Route path="/p/:slug" element={<UserPage />} />
           <Route path="/max-setup" element={<MaxSetup />} />
           <Route path="/help/max" element={<MaxSetup />} />

@@ -304,6 +304,9 @@ export default function Admin() {
             <Link to="/admin/leads" className="text-orange-400/90 hover:text-orange-400 text-xs flex items-center gap-1 px-2.5 py-1 border border-orange-500/30 hover:border-orange-500/60 rounded-lg transition-all">
               <Icon name="Inbox" size={13} /> Заявки
             </Link>
+            <Link to="/admin/chats" className="text-emerald-300/90 hover:text-emerald-300 text-xs flex items-center gap-1 px-2.5 py-1 border border-emerald-500/30 hover:border-emerald-500/60 rounded-lg transition-all">
+              <Icon name="MessagesSquare" size={13} /> Диалоги
+            </Link>
             <Link to="/admin/content" className="text-purple-300/90 hover:text-purple-300 text-xs flex items-center gap-1 px-2.5 py-1 border border-purple-500/30 hover:border-purple-500/60 rounded-lg transition-all">
               <Icon name="FileEdit" size={13} /> Контент
             </Link>

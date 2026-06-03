@@ -339,6 +339,50 @@ export async function findMaxUser(phone: string, sendTest = false): Promise<Find
   return r.json();
 }
 
+// ───────────────── Диалоги с MAX-ботом ─────────────────
+export interface BotDialog {
+  id: number;
+  chat_id: string;
+  client_name: string;
+  client_phone: string;
+  last_message: string;
+  last_at: string | null;
+  unread: number;
+  needs_manager: boolean;
+}
+
+export interface BotMessage {
+  direction: "in" | "out";
+  sender: "client" | "bot" | "manager";
+  text: string;
+  created_at: string | null;
+}
+
+export async function fetchBotDialogs(): Promise<BotDialog[]> {
+  const r = await fetch(`${API.bot}?action=dialogs`, {
+    headers: { "X-Auth-Token": adminToken.get() },
+  });
+  const d = await r.json();
+  return d.items || [];
+}
+
+export async function fetchBotMessages(chatId: string): Promise<BotMessage[]> {
+  const r = await fetch(`${API.bot}?action=messages&chat_id=${encodeURIComponent(chatId)}`, {
+    headers: { "X-Auth-Token": adminToken.get() },
+  });
+  const d = await r.json();
+  return d.items || [];
+}
+
+export async function replyToBotDialog(chatId: string, text: string) {
+  const r = await fetch(`${API.bot}?action=reply`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Auth-Token": adminToken.get() },
+    body: JSON.stringify({ chat_id: chatId, text }),
+  });
+  return r.json();
+}
+
 // ───────────────── CMS (контент сайта) ─────────────────
 export type ContentBlockType = "text" | "html" | "image" | "url";
 

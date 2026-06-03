@@ -221,16 +221,19 @@ export default function LeadModal({
               )}
             </div>
 
-            {/* Если клиента нет в MAX — предлагаем самому написать боту */}
+            {/* Если клиента нет в MAX — предлагаем самому написать боту.
+                ?start=КП-номер → боту уходит автотекст, и он пришлёт КП. */}
             {!sentChannels.maxClient && maxLink && (
-              <a href={maxLink} target="_blank" rel="noopener noreferrer"
+              <a
+                href={`${maxLink}${maxLink.includes("?") ? "&" : "?"}start=${encodeURIComponent("КП-" + (sentOrder || ""))}`}
+                target="_blank" rel="noopener noreferrer"
                 className="block bg-orange-500/10 border border-orange-500/40 hover:bg-orange-500/20 rounded-xl px-4 py-3 mb-5 text-sm text-orange-300 transition-colors">
                 <div className="flex items-center justify-center gap-2 font-medium">
                   <Icon name="MessageCircle" size={16} />
-                  Получать статус заказа в MAX
+                  Получить КП в MAX
                 </div>
                 <div className="text-[11px] text-orange-300/60 mt-1">
-                  Напишите нам в MAX — и бот будет присылать обновления по заявке
+                  Нажмите — откроется чат с ботом, и он сразу пришлёт ваше КП
                 </div>
               </a>
             )}
