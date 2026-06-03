@@ -160,7 +160,7 @@ export default function QuickQuoteForm({
 
       <div className="mt-2.5 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[10.5px] text-white/40">
         <span className="flex items-center gap-1"><Icon name="Clock" size={11} className="text-orange-400" /> Перезвоним за 15 мин.</span>
-        <span className="flex items-center gap-1"><Icon name="ShieldCheck" size={11} className="text-orange-400" /> Гарантия 5 лет</span>
+        <span className="flex items-center gap-1"><Icon name="ShieldCheck" size={11} className="text-orange-400" /> Гарантия 3 года</span>
         <span className="flex items-center gap-1"><Icon name="Gift" size={11} className="text-orange-400" /> Скидка 5%</span>
       </div>
     </form>

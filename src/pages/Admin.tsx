@@ -1279,7 +1279,7 @@ export default function Admin() {
                     maxLength={300} rows={3}
                     value={settings.seo_description || ""}
                     onChange={e => onSettingChange("seo_description", e.target.value)}
-                    placeholder="Производство и монтаж заборов, ворот, навесов и ковки. Бесплатный замер, гарантия 5 лет, цены от 1 450 ₽/м.п."
+                    placeholder="Производство и монтаж заборов, ворот, навесов и ковки. Бесплатный замер, гарантия 3 года, цены от 1 450 ₽/м.п."
                     className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none resize-none"
                   />
                   <div className="text-white/30 text-[10px] mt-1">{(settings.seo_description || "").length} / 160 рекомендуется</div>

@@ -7,6 +7,7 @@ import {
   fetchOrders, fetchOrdersStats, upsertOrder, setOrderStatus, deleteOrder,
   type Order, type OrderStatus, type OrdersStats,
 } from "@/lib/api";
+import ManagerCalculator, { type ManagerCalcResult } from "@/components/admin/ManagerCalculator";
 
 const STATUSES: { id: OrderStatus; label: string; color: string }[] = [
   { id: "new",        label: "Новый",       color: "#3b82f6" },
@@ -35,6 +36,19 @@ export default function AdminCrm() {
   const [loading, setLoading] = useState(false);
   const [edit, setEdit] = useState<Partial<Order> | null>(null);
   const [saving, setSaving] = useState(false);
+  const [calcOpen, setCalcOpen] = useState(false);
+
+  const applyCalc = (r: ManagerCalcResult) => {
+    setEdit(e => ({
+      ...(e || {}),
+      object_type: r.object_type,
+      total_rub: r.total,
+      materials_cost: r.materials,
+      fot: r.fot,
+      profit: r.profit,
+    }));
+    setCalcOpen(false);
+  };
 
   useEffect(() => {
     document.title = "Кабинет менеджера — СтальГрупп";
@@ -236,14 +250,32 @@ export default function AdminCrm() {
                   className="w-full bg-[#0a0c10] border border-[#1e2230] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-500 resize-none" />
               </div>
             </div>
-            <div className="flex justify-end gap-2 mt-5">
-              <button onClick={() => setEdit(null)} className="px-4 py-2 rounded-lg text-sm border border-[#1e2230] text-white/60 hover:text-white">Отмена</button>
-              <button onClick={save} disabled={saving} className="btn-orange px-5 py-2 rounded-lg text-sm disabled:opacity-60 flex items-center gap-1.5">
-                <Icon name={saving ? "Loader" : "Save"} size={15} className={saving ? "animate-spin" : ""} /> Сохранить
+            <div className="flex flex-wrap justify-between items-center gap-2 mt-5">
+              <button onClick={() => setCalcOpen(true)}
+                className="px-4 py-2 rounded-lg text-sm border border-orange-500/40 text-orange-400 hover:border-orange-500/70 flex items-center gap-1.5">
+                <Icon name="Calculator" size={15} /> Детальный расчёт
               </button>
+              <div className="flex gap-2">
+                <button onClick={() => setEdit(null)} className="px-4 py-2 rounded-lg text-sm border border-[#1e2230] text-white/60 hover:text-white">Отмена</button>
+                <button onClick={save} disabled={saving} className="btn-orange px-5 py-2 rounded-lg text-sm disabled:opacity-60 flex items-center gap-1.5">
+                  <Icon name={saving ? "Loader" : "Save"} size={15} className={saving ? "animate-spin" : ""} /> Сохранить
+                </button>
+              </div>
             </div>
           </div>
         </div>
+      )}
+
+      {/* Детальный калькулятор менеджера */}
+      {calcOpen && edit && (
+        <ManagerCalculator
+          orderNum={edit.order_num || `СГ-${new Date().getFullYear()}-${Date.now().toString().slice(-4)}`}
+          clientName={edit.client_name || ""}
+          clientPhone={edit.client_phone || ""}
+          address={edit.address || ""}
+          onApply={applyCalc}
+          onClose={() => setCalcOpen(false)}
+        />
       )}
     </div>
   );

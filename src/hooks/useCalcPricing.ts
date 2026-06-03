@@ -8,8 +8,12 @@ let _inflight: Promise<CalcPriceItem[]> | null = null;
 
 function load(force = false): Promise<void> {
   if (!force && _loaded) return Promise.resolve();
-  const promise = (!force && _inflight)
-    || fetchCalcPricing().then(items => { _inflight = null; return items; });
+  let promise: Promise<CalcPriceItem[]>;
+  if (!force && _inflight) {
+    promise = _inflight;
+  } else {
+    promise = fetchCalcPricing().then(items => { _inflight = null; return items; });
+  }
   _inflight = promise;
   return promise
     .then(items => {

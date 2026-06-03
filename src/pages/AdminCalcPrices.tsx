@@ -52,11 +52,11 @@ export default function AdminCalcPrices() {
 
   const change = (id: number, field: "price" | "price2" | "coef", value: string) => {
     const num = parseFloat(value.replace(",", ".")) || 0;
-    setDirty(d => ({ ...d, [id]: { ...d[id], [field]: num } }));
+    setDirty(d => ({ ...d, [id]: { ...(d[id] || {}), [field]: num } }));
   };
 
-  const valueOf = (it: CalcPriceItem, field: "price" | "price2" | "coef") =>
-    dirty[it.id]?.[field] !== undefined ? dirty[it.id][field] : it[field];
+  const valueOf = (it: CalcPriceItem, field: "price" | "price2" | "coef"): number =>
+    dirty[it.id]?.[field] ?? it[field];
 
   const save = async () => {
     const changed = Object.entries(dirty).map(([id, v]) => ({ id: Number(id), ...v }));

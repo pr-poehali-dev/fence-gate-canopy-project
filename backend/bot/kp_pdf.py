@@ -55,6 +55,10 @@ def build_kp_pdf_bytes(order_num, est, lead, company):
     c.setFillColorRGB(0.1, 0.1, 0.1)
     c.setFont(bold, 16)
     c.drawString(M, y, 'КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ')
+    y -= 5.5 * mm
+    c.setFont(font_name, 9)
+    c.setFillColorRGB(0.55, 0.55, 0.55)
+    c.drawString(M, y, 'Предварительный расчёт. Точная стоимость — после бесплатного замера.')
     y -= 8 * mm
     c.setFont(font_name, 10)
     c.setFillColorRGB(0.4, 0.4, 0.4)
@@ -107,13 +111,13 @@ def build_kp_pdf_bytes(order_num, est, lead, company):
     c.rect(M, y - 4 * mm, W - 2 * M, 11 * mm, fill=1, stroke=0)
     c.setFillColorRGB(1, 1, 1)
     c.setFont(bold, 13)
-    c.drawString(M + 4 * mm, y, 'ИТОГО К ОПЛАТЕ')
+    c.drawString(M + 4 * mm, y, 'ИТОГО (предварительно)')
     c.drawRightString(W - M - 4 * mm, y, fmt_rub(est.get('total', 0)))
     y -= 18 * mm
 
     c.setFillColorRGB(0.45, 0.45, 0.45)
     c.setFont(font_name, 8)
-    c.drawString(M, y, 'Цена предварительная. Точная стоимость — после бесплатного замера. КП действительно 30 дней.')
+    c.drawString(M, y, 'Предварительный расчёт. Точная стоимость — после бесплатного замера. Гарантия 3 года. КП действительно 30 дней.')
     y -= 5 * mm
     c.drawString(M, y, f"{company.get('legalName','')}  •  ИНН {company.get('inn','')}  •  {company.get('phone','')}")
 

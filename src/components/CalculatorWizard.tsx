@@ -1126,7 +1126,7 @@ function SummaryPanel({
         </div>
         <div>
           <Icon name="ShieldCheck" size={12} className="text-orange-400 mx-auto mb-1" />
-          Гарантия 5 лет
+          Гарантия 3 года
         </div>
       </div>
     </div>

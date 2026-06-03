@@ -125,16 +125,16 @@ const DEFAULT_WICKET_OPTIONS: WicketOption[] = [
 // ── ЭКСПОРТИРУЕМЫЕ (мутабельные) справочники ─────────────────────
 // Инициализируются дефолтами; перезаписываются в applyCalcPricing().
 // Объявлены через `let` → ES-модуль раздаёт live-binding потребителям.
-export const POST_OPTIONS:     PostOption[]     = DEFAULT_POST_OPTIONS.map(o => ({ ...o }));
-export const LAG_OPTIONS:      LagOption[]      = DEFAULT_LAG_OPTIONS.map(o => ({ ...o }));
-export const PROFLIST_OPTIONS: ProflistOption[] = DEFAULT_PROFLIST_OPTIONS.map(o => ({ ...o }));
-export const SHTAK_OPTIONS:    ShtakOption[]    = DEFAULT_SHTAK_OPTIONS.map(o => ({ ...o }));
-export const COATING_OPTIONS:  CoatingOption[]  = DEFAULT_COATING_OPTIONS.map(o => ({ ...o }));
-export const CANOPY_TYPES:     CanopyType[]     = DEFAULT_CANOPY_TYPES.map(o => ({ ...o }));
-export const CANOPY_COVER:     CanopyCover[]    = DEFAULT_CANOPY_COVER.map(o => ({ ...o }));
-export const FOUND_OPTIONS:    FoundOption[]    = DEFAULT_FOUND_OPTIONS.map(o => ({ ...o }));
-export const GATE_OPTIONS:     GateOption[]     = DEFAULT_GATE_OPTIONS.map(o => ({ ...o }));
-export const WICKET_OPTIONS:   WicketOption[]   = DEFAULT_WICKET_OPTIONS.map(o => ({ ...o }));
+export let POST_OPTIONS:     PostOption[]     = DEFAULT_POST_OPTIONS.map(o => ({ ...o }));
+export let LAG_OPTIONS:      LagOption[]      = DEFAULT_LAG_OPTIONS.map(o => ({ ...o }));
+export let PROFLIST_OPTIONS: ProflistOption[] = DEFAULT_PROFLIST_OPTIONS.map(o => ({ ...o }));
+export let SHTAK_OPTIONS:    ShtakOption[]    = DEFAULT_SHTAK_OPTIONS.map(o => ({ ...o }));
+export let COATING_OPTIONS:  CoatingOption[]  = DEFAULT_COATING_OPTIONS.map(o => ({ ...o }));
+export let CANOPY_TYPES:     CanopyType[]     = DEFAULT_CANOPY_TYPES.map(o => ({ ...o }));
+export let CANOPY_COVER:     CanopyCover[]    = DEFAULT_CANOPY_COVER.map(o => ({ ...o }));
+export let FOUND_OPTIONS:    FoundOption[]    = DEFAULT_FOUND_OPTIONS.map(o => ({ ...o }));
+export let GATE_OPTIONS:     GateOption[]     = DEFAULT_GATE_OPTIONS.map(o => ({ ...o }));
+export let WICKET_OPTIONS:   WicketOption[]   = DEFAULT_WICKET_OPTIONS.map(o => ({ ...o }));
 
 // Главный тип объекта
 export type ObjectType = "profnastil" | "shtak" | "3d" | "kovka" | "setka" | "canopy";
@@ -242,7 +242,7 @@ const DEFAULT_PRICING_PARAMS: PricingParams = {
 };
 
 // Текущие (мутабельные) параметры — перезаписываются applyCalcPricing()
-export const PRICING_PARAMS: PricingParams = { ...DEFAULT_PRICING_PARAMS };
+export let PRICING_PARAMS: PricingParams = { ...DEFAULT_PRICING_PARAMS };
 
 // ── Обратная совместимость: старые экспортируемые имена ──────────
 // Объявлены через `let` и синхронизируются из PRICING_PARAMS, чтобы

@@ -55,7 +55,7 @@ export const DEFAULT_CATALOG: PriceSection[] = [
       { name: "Демонтаж старого забора",                          unit: "пог. м", price: "от 350 ₽"   },
       { name: "Покраска полимерная (порошковая)",                 unit: "м²",     price: "от 480 ₽"   },
     ],
-    note: "На все работы — гарантия 5 лет. Замер и проект — бесплатно.",
+    note: "На все работы — гарантия 3 года. Замер и проект — бесплатно.",
   },
 ];
 
@@ -194,7 +194,7 @@ export async function generatePriceListPDF(catalog: PriceSection[] = DEFAULT_CAT
     doc.text(`Звоните: ${COMPANY.phone}  ·  Сайт: ${COMPANY.site}`,
       M + CW / 2, y + 19, { align: "center" });
     doc.setFontSize(9);
-    doc.text("Бесплатный замер в день обращения. Гарантия 5 лет. Скидка 7% при заказе с сайта.",
+    doc.text("Бесплатный замер в день обращения. Гарантия 3 года. Скидка 7% при заказе с сайта.",
       M + CW / 2, y + 25, { align: "center" });
 
     // Подвал страницы
