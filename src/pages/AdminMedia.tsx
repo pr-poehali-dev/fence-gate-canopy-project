@@ -194,6 +194,11 @@ export default function AdminMedia() {
               <h1 className="font-oswald text-2xl font-bold">Медиа-библиотека</h1>
               <p className="text-white/50 text-xs">
                 {stats._total} фото · без категории: {stats._unassigned}
+                {items.filter(i => !i.caption?.trim() || !i.alt_text?.trim()).length > 0 && (
+                  <span className="text-amber-400">
+                    {" · "}без подписи/alt: {items.filter(i => !i.caption?.trim() || !i.alt_text?.trim()).length}
+                  </span>
+                )}
               </p>
             </div>
           </div>
@@ -309,9 +314,25 @@ export default function AdminMedia() {
                       Без категории
                     </span>
                   )}
-                  <span className="bg-black/70 text-white/50 text-[10px] px-1.5 py-0.5 rounded">
-                    #{it.id}
-                  </span>
+                  <div className="flex items-center gap-1">
+                    {(!it.caption?.trim() || !it.alt_text?.trim()) && (
+                      <span
+                        className="bg-amber-500 text-gray-900 text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1"
+                        title={
+                          !it.caption?.trim() && !it.alt_text?.trim()
+                            ? "Нет подписи и alt-текста"
+                            : !it.caption?.trim()
+                            ? "Нет подписи"
+                            : "Нет alt-текста"
+                        }
+                      >
+                        <Icon name="PenLine" size={10} />
+                      </span>
+                    )}
+                    <span className="bg-black/70 text-white/50 text-[10px] px-1.5 py-0.5 rounded">
+                      #{it.id}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Действия */}
