@@ -5,6 +5,7 @@ import { sendLead } from "@/lib/api";
 import { isPhoneValid, isEmailValid, phoneE164 } from "@/lib/phone";
 import PhoneInput from "@/components/ui/phone-input";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { useCompany } from "@/hooks/useCompany";
 import { maxBotUrl } from "@/lib/maxLink";
 import { toast } from "sonner";
 import {
@@ -18,6 +19,7 @@ import {
   type CalcInput,
   DEFAULT_CALC,
   calculate, fmtRub,
+  DELIVERY_PER_KM, DELIVERY_MIN, OVERSIZE_COST, AUTO_DISCOUNT_PCT,
 } from "@/lib/calcCatalog";
 import { generateKpPDF } from "@/lib/kpPdf";
 
@@ -77,6 +79,7 @@ const CANOPY_STEPS: { id: CanopyStep; label: string; icon: string }[] = [
 
 // ── Компонент ─────────────────────────────────────────────────────
 export default function CalculatorWizard() {
+  const company = useCompany();
   const [calc, setCalc] = useState<CalcInput>(DEFAULT_CALC);
   const [stepIdx, setStepIdx] = useState(0);
   const [orderNum] = useState(() => nextOrderNumber());
@@ -135,7 +138,20 @@ export default function CalculatorWizard() {
           result.lineItems,
           result.total,
           result.kpParams,
-          { returnBase64: true }
+          {
+            returnBase64: true,
+            company: {
+              brand: company.name,
+              legalName: company.legalName,
+              shortName: company.legalName,
+              inn: company.inn,
+              ogrnip: company.ogrn,
+              legalAddress: company.legalAddress,
+              phone: company.phone,
+              email: company.email,
+              site: company.site,
+            },
+          }
         );
         if (typeof dataUri === "string") pdfBase64 = dataUri;
       } catch (e) {
@@ -854,6 +870,8 @@ function StepContacts({
   calc: CalcInput;
   set: (p: Partial<CalcInput>) => void;
 }) {
+  const isAdmin = useIsAdmin();
+  const isCanopy = calc.objectType === "canopy";
   return (
     <div>
       <StepHeader icon="User" title="Ваши контакты" hint="Отправим КП в PDF на ваш MAX и email. Менеджер свяжется за 15 минут." />
@@ -861,28 +879,35 @@ function StepContacts({
       {/* Логистика и финансы */}
       <div className="bg-[#0a0c10] border border-[#1e2230] rounded-xl p-3 mb-4 space-y-2.5">
         <div className="text-[11px] text-orange-400 font-semibold uppercase tracking-wider flex items-center gap-1.5">
-          <Icon name="Truck" size={12} /> Логистика и финансы
+          <Icon name="Truck" size={12} /> Логистика
         </div>
-        <div className="grid grid-cols-2 gap-2">
-          <label className="block">
-            <span className="text-[10px] text-white/45">Расстояние, км</span>
-            <input type="number" min={0} value={calc.distanceKm || 0}
-              onChange={e => set({ distanceKm: Math.max(0, parseInt(e.target.value) || 0) })}
-              className="w-full bg-[#141720] border border-[#1e2230] focus:border-orange-500/50 rounded-lg px-3 py-2 text-sm text-white focus:outline-none" />
-          </label>
-          <label className="block">
-            <span className="text-[10px] text-white/45">Скидка клиенту, %</span>
-            <input type="number" min={0} max={50} value={calc.discountPct || 0}
-              onChange={e => set({ discountPct: Math.min(50, Math.max(0, parseInt(e.target.value) || 0)) })}
-              className="w-full bg-[#141720] border border-[#1e2230] focus:border-orange-500/50 rounded-lg px-3 py-2 text-sm text-white focus:outline-none" />
-          </label>
-        </div>
-        <label className="flex items-center gap-2 cursor-pointer select-none">
-          <input type="checkbox" checked={!!calc.oversize}
-            onChange={e => set({ oversize: e.target.checked })}
-            className="w-4 h-4 accent-orange-500 cursor-pointer" />
-          <span className="text-xs text-white/65">Негабаритный груз (+20% к доставке)</span>
+        <label className="block">
+          <span className="text-[10px] text-white/45">Расстояние от МКАД, км</span>
+          <input type="number" min={0} value={calc.distanceKm || 0}
+            onChange={e => set({ distanceKm: Math.max(0, parseInt(e.target.value) || 0) })}
+            className="w-full bg-[#141720] border border-[#1e2230] focus:border-orange-500/50 rounded-lg px-3 py-2 text-sm text-white focus:outline-none" />
+          <span className="text-[10px] text-white/30">Выезд и доставка — от {DELIVERY_MIN.toLocaleString("ru-RU")} ₽, далее {DELIVERY_PER_KM} ₽/км</span>
         </label>
+
+        {/* Финансы и негабарит — правит только менеджер */}
+        {isAdmin && (
+          <div className="border-t border-[#1e2230] pt-2.5 space-y-2.5">
+            <label className="block">
+              <span className="text-[10px] text-amber-400/70">Скидка клиенту, % (авто {AUTO_DISCOUNT_PCT}%)</span>
+              <input type="number" min={0} max={50}
+                value={calc.discountPct !== undefined ? calc.discountPct : AUTO_DISCOUNT_PCT}
+                onChange={e => set({ discountPct: Math.min(50, Math.max(0, parseInt(e.target.value) || 0)) })}
+                className="w-full bg-[#141720] border border-[#1e2230] focus:border-orange-500/50 rounded-lg px-3 py-2 text-sm text-white focus:outline-none" />
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input type="checkbox"
+                checked={calc.oversize !== undefined ? calc.oversize : (isCanopy || calc.gateId === "otkatnye")}
+                onChange={e => set({ oversize: e.target.checked })}
+                className="w-4 h-4 accent-orange-500 cursor-pointer" />
+              <span className="text-xs text-white/65">Негабарит (+{OVERSIZE_COST.toLocaleString("ru-RU")} ₽, 1 раз)</span>
+            </label>
+          </div>
+        )}
       </div>
 
       <div className="space-y-3">
@@ -988,9 +1013,11 @@ function SummaryPanel({
             <EconRow label="Себестоимость материалов" value={fmtRub(result.econ.materialsCost)} />
             <EconRow label="ФОТ бригады (50%)" value={fmtRub(result.econ.fot)} />
             <EconRow label="Стоимость работ" value={fmtRub(result.econ.workTotal)} />
-            {result.deliveryCost > 0 && <EconRow label="Доставка" value={fmtRub(result.deliveryCost)} />}
+            {result.deliveryCost > 0 && <EconRow label="Выезд + доставка" value={fmtRub(result.deliveryCost)} />}
+            {result.oversizeFee > 0 && <EconRow label="Негабарит (1 раз)" value={fmtRub(result.oversizeFee)} />}
             {result.discount > 0 && <EconRow label="Скидка клиенту" value={"−" + fmtRub(result.discount)} />}
             {result.econ.minTopUp > 0 && <EconRow label="Доплата до минималки" value={fmtRub(result.econ.minTopUp)} />}
+            {result.workDays > 0 && <EconRow label="Срок работ" value={`≈ ${result.workDays} дн.`} />}
             <div className="border-t border-[#1e2230] my-1.5" />
             <EconRow label="Выгода производства" value={fmtRub(result.econ.profit)} accent />
             <EconRow label="Маржа" value={result.econ.marginPct + "%"} accent />

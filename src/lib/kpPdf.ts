@@ -72,8 +72,10 @@ export async function generateKpPDF(
   items: KpLineItem[],
   total: number,
   params: Record<string, string>,
-  opts: { returnBase64?: boolean } = {}
+  opts: { returnBase64?: boolean; company?: Partial<typeof COMPANY> } = {}
 ): Promise<string | void> {
+  // Реквизиты: из админки (opts.company) поверх дефолтных
+  const co = { ...COMPANY, ...(opts.company || {}) };
   const { jsPDF } = await import("jspdf");
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
 
@@ -100,15 +102,15 @@ export async function generateKpPDF(
   doc.setTextColor(255, 255, 255);
   doc.setFont(FONT, "bold");
   doc.setFontSize(20);
-  doc.text("СТАЛЬГРУПП", M, 12);
+  doc.text((co.brand || "СТАЛЬГРУПП").toUpperCase(), M, 12);
   doc.setFont(FONT, "normal");
   doc.setFontSize(9);
-  doc.text("ИП Балтаг Алексей Васильевич", M, 18);
+  doc.text(co.legalName || co.shortName || "", M, 18);
   doc.setFontSize(8);
-  doc.text(`ИНН ${COMPANY.inn}  •  ОГРНИП ${COMPANY.ogrnip}`, M, 24);
-  doc.text(`Тел.: ${COMPANY.phone}`, W - M, 12, { align: "right" });
-  doc.text(`Email: ${COMPANY.email}`, W - M, 18, { align: "right" });
-  doc.text(`Сайт: ${COMPANY.site}`, W - M, 24, { align: "right" });
+  doc.text(`ИНН ${co.inn}  •  ОГРНИП ${co.ogrnip}`, M, 24);
+  doc.text(`Тел.: ${co.phone}`, W - M, 12, { align: "right" });
+  doc.text(`Email: ${co.email}`, W - M, 18, { align: "right" });
+  doc.text(`Сайт: ${co.site}`, W - M, 24, { align: "right" });
 
   y = 40;
   doc.setTextColor(30, 30, 30);
@@ -227,11 +229,11 @@ export async function generateKpPDF(
     doc.setFont(FONT, "normal");
     doc.setFontSize(7.5);
     doc.setTextColor(80, 80, 80);
-    doc.text(COMPANY.legalName, M + 3, y + 10);
-    doc.text(`ИНН: ${COMPANY.inn}    •    ОГРНИП: ${COMPANY.ogrnip}    •    ОКПО: ${COMPANY.okpo}`, M + 3, y + 14);
-    doc.text(`Юр. адрес: ${COMPANY.legalAddress}`, M + 3, y + 18);
-    doc.text(`Банк: ${COMPANY.bankName}    •    БИК: ${COMPANY.bik}`, M + 3, y + 22);
-    doc.text(`Р/счёт: ${COMPANY.bankAccount}    •    К/счёт: ${COMPANY.corrAccount}`, M + 3, y + 26);
+    doc.text(co.legalName, M + 3, y + 10);
+    doc.text(`ИНН: ${co.inn}    •    ОГРНИП: ${co.ogrnip}    •    ОКПО: ${co.okpo}`, M + 3, y + 14);
+    doc.text(`Юр. адрес: ${co.legalAddress}`, M + 3, y + 18);
+    doc.text(`Банк: ${co.bankName}    •    БИК: ${co.bik}`, M + 3, y + 22);
+    doc.text(`Р/счёт: ${co.bankAccount}    •    К/счёт: ${co.corrAccount}`, M + 3, y + 26);
     y += 34;
   }
 
@@ -239,7 +241,7 @@ export async function generateKpPDF(
     doc.setFont(FONT, "normal");
     doc.setFontSize(9);
     doc.setTextColor(60, 60, 60);
-    doc.text("Исполнитель: ИП Балтаг А. В. _______________________", M, y + 4);
+    doc.text(`Исполнитель: ${co.shortName} _______________________`, M, y + 4);
     doc.setFontSize(7);
     doc.setTextColor(140, 140, 140);
     doc.text("М. П.", W - M - 25, y + 4);
@@ -254,7 +256,7 @@ export async function generateKpPDF(
     doc.setFontSize(7.5);
     doc.setTextColor(200, 200, 200);
     doc.text(
-      `ИП Балтаг А. В.  •  ИНН ${COMPANY.inn}  •  ${COMPANY.phone}  •  ${COMPANY.email}`,
+      `${co.shortName}  •  ИНН ${co.inn}  •  ${co.phone}  •  ${co.email}`,
       W / 2, 290, { align: "center" }
     );
     doc.setFontSize(7);

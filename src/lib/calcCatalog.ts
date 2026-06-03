@@ -160,9 +160,15 @@ export interface CalcInput {
 
 // Константы экономики (по логике АРМ 1С)
 export const MIN_INSTALL_COST = 27000;   // минимальный выезд бригады, ₽
-export const DELIVERY_PER_KM  = 60;      // тариф доставки, ₽/км
+export const DELIVERY_PER_KM  = 70;      // тариф доставки/выезда, ₽/км от МКАД
+export const DELIVERY_MIN     = 6000;    // минимальная стоимость выезда+доставки, ₽
+export const OVERSIZE_COST    = 7000;    // негабарит — фикс, считается 1 раз
 export const FOT_SHARE        = 0.5;     // ФОТ бригады = 50% от работ
 export const MARKUP_PCT       = 20;      // наценка на материалы, %
+export const AUTO_DISCOUNT_PCT = 8;      // авто-скидка клиенту, %
+export const NORM_KM_PER_DAY  = 80;      // норма пробега в день, км
+export const NORM_PROF_PER_DAY = 75;     // норма монтажа профлиста, п.м/день
+export const NORM_SHTAK_PER_DAY = 50;    // норма монтажа штакетника, п.м/день
 
 export interface CalcLine {
   label: string;
@@ -184,8 +190,10 @@ export interface CalcResult {
   installCost:  number;
   paintCost:    number;
   autoCost:     number;
-  deliveryCost: number;        // стоимость доставки
+  deliveryCost: number;        // стоимость доставки/выезда
+  oversizeFee:  number;        // надбавка за негабарит (1 раз)
   discount:     number;        // сумма скидки (только на материалы)
+  workDays:     number;        // расчётный срок работ, дней
   total:        number;
   kpParams:     Record<string, string>;
   // ── Внутренняя экономика (видит только менеджер) ──
@@ -319,16 +327,30 @@ export function calculate(c: CalcInput): CalcResult {
     installCost += minTopUp; // доплату относим к монтажу
   }
 
-  // ── Логистика (доставка) ────────────────────────────
+  // ── Логистика: выезд + доставка (≥ 6000 ₽) ──────────
   const distanceKm = Math.max(0, c.distanceKm || 0);
-  let deliveryCost = distanceKm * DELIVERY_PER_KM;
-  if (c.oversize) deliveryCost = Math.round(deliveryCost * 1.2);
+  const deliveryCost = Math.max(DELIVERY_MIN, distanceKm * DELIVERY_PER_KM);
 
-  // ── Скидка (только на материалы, работы не уменьшаем) ──
-  const discountPct = Math.min(50, Math.max(0, c.discountPct || 0));
+  // Негабарит: авто-включение при навесе или откатных воротах,
+  // считается ОДИН раз фиксированной суммой (менеджер может изменить).
+  const oversizeAuto = isCanopy || c.gateId === "otkatnye";
+  const oversizeOn = c.oversize !== undefined ? !!c.oversize : oversizeAuto;
+  const oversizeFee = oversizeOn ? OVERSIZE_COST : 0;
+
+  // ── Скидка: авто до 8% (если менеджер не задал своё значение) ──
+  const discountPct = c.discountPct !== undefined
+    ? Math.min(50, Math.max(0, c.discountPct))
+    : AUTO_DISCOUNT_PCT;
   const discount = Math.round(matSum * discountPct / 100);
 
-  const total = matSum - discount + foundCost + installCost + paintCost + autoCost + deliveryCost;
+  // ── Норматив времени бригады (дней) ─────────────────
+  const kmDays = distanceKm > 0 ? distanceKm / NORM_KM_PER_DAY : 0;
+  const montageNorm = isProf ? NORM_PROF_PER_DAY : isShtak ? NORM_SHTAK_PER_DAY : NORM_PROF_PER_DAY;
+  const montageDays = !isCanopy && netFenceLen > 0 ? netFenceLen / montageNorm : 0;
+  const workDays = Math.max(1, Math.ceil(montageDays + kmDays));
+
+  const total = matSum - discount + foundCost + installCost + paintCost
+              + autoCost + deliveryCost + oversizeFee;
 
   // ── Позиции сметы ──────────────────────────────────
   const lineItems: CalcLine[] = isCanopy
@@ -391,11 +413,14 @@ export function calculate(c: CalcInput): CalcResult {
   }
   if (deliveryCost > 0) {
     lineItems.push({
-      label: `Доставка материалов${c.oversize ? " (негабарит +20%)" : ""}`,
+      label: `Выезд бригады и доставка${distanceKm > 0 ? `, ${distanceKm} км от МКАД` : ""}`,
       value: deliveryCost,
-      qty: `${distanceKm} км`,
+      qty: distanceKm > 0 ? `${distanceKm} км` : "минимум",
       unitPrice: DELIVERY_PER_KM,
     });
+  }
+  if (oversizeFee > 0) {
+    lineItems.push({ label: "Негабаритный груз (разовая надбавка)", value: oversizeFee, qty: "1 раз" });
   }
   if (discount > 0) {
     lineItems.push({ label: `Скидка ${discountPct}% на материалы`, value: -discount });
@@ -431,11 +456,16 @@ export function calculate(c: CalcInput): CalcResult {
   const materialsCost = Math.round((matSum - discount) / (1 + MARKUP_PCT / 100));
   // ФОТ бригады = 50% от итоговой стоимости работ (с учётом минималки).
   const fot = Math.round(workTotal * FOT_SHARE);
-  // Выгода производства = Итого − себестоимость материалов − ФОТ − доставка.
-  const profit = Math.round(total - materialsCost - fot - deliveryCost);
+  // Выгода производства = Итого − себестоимость − ФОТ − доставка − негабарит.
+  const profit = Math.round(total - materialsCost - fot - deliveryCost - oversizeFee);
   const marginPct = total > 0
     ? Math.round(((total - (materialsCost + fot)) / total) * 100)
     : 0;
+
+  // Срок выполнения добавим в параметры КП
+  if (!isCanopy && workDays > 0) {
+    kpParams["Срок работ"] = `≈ ${workDays} ${workDays === 1 ? "день" : workDays < 5 ? "дня" : "дней"}`;
+  }
 
   return {
     isCanopy,
@@ -450,7 +480,9 @@ export function calculate(c: CalcInput): CalcResult {
     paintCost,
     autoCost,
     deliveryCost,
+    oversizeFee,
     discount,
+    workDays,
     total,
     kpParams,
     econ: {
