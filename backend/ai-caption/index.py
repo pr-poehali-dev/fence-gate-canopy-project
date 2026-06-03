@@ -61,7 +61,7 @@ def _get_token():
             "RqUID": str(uuid.uuid4()),
         },
         data={"scope": SCOPE},
-        timeout=20,
+        timeout=12,
         verify=False,
     )
     logger.info("OAuth status=%s body=%s", r.status_code, r.text[:300])
@@ -112,14 +112,14 @@ def handler(event, context):
             },
             json={
                 "model": "GigaChat",
-                "temperature": 0.7,
-                "max_tokens": 200,
+                "temperature": 0.6,
+                "max_tokens": 120,
                 "messages": [
                     {"role": "system", "content": system},
                     {"role": "user", "content": user},
                 ],
             },
-            timeout=40,
+            timeout=22,
             verify=False,
         )
         logger.info("Chat status=%s", r.status_code)
@@ -138,6 +138,9 @@ def handler(event, context):
             "caption": str(parsed.get("caption", "")).strip(),
             "alt": str(parsed.get("alt", "")).strip(),
         })
+    except requests.exceptions.Timeout:
+        logger.error("GigaChat timeout")
+        return _resp(504, {"error": "gigachat_timeout"})
     except ValueError as e:
         logger.error("ValueError: %s", e)
         return _resp(400, {"error": str(e)})
