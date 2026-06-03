@@ -109,6 +109,23 @@ export default function AdminMedia() {
     }
   }
 
+  async function saveCaption(id: number, caption: string, alt_text: string) {
+    setBusy(b => ({ ...b, [id]: true }));
+    try {
+      await fetch(API.media, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "caption", id, caption, alt_text }),
+      });
+      setItems(arr => arr.map(it => it.id === id ? { ...it, caption, alt_text } : it));
+      setPreview(p => p && p.id === id ? { ...p, caption, alt_text } : p);
+    } catch (e) {
+      alert("Ошибка: " + (e as Error).message);
+    } finally {
+      setBusy(b => ({ ...b, [id]: false }));
+    }
+  }
+
   async function deleteItem(id: number) {
     if (!confirm("Удалить фото из библиотеки? Файл в хранилище останется.")) return;
     setBusy(b => ({ ...b, [id]: true }));
@@ -336,7 +353,8 @@ export default function AdminMedia() {
             <li><span className="text-orange-400">1.</span> Под каждым фото выберите услугу из выпадающего списка — фото сразу появится на странице этой услуги.</li>
             <li><span className="text-orange-400">2.</span> Кнопка «Загрузить фото» — можно перетащить или выбрать несколько файлов сразу. HEIC и большие фото автоматически уменьшатся.</li>
             <li><span className="text-orange-400">3.</span> Фильтры сверху — быстро найти фото конкретной услуги или те, что ещё без категории.</li>
-            <li><span className="text-orange-400">4.</span> Корзина — удалить фото из библиотеки (файл в хранилище сохранится).</li>
+            <li><span className="text-orange-400">4.</span> Кликните по фото — откроется крупный просмотр, где можно задать подпись (видна в блоке «Наши работы») и alt-текст (для SEO).</li>
+            <li><span className="text-orange-400">5.</span> Корзина — удалить фото из библиотеки (файл в хранилище сохранится).</li>
           </ul>
         </div>
       </div>
@@ -353,14 +371,46 @@ export default function AdminMedia() {
           >
             <Icon name="X" size={22} />
           </button>
-          <img
-            src={preview.url}
-            alt={preview.alt_text || ""}
-            className="max-w-[92vw] max-h-[90vh] object-contain rounded-xl"
+          <div
+            className="flex flex-col lg:flex-row items-center gap-6 max-w-[92vw] max-h-[90vh]"
             onClick={e => e.stopPropagation()}
-          />
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 rounded-full px-4 py-2 text-sm text-white/80">
-            #{preview.id} · {preview.width || "?"}×{preview.height || "?"} · {fmtSize(preview.size_bytes)}
+          >
+            <img
+              src={preview.url}
+              alt={preview.alt_text || ""}
+              className="max-w-[92vw] lg:max-w-[60vw] max-h-[60vh] lg:max-h-[80vh] object-contain rounded-xl"
+            />
+            <div className="w-full lg:w-80 bg-[#141720] border border-[#1e2230] rounded-2xl p-5">
+              <div className="text-white/50 text-xs mb-4">
+                #{preview.id} · {preview.width || "?"}×{preview.height || "?"} · {fmtSize(preview.size_bytes)}
+              </div>
+
+              <label className="block text-xs text-white/60 mb-1">Подпись (видна в портфолио)</label>
+              <input
+                value={preview.caption || ""}
+                onChange={e => setPreview(p => p && { ...p, caption: e.target.value })}
+                placeholder="Напр.: Красногорск, забор 120 м"
+                className="w-full bg-[#0a0c10] border border-[#1e2230] rounded-lg text-sm text-white px-3 py-2 mb-4 focus:border-orange-500 outline-none"
+              />
+
+              <label className="block text-xs text-white/60 mb-1">Alt-текст (для SEO)</label>
+              <input
+                value={preview.alt_text || ""}
+                onChange={e => setPreview(p => p && { ...p, alt_text: e.target.value })}
+                placeholder="Напр.: Забор из профнастила коричневый"
+                className="w-full bg-[#0a0c10] border border-[#1e2230] rounded-lg text-sm text-white px-3 py-2 mb-4 focus:border-orange-500 outline-none"
+              />
+
+              <button
+                disabled={busy[preview.id]}
+                onClick={() => saveCaption(preview.id, preview.caption || "", preview.alt_text || "")}
+                className="btn-orange w-full py-2.5 rounded-xl text-sm disabled:opacity-60 flex items-center justify-center gap-2"
+              >
+                <Icon name={busy[preview.id] ? "Loader" : "Check"} size={15}
+                  className={busy[preview.id] ? "animate-spin" : ""} />
+                Сохранить
+              </button>
+            </div>
           </div>
         </div>
       )}
