@@ -205,10 +205,23 @@ export interface SiteSettings {
   notify_client_email?: string;
   notify_client_sms?: string;
   client_sms_template?: string;
-  // Компания
+  // Компания — контакты
   company_phone?: string;
   company_email?: string;
   company_name?: string;
+  company_address?: string;
+  work_hours?: string;
+  region?: string;
+  // Компания — юр. реквизиты
+  legal_name?: string;
+  inn?: string;
+  ogrn?: string;
+  legal_address?: string;
+  // Компания — мессенджеры и соцсети
+  whatsapp?: string;
+  telegram?: string;
+  vk?: string;
+  max_link?: string;
   // CRM webhook
   crm_webhook_enabled?: string;
   crm_webhook_url?: string;

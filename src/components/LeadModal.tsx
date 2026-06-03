@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Icon from "@/components/ui/icon";
 import { sendLead } from "@/lib/api";
-import { COMPANY } from "@/lib/company";
+import { useCompany } from "@/hooks/useCompany";
 import { formatPhoneRU, isPhoneValid, isEmailValid, phoneE164 } from "@/lib/phone";
 import PhoneInput from "@/components/ui/phone-input";
 import { toast } from "sonner";
@@ -32,6 +32,7 @@ export default function LeadModal({
   subtitle = "Перезвоним за 15 минут, бесплатно посчитаем смету.",
   source = "Сайт", serviceHint,
 }: LeadModalProps) {
+  const company = useCompany();
   const [name,    setName]    = useState("");
   const [phone,   setPhone]   = useState("");
   const [email,   setEmail]   = useState("");
@@ -140,12 +141,12 @@ export default function LeadModal({
         });
         // НЕ закрываем сами — пусть клиент сам уйдёт, экран успеха важный
       } else {
-        const msg = "Не удалось отправить. Позвоните " + COMPANY.phone;
+        const msg = "Не удалось отправить. Позвоните " + company.phone;
         setError(msg);
         toast.error("Ошибка отправки", { description: msg });
       }
     } catch {
-      const msg = "Ошибка сети. Позвоните " + COMPANY.phone;
+      const msg = "Ошибка сети. Позвоните " + company.phone;
       setError(msg);
       toast.error("Ошибка сети", { description: msg });
     } finally {

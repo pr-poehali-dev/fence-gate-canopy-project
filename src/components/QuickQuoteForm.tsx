@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Icon from "@/components/ui/icon";
 import { sendLead } from "@/lib/api";
-import { COMPANY } from "@/lib/company";
+import { useCompany } from "@/hooks/useCompany";
 import { isPhoneValid, phoneE164 } from "@/lib/phone";
 import PhoneInput from "@/components/ui/phone-input";
 import { toast } from "sonner";
@@ -26,6 +26,7 @@ export default function QuickQuoteForm({
   title = "Бесплатный замер за 1 день",
   compact = false,
 }: Props) {
+  const company = useCompany();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [agree, setAgree] = useState(true);
@@ -68,12 +69,12 @@ export default function QuickQuoteForm({
           description: "Менеджер свяжется в течение 15 минут.",
         });
       } else {
-        const msg = "Не удалось отправить. Позвоните " + COMPANY.phone;
+        const msg = "Не удалось отправить. Позвоните " + company.phone;
         setErr(msg);
         toast.error("Ошибка отправки", { description: msg });
       }
     } catch {
-      const msg = "Ошибка сети. Позвоните " + COMPANY.phone;
+      const msg = "Ошибка сети. Позвоните " + company.phone;
       setErr(msg);
     } finally {
       setSending(false);

@@ -89,10 +89,23 @@ export default function Admin() {
         // SMS
         { key: "notify_client_sms",     value: settings.notify_client_sms || "false" },
         { key: "client_sms_template",   value: settings.client_sms_template || "" },
-        // Компания
+        // Компания — контакты
         { key: "company_phone",         value: settings.company_phone || "" },
         { key: "company_email",         value: settings.company_email || "" },
         { key: "company_name",          value: settings.company_name || "" },
+        { key: "company_address",       value: settings.company_address || "" },
+        { key: "work_hours",            value: settings.work_hours || "" },
+        { key: "region",                value: settings.region || "" },
+        // Компания — юр. реквизиты
+        { key: "legal_name",            value: settings.legal_name || "" },
+        { key: "inn",                   value: settings.inn || "" },
+        { key: "ogrn",                  value: settings.ogrn || "" },
+        { key: "legal_address",         value: settings.legal_address || "" },
+        // Компания — мессенджеры и соцсети
+        { key: "whatsapp",              value: settings.whatsapp || "" },
+        { key: "telegram",              value: settings.telegram || "" },
+        { key: "vk",                    value: settings.vk || "" },
+        { key: "max_link",              value: settings.max_link || "" },
         // CRM webhook
         { key: "crm_webhook_enabled",   value: settings.crm_webhook_enabled || "false" },
         { key: "crm_webhook_type",      value: settings.crm_webhook_type || "generic" },
@@ -113,6 +126,8 @@ export default function Admin() {
       setSettingsSaved(true);
       setTimeout(() => setSettingsSaved(false), 4000);
       await loadSettings();
+      // Обновить реквизиты по всему сайту без перезагрузки
+      window.dispatchEvent(new Event("cms:invalidate"));
     } finally {
       setSettingsSaving(false);
     }
@@ -989,13 +1004,15 @@ export default function Admin() {
                 </div>
                 <div>
                   <div className="font-oswald font-bold text-white text-lg">Реквизиты компании</div>
-                  <div className="text-white/40 text-xs">Подставляются в SMS, email, шаблоны уведомлений</div>
+                  <div className="text-white/40 text-xs">Обновляются автоматически везде на сайте: шапка, футер, контакты, формы, уведомления</div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Контакты */}
+              <div className="text-orange-400/80 text-[11px] font-semibold uppercase tracking-wider mb-3">Контакты</div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                 <div>
-                  <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">Название</label>
+                  <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">Название (бренд)</label>
                   <input type="text"
                     value={settings.company_name || ""}
                     onChange={e => onSettingChange("company_name", e.target.value)}
@@ -1010,12 +1027,110 @@ export default function Admin() {
                     placeholder="8 800 123-45-67"
                     className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none" />
                 </div>
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">Email компании</label>
+                <div>
+                  <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">Email</label>
                   <input type="email"
                     value={settings.company_email || ""}
                     onChange={e => onSettingChange("company_email", e.target.value)}
                     placeholder="info@stalgrupp.ru"
+                    className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">Часы работы</label>
+                  <input type="text"
+                    value={settings.work_hours || ""}
+                    onChange={e => onSettingChange("work_hours", e.target.value)}
+                    placeholder="Пн-Вс 9:00–21:00"
+                    className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">Регион</label>
+                  <input type="text"
+                    value={settings.region || ""}
+                    onChange={e => onSettingChange("region", e.target.value)}
+                    placeholder="Москва и МО"
+                    className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">Адрес офиса</label>
+                  <input type="text"
+                    value={settings.company_address || ""}
+                    onChange={e => onSettingChange("company_address", e.target.value)}
+                    placeholder="г. Люберцы, ул. Котельническая, 18"
+                    className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none" />
+                </div>
+              </div>
+
+              {/* Юр. реквизиты */}
+              <div className="text-orange-400/80 text-[11px] font-semibold uppercase tracking-wider mb-3">Юридические реквизиты</div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">Юр. название</label>
+                  <input type="text"
+                    value={settings.legal_name || ""}
+                    onChange={e => onSettingChange("legal_name", e.target.value)}
+                    placeholder="ИП Балтаг Алексей Васильевич"
+                    className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">ИНН</label>
+                  <input type="text"
+                    value={settings.inn || ""}
+                    onChange={e => onSettingChange("inn", e.target.value)}
+                    placeholder="503612345678"
+                    className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">ОГРН / ОГРНИП</label>
+                  <input type="text"
+                    value={settings.ogrn || ""}
+                    onChange={e => onSettingChange("ogrn", e.target.value)}
+                    placeholder="320507600012345"
+                    className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none" />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">Юр. адрес</label>
+                  <input type="text"
+                    value={settings.legal_address || ""}
+                    onChange={e => onSettingChange("legal_address", e.target.value)}
+                    placeholder="140000, МО, г. Люберцы, ул. Котельническая, д. 18"
+                    className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none" />
+                </div>
+              </div>
+
+              {/* Мессенджеры и соцсети */}
+              <div className="text-orange-400/80 text-[11px] font-semibold uppercase tracking-wider mb-3">Мессенджеры и соцсети</div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">WhatsApp</label>
+                  <input type="text"
+                    value={settings.whatsapp || ""}
+                    onChange={e => onSettingChange("whatsapp", e.target.value)}
+                    placeholder="https://wa.me/79991234567"
+                    className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">Telegram</label>
+                  <input type="text"
+                    value={settings.telegram || ""}
+                    onChange={e => onSettingChange("telegram", e.target.value)}
+                    placeholder="https://t.me/stalgrupp"
+                    className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">ВКонтакте</label>
+                  <input type="text"
+                    value={settings.vk || ""}
+                    onChange={e => onSettingChange("vk", e.target.value)}
+                    placeholder="https://vk.com/stalgrupp"
+                    className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">MAX</label>
+                  <input type="text"
+                    value={settings.max_link || ""}
+                    onChange={e => onSettingChange("max_link", e.target.value)}
+                    placeholder="https://max.ru/stalgrupp"
                     className="w-full bg-[#0d1017] border border-[#1e2230] focus:border-orange-500/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none" />
                 </div>
               </div>

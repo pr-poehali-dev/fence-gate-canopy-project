@@ -52,14 +52,27 @@ export function useCompany() {
   }, []);
 
   const phone = (s.company_phone && s.company_phone.trim()) || COMPANY.phone;
+  const val = (v?: string, fallback = "") => (v && v.trim()) || fallback;
 
   return {
-    name: (s.company_name && s.company_name.trim()) || COMPANY.brand,
+    // Контакты
+    name: val(s.company_name, COMPANY.brand),
     phone,
     phoneE164: toE164(phone),
-    email: (s.company_email && s.company_email.trim()) || COMPANY.email,
-    address: (s.company_address && s.company_address.trim()) || COMPANY.legalAddress,
-    schedule: (s.work_hours && s.work_hours.trim()) || COMPANY.schedule,
+    email: val(s.company_email, COMPANY.email),
+    address: val(s.company_address, COMPANY.legalAddress),
+    schedule: val(s.work_hours, COMPANY.schedule),
+    region: val(s.region, "Москва и МО"),
     site: COMPANY.site,
+    // Юр. реквизиты
+    legalName: val(s.legal_name, COMPANY.legalName),
+    inn: val(s.inn, COMPANY.inn),
+    ogrn: val(s.ogrn, COMPANY.ogrnip),
+    legalAddress: val(s.legal_address, COMPANY.legalAddress),
+    // Мессенджеры и соцсети (пустые = не показывать)
+    whatsapp: val(s.whatsapp),
+    telegram: val(s.telegram),
+    vk: val(s.vk),
+    maxLink: val(s.max_link, COMPANY.maxLink),
   };
 }

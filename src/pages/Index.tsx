@@ -7,6 +7,7 @@ import { useLeadModal } from "@/hooks/useLeadModal";
 import { useSiteMenu } from "@/hooks/useSiteMenu";
 import { useMediaByService } from "@/hooks/useMediaByService";
 import { usePageContent } from "@/hooks/usePageContent";
+import { useCompany } from "@/hooks/useCompany";
 
 const ADVANTAGES = [
   { icon: "ShieldCheck", title: "Гарантия 3 года", desc: "Письменная гарантия на каркас и монтаж" },
@@ -38,6 +39,7 @@ export default function Index() {
   const { open: openLead } = useLeadModal();
   const menu = useSiteMenu();
   const cms = usePageContent("home");
+  const company = useCompany();
 
   const heroPhotos = useMediaByService("profnastil");
   const shtaketnikPhotos = useMediaByService("shtaketnik");
@@ -296,10 +298,39 @@ export default function Index() {
           <div>
             <div className="font-bold text-orange-400 text-sm mb-3">КОНТАКТЫ</div>
             <ul className="space-y-2 text-sm text-white/80">
-              <li className="flex items-center gap-2"><Icon name="Phone" size={14} className="text-orange-400" /> +7 (495) 123-45-67</li>
-              <li className="flex items-center gap-2"><Icon name="MapPin" size={14} className="text-orange-400" /> Москва и МО</li>
-              <li className="flex items-center gap-2"><Icon name="Clock" size={14} className="text-orange-400" /> Пн-Вс 9:00–21:00</li>
+              <li><a href={`tel:${company.phoneE164}`} className="flex items-center gap-2 hover:text-orange-400"><Icon name="Phone" size={14} className="text-orange-400" /> {company.phone}</a></li>
+              <li><a href={`mailto:${company.email}`} className="flex items-center gap-2 hover:text-orange-400"><Icon name="Mail" size={14} className="text-orange-400" /> {company.email}</a></li>
+              <li className="flex items-center gap-2"><Icon name="MapPin" size={14} className="text-orange-400" /> {company.region}</li>
+              <li className="flex items-center gap-2"><Icon name="Clock" size={14} className="text-orange-400" /> {company.schedule}</li>
             </ul>
+            {(company.whatsapp || company.telegram || company.vk || company.maxLink) && (
+              <div className="flex items-center gap-2 mt-4">
+                {company.whatsapp && (
+                  <a href={company.whatsapp} target="_blank" rel="noopener noreferrer" title="WhatsApp"
+                    className="w-9 h-9 rounded-lg bg-white/5 hover:bg-orange-500 flex items-center justify-center transition-colors">
+                    <Icon name="MessageCircle" size={16} />
+                  </a>
+                )}
+                {company.telegram && (
+                  <a href={company.telegram} target="_blank" rel="noopener noreferrer" title="Telegram"
+                    className="w-9 h-9 rounded-lg bg-white/5 hover:bg-orange-500 flex items-center justify-center transition-colors">
+                    <Icon name="Send" size={16} />
+                  </a>
+                )}
+                {company.vk && (
+                  <a href={company.vk} target="_blank" rel="noopener noreferrer" title="ВКонтакте"
+                    className="w-9 h-9 rounded-lg bg-white/5 hover:bg-orange-500 flex items-center justify-center transition-colors">
+                    <Icon name="Share2" size={16} />
+                  </a>
+                )}
+                {company.maxLink && (
+                  <a href={company.maxLink} target="_blank" rel="noopener noreferrer" title="MAX"
+                    className="w-9 h-9 rounded-lg bg-white/5 hover:bg-orange-500 flex items-center justify-center transition-colors">
+                    <Icon name="MessagesSquare" size={16} />
+                  </a>
+                )}
+              </div>
+            )}
             <button
               onClick={() => openLead("footer")}
               className="mt-4 w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 rounded-lg text-sm"
@@ -308,13 +339,14 @@ export default function Index() {
             </button>
           </div>
         </div>
-        <div className="max-w-7xl mx-auto px-4 mt-8 pt-6 border-t border-white/10 text-xs text-white/40 text-center">
-          © {new Date().getFullYear()} СтальГрупп. Все права защищены.
+        <div className="max-w-7xl mx-auto px-4 mt-8 pt-6 border-t border-white/10 text-xs text-white/40 text-center space-y-1">
+          <div>© {new Date().getFullYear()} {company.name}. Все права защищены.</div>
+          <div>{company.legalName} · ИНН {company.inn} · ОГРН {company.ogrn}</div>
         </div>
       </footer>
 
       <a
-        href="tel:+74951234567"
+        href={`tel:${company.phoneE164}`}
         className="lg:hidden fixed bottom-5 right-5 z-40 w-14 h-14 bg-orange-500 hover:bg-orange-600 rounded-full shadow-2xl flex items-center justify-center animate-pulse"
       >
         <Icon name="Phone" size={22} className="text-white" />

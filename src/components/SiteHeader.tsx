@@ -3,16 +3,16 @@ import { Link, useLocation } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import { useLeadModal } from "@/hooks/useLeadModal";
 import { useSiteMenu } from "@/hooks/useSiteMenu";
-import { usePageContent } from "@/hooks/usePageContent";
+import { useCompany } from "@/hooks/useCompany";
 
 export default function SiteHeader() {
   const { open: openLead } = useLeadModal();
   const menu = useSiteMenu();
-  const cms = usePageContent("site");
-  const phone = cms("contact_phone", "+7 (495) 123-45-67");
-  const phoneTel = phone.replace(/[^+\d]/g, "");
-  const workHours = cms("work_hours", "Пн-Вс 9:00–21:00");
-  const region = cms("region", "Москва и МО");
+  const company = useCompany();
+  const phone = company.phone;
+  const phoneTel = company.phoneE164;
+  const workHours = company.schedule;
+  const region = company.region;
 
   const [openCat, setOpenCat] = useState<number | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);

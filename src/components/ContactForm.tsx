@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Icon from "@/components/ui/icon";
 import { sendLead } from "@/lib/api";
-import { COMPANY } from "@/lib/company";
+import { useCompany } from "@/hooks/useCompany";
 import { formatPhoneRU, isPhoneValid, isEmailValid, phoneE164 } from "@/lib/phone";
 import PhoneInput from "@/components/ui/phone-input";
 import { toast } from "sonner";
@@ -11,6 +11,7 @@ const LS_PHONE = "sg_lead_phone";
 const LS_EMAIL = "sg_lead_email";
 
 export default function ContactForm() {
+  const company = useCompany();
   const [name,    setName]    = useState("");
   const [phone,   setPhone]   = useState("");
   const [email,   setEmail]   = useState("");
@@ -77,12 +78,12 @@ export default function ContactForm() {
         });
         setTask("");
       } else {
-        const msg = "Не удалось отправить. Позвоните " + COMPANY.phone;
+        const msg = "Не удалось отправить. Позвоните " + company.phone;
         setErr(msg);
         toast.error("Ошибка отправки", { description: msg });
       }
     } catch {
-      const msg = "Ошибка сети. Позвоните " + COMPANY.phone;
+      const msg = "Ошибка сети. Позвоните " + company.phone;
       setErr(msg);
       toast.error("Ошибка сети", { description: msg });
     } finally {
