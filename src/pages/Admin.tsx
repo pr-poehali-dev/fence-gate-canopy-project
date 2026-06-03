@@ -8,6 +8,7 @@ import {
   fetchPrices, fetchReviews, loginAdmin, verifyAdmin,
   updatePrices, moderateReview, deleteReview, adminToken,
   fetchSettings, saveSettings, testEmail,
+  setMaxWebhook, MAX_WEBHOOK_URL,
   PriceItem, ReviewItem, SiteSettings,
 } from "@/lib/api";
 
@@ -37,6 +38,8 @@ export default function Admin() {
   const [mediaPicker, setMediaPicker] = useState<{ field: keyof SiteSettings } | null>(null);
   const [emailTesting, setEmailTesting] = useState(false);
   const [emailTestResult, setEmailTestResult] = useState("");
+  const [webhookBusy, setWebhookBusy] = useState(false);
+  const [webhookResult, setWebhookResult] = useState("");
 
   useEffect(() => {
     document.title = "Админ-панель — СтальГрупп";
@@ -167,6 +170,23 @@ export default function Admin() {
       setMaxTestResult("❌ Ошибка сети");
     } finally {
       setMaxTesting(false);
+    }
+  };
+
+  const connectWebhook = async () => {
+    setWebhookBusy(true);
+    setWebhookResult("");
+    try {
+      if (settingsDirty) await saveSettingsHandler();
+      const r = await setMaxWebhook(MAX_WEBHOOK_URL);
+      setWebhookResult(r?.ok
+        ? "✅ Бот подключён! Теперь он принимает сообщения клиентов."
+        : `❌ ${r?.message || "Не удалось подключить"}`);
+      setTimeout(() => setWebhookResult(""), 15000);
+    } catch {
+      setWebhookResult("❌ Ошибка сети");
+    } finally {
+      setWebhookBusy(false);
     }
   };
 
@@ -306,6 +326,9 @@ export default function Admin() {
             </Link>
             <Link to="/admin/chats" className="text-emerald-300/90 hover:text-emerald-300 text-xs flex items-center gap-1 px-2.5 py-1 border border-emerald-500/30 hover:border-emerald-500/60 rounded-lg transition-all">
               <Icon name="MessagesSquare" size={13} /> Диалоги
+            </Link>
+            <Link to="/admin/crm" className="text-orange-300/90 hover:text-orange-300 text-xs flex items-center gap-1 px-2.5 py-1 border border-orange-500/30 hover:border-orange-500/60 rounded-lg transition-all">
+              <Icon name="Briefcase" size={13} /> Кабинет
             </Link>
             <Link to="/admin/content" className="text-purple-300/90 hover:text-purple-300 text-xs flex items-center gap-1 px-2.5 py-1 border border-purple-500/30 hover:border-purple-500/60 rounded-lg transition-all">
               <Icon name="FileEdit" size={13} /> Контент
@@ -574,6 +597,34 @@ export default function Admin() {
                     onSettingChange("max_chat_id", cid);
                   }}
                 />
+
+                {/* Webhook: приём сообщений от клиентов */}
+                <div className="border-t border-[#1e2230] pt-4 mt-2">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Icon name="Webhook" size={15} className="text-emerald-400" />
+                    <span className="text-xs font-semibold text-white/70 uppercase tracking-wider">
+                      Приём сообщений от клиентов (webhook)
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-white/40 mb-3 leading-relaxed">
+                    Чтобы бот «слышал» клиентов, отвечал и присылал КП, нажмите кнопку —
+                    мы автоматически подключим бота к сайту. Диалоги появятся в разделе
+                    <b className="text-emerald-400/80"> «Диалоги»</b>.
+                  </p>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <button type="button" onClick={connectWebhook}
+                      disabled={webhookBusy || (!settings.max_bot_token && !settings.max_bot_token_set)}
+                      className="text-xs px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:border-emerald-500/50 rounded-lg transition-all flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed">
+                      <Icon name={webhookBusy ? "Loader" : "Plug"} size={13} className={webhookBusy ? "animate-spin" : ""} />
+                      {webhookBusy ? "Подключаем..." : "Подключить приём сообщений"}
+                    </button>
+                    {webhookResult && (
+                      <span className={`text-xs ${webhookResult.startsWith("✅") ? "text-green-400" : "text-red-400"}`}>
+                        {webhookResult}
+                      </span>
+                    )}
+                  </div>
+                </div>
 
               </div>
             </div>

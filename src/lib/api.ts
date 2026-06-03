@@ -10,6 +10,7 @@ export const API = {
   builder: "https://functions.poehali.dev/064ff0e6-b48d-4f62-9858-d47bbe6df074",
   onec:    "https://functions.poehali.dev/2780474d-2df2-4d35-a3c7-d58ad2b7fea1",
   aiCaption: "https://functions.poehali.dev/56d28ba3-2cfa-49ff-adee-853ac05bb1b8",
+  orders: "https://functions.poehali.dev/dde49cf0-5b3a-419e-abc9-3dddc926b15f",
 };
 
 /**
@@ -380,6 +381,98 @@ export async function replyToBotDialog(chatId: string, text: string) {
     headers: { "Content-Type": "application/json", "X-Auth-Token": adminToken.get() },
     body: JSON.stringify({ chat_id: chatId, text }),
   });
+  return r.json();
+}
+
+/** Адрес webhook нашего бота (куда MAX шлёт сообщения). */
+export const MAX_WEBHOOK_URL = `${API.bot}?action=webhook`;
+
+export async function setMaxWebhook(url: string): Promise<{ ok: boolean; message?: string }> {
+  const r = await fetch(`${API.bot}?action=set_webhook`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Auth-Token": adminToken.get() },
+    body: JSON.stringify({ url }),
+  });
+  return r.json();
+}
+
+// ───────────────── CRM Заказы ─────────────────
+export type OrderStatus =
+  | "new" | "measure" | "contract" | "production" | "montage" | "done" | "archive" | "cancelled";
+
+export interface Order {
+  id: number;
+  order_num: string;
+  client_name: string;
+  client_phone: string;
+  address: string;
+  object_type: string;
+  source: string;
+  status: OrderStatus;
+  montage_date: string | null;
+  total_rub: number;
+  materials_cost: number;
+  fot: number;
+  profit: number;
+  paid_rub: number;
+  comment: string;
+  items_json?: unknown[];
+  lead_id?: number | null;
+  created_at?: string | null;
+}
+
+const ordersHeaders = () => ({
+  "Content-Type": "application/json",
+  "X-Auth-Token": adminToken.get(),
+});
+
+export async function fetchOrders(status = "all"): Promise<Order[]> {
+  const r = await fetch(`${API.orders}?action=list&status=${status}`, { headers: ordersHeaders() });
+  const d = await r.json();
+  return d.items || [];
+}
+
+export interface OrdersStats {
+  by_status: Record<string, { count: number; sum: number; profit: number }>;
+  active_count: number;
+  active_sum: number;
+  active_profit: number;
+}
+
+export async function fetchOrdersStats(): Promise<OrdersStats> {
+  const r = await fetch(`${API.orders}?action=stats`, { headers: ordersHeaders() });
+  return r.json();
+}
+
+export interface BoardDay { date: string; orders: Order[]; count: number; }
+export async function fetchOrdersBoard(): Promise<{ days: BoardDay[]; no_date: Order[] }> {
+  const r = await fetch(`${API.orders}?action=board`, { headers: ordersHeaders() });
+  return r.json();
+}
+
+export async function upsertOrder(order: Partial<Order>) {
+  const r = await fetch(`${API.orders}?action=upsert`, {
+    method: "POST", headers: ordersHeaders(), body: JSON.stringify(order),
+  });
+  return r.json();
+}
+
+export async function setOrderStatus(id: number, status: OrderStatus) {
+  const r = await fetch(`${API.orders}?action=status`, {
+    method: "POST", headers: ordersHeaders(), body: JSON.stringify({ id, status }),
+  });
+  return r.json();
+}
+
+export async function orderFromLead(leadId: number) {
+  const r = await fetch(`${API.orders}?action=from_lead`, {
+    method: "POST", headers: ordersHeaders(), body: JSON.stringify({ lead_id: leadId }),
+  });
+  return r.json();
+}
+
+export async function deleteOrder(id: number) {
+  const r = await fetch(`${API.orders}?id=${id}`, { method: "DELETE", headers: ordersHeaders() });
   return r.json();
 }
 

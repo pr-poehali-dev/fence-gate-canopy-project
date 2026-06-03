@@ -231,13 +231,20 @@ export function calculate(c: CalcInput): CalcResult {
   let fillingLabel = "";
   let fillingQty = "";
   let fillingUnit = 0;
+  let sheetsCount = 0;     // листов профнастила, шт
+  let planksCount = 0;     // штакетин, шт
+  let screwsCount = 0;     // саморезов, шт
   if (isProf) {
     const pl = PROFLIST_OPTIONS.find(p => p.id === c.proflistId)!;
     const coat = COATING_OPTIONS.find(co => co.id === c.coatingId)!;
     const pricePerM2 = pl.priceM2 * (1 + coat.surcharge);
     fillingCost = fenceArea * pricePerM2;
+    // Полезная ширина листа = 1.15 м − 0.05 м нахлёст = 1.1 м (по логике 1С)
+    const usefulW = 1.1;
+    sheetsCount = netFenceLen > 0 ? Math.ceil(netFenceLen / usefulW) : 0;
+    screwsCount = sheetsCount * 8;  // 8 саморезов на лист
     fillingLabel = `Профлист ${pl.label} (${coat.label})`;
-    fillingQty = `${fenceArea.toFixed(1)} м²`;
+    fillingQty = `${sheetsCount} лист. · ${fenceArea.toFixed(1)} м²`;
     fillingUnit = Math.round(pricePerM2);
   } else if (isShtak) {
     const sh = SHTAK_OPTIONS.find(s => s.id === c.shtakId)!;
@@ -247,6 +254,8 @@ export function calculate(c: CalcInput): CalcResult {
     const totalPlanks = Math.ceil(netFenceLen * planksPerM);
     const pricePerPlank = sh.pricePerM * c.fenceHeight * (1 + coat.surcharge);
     fillingCost = totalPlanks * pricePerPlank;
+    planksCount = totalPlanks;
+    screwsCount = totalPlanks * 2 * c.lagRows;  // 2 самореза × ряды лаг
     fillingLabel = `Штакетник ${sh.label} (${coat.label})`;
     fillingQty = `${totalPlanks} шт.`;
     fillingUnit = Math.round(pricePerPlank);
@@ -337,6 +346,20 @@ export function calculate(c: CalcInput): CalcResult {
         { label: fillingLabel,                                                                       value: fillingCost, qty: fillingQty, unitPrice: fillingUnit },
       ];
 
+  // Детализация комплектующих (входят в стоимость узлов выше — цена 0)
+  if (!isCanopy && postCount > 0) {
+    lineItems.push({ label: "↳ Заглушки пластиковые на столбы", value: 0, qty: `${postCount} шт.` });
+  }
+  if (screwsCount > 0) {
+    lineItems.push({ label: "↳ Саморезы кровельные с EPDM (в цвет)", value: 0, qty: `${screwsCount} шт.` });
+  }
+  if (sheetsCount > 0) {
+    lineItems.push({ label: "↳ Раскрой листов профнастила", value: 0, qty: `${sheetsCount} лист.` });
+  }
+  if (planksCount > 0) {
+    lineItems.push({ label: "↳ Планки П-образные (верх/низ)", value: 0, qty: `${Math.ceil(netFenceLen / 2)} шт.` });
+  }
+
   if (foundCost > 0) {
     lineItems.push({
       label: `Фундамент: ${fnd.label}`,
@@ -392,8 +415,12 @@ export function calculate(c: CalcInput): CalcResult {
         "Периметр":       `${c.fenceLength} м`,
         "Чистая длина":   `${netFenceLen.toFixed(1)} м`,
         "Высота":         `${c.fenceHeight} м`,
-        "Столбы":         postObj.label,
-        "Лаги":           `${lagObj.label}, ${c.lagRows} ряда`,
+        "Площадь обшивки": `${fenceArea.toFixed(1)} м²`,
+        "Столбы":         `${postObj.label} — ${postCount} шт.`,
+        "Лаги":           `${lagObj.label}, ${c.lagRows} ряда — ${lagTotalM.toFixed(1)} м.п.`,
+        ...(sheetsCount > 0   ? { "Листов профнастила": `${sheetsCount} шт.` } : {}),
+        ...(planksCount > 0   ? { "Штакетин":           `${planksCount} шт.` } : {}),
+        ...(screwsCount > 0   ? { "Саморезы":           `${screwsCount} шт.` } : {}),
         "Фундамент":      fnd.label,
         ...(c.gateId !== "none"   ? { "Ворота":  `${gateObj.label}, ${c.gateWidth} м × ${c.gateCount} шт.` } : {}),
         ...(c.wicketId !== "none" ? { "Калитка": `${wicketObj.label} × ${c.wicketCount} шт.` } : {}),

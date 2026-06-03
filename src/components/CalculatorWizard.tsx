@@ -90,6 +90,7 @@ export default function CalculatorWizard() {
   const [sent, setSent] = useState<null | {
     orderNum: string;
     channels: { maxManager: boolean; maxClient: boolean; emailManager: boolean; emailClient: boolean };
+    maxLink: string;
   }>(null);
   const [err, setErr] = useState("");
 
@@ -173,6 +174,7 @@ export default function CalculatorWizard() {
             emailManager: Boolean(res.email_sent),
             emailClient:  Boolean(res.client_email_sent),
           },
+          maxLink: (res as { max_link?: string }).max_link || "",
         });
         toast.success(`Заявка №${res.order_num || orderNum} принята`, {
           description: "Менеджер свяжется в течение 15 минут",
@@ -223,6 +225,23 @@ export default function CalculatorWizard() {
           <Channel ok={sent.channels.maxManager}   label="Заявка передана менеджеру в MAX" icon="UserCheck" />
           <Channel ok={sent.channels.emailManager} label="Email менеджеру с КП в PDF"      icon="Send" />
         </div>
+
+        {/* Если КП не доставлено в MAX — даём клиенту ссылку на бота */}
+        {!sent.channels.maxClient && sent.maxLink && (
+          <a
+            href={`${sent.maxLink}${sent.maxLink.includes("?") ? "&" : "?"}start=${encodeURIComponent("КП-" + sent.orderNum)}`}
+            target="_blank" rel="noopener noreferrer"
+            className="block bg-orange-500/10 border border-orange-500/40 hover:bg-orange-500/20 rounded-xl px-5 py-4 mb-5 max-w-md mx-auto transition-colors"
+          >
+            <div className="flex items-center justify-center gap-2 text-orange-300 font-medium">
+              <Icon name="MessageCircle" size={18} />
+              Получить КП в MAX
+            </div>
+            <div className="text-[11px] text-orange-300/60 mt-1">
+              Нажмите — откроется чат с ботом, и он сразу пришлёт ваше КП в PDF
+            </div>
+          </a>
+        )}
 
         <button
           onClick={() => {

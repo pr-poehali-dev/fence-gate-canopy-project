@@ -1,8 +1,9 @@
 import { useEffect, useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
+import { toast } from "sonner";
 import {
-  fetchLeads, resendLead, verifyAdmin, adminToken,
+  fetchLeads, resendLead, verifyAdmin, adminToken, orderFromLead,
   LeadItem,
 } from "@/lib/api";
 
@@ -84,6 +85,21 @@ export default function AdminLeads() {
       }
     } finally {
       setResendingId(null);
+    }
+  };
+
+  const [orderingId, setOrderingId] = useState<number | null>(null);
+  const doToOrder = async (id: number) => {
+    setOrderingId(id);
+    try {
+      const r = await orderFromLead(id);
+      if (r?.ok) {
+        toast.success("Заявка добавлена в заказы CRM");
+      } else {
+        toast.error("Не удалось создать заказ");
+      }
+    } finally {
+      setOrderingId(null);
     }
   };
 
@@ -289,6 +305,14 @@ export default function AdminLeads() {
                             <Icon name={resendingId === it.id ? "Loader" : "Send"} size={12}
                               className={resendingId === it.id ? "animate-spin" : ""} />
                             {resendingId === it.id ? "..." : "В MAX"}
+                          </button>
+                          <button onClick={() => doToOrder(it.id)}
+                            disabled={orderingId === it.id}
+                            className="px-3 py-1.5 bg-orange-500/15 hover:bg-orange-500/25 text-orange-400 rounded-lg text-xs font-medium transition-all disabled:opacity-50 flex items-center gap-1.5"
+                            title="Создать заказ в CRM">
+                            <Icon name={orderingId === it.id ? "Loader" : "Briefcase"} size={12}
+                              className={orderingId === it.id ? "animate-spin" : ""} />
+                            {orderingId === it.id ? "..." : "В заказ"}
                           </button>
                         </div>
                       </td>

@@ -616,6 +616,7 @@ def handler(event: dict, context) -> dict:
             'client_email_subject', 'client_email_html',
             'client_sms_template',
             'crm_webhook_enabled', 'crm_webhook_type',
+            'max_webhook_url',
         }
 
         if action == 'settings':
@@ -1311,6 +1312,52 @@ def handler(event: dict, context) -> dict:
                 )
             return {'statusCode': 200, 'headers': cors,
                     'body': json.dumps(result, default=str, ensure_ascii=False)}
+
+        # ── ПОДКЛЮЧИТЬ/ПРОВЕРИТЬ WEBHOOK В MAX (админ) ────────────
+        if action == 'set_webhook' and method == 'POST':
+            if not _auth_ok(event.get('headers'), conn):
+                return {'statusCode': 401, 'headers': cors,
+                        'body': json.dumps({'error': 'unauthorized'})}
+            body = json.loads(event.get('body') or '{}')
+            webhook_url = (body.get('url') or '').strip()
+            with conn.cursor() as cur:
+                cur.execute("SELECT value FROM site_settings WHERE key='max_bot_token'")
+                row = cur.fetchone()
+                bot_token = (row[0] if row else '') or ''
+            if not bot_token:
+                return {'statusCode': 200, 'headers': cors,
+                        'body': json.dumps({'ok': False, 'error': 'no_token',
+                                             'message': 'Сначала сохраните токен бота'})}
+            if not webhook_url:
+                return {'statusCode': 200, 'headers': cors,
+                        'body': json.dumps({'ok': False, 'error': 'no_url',
+                                             'message': 'Укажите адрес webhook'})}
+            # Регистрируем подписку на обновления в MAX
+            st, data = _max_request(
+                bot_token, 'POST', '/subscriptions',
+                json_body={'url': webhook_url,
+                           'update_types': ['message_created', 'bot_started',
+                                            'message_callback']}
+            )
+            ok = 200 <= st < 300
+            if ok:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        "INSERT INTO site_settings(key,value,updated_at) "
+                        "VALUES('max_webhook_url',%s,NOW()) "
+                        "ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value, updated_at=NOW()",
+                        (webhook_url,)
+                    )
+                    conn.commit()
+            return {'statusCode': 200, 'headers': cors,
+                    'body': json.dumps({
+                        'ok': ok,
+                        'status': st,
+                        'message': ('Webhook подключён! Бот теперь принимает сообщения.'
+                                    if ok else
+                                    f'Не удалось подключить (код {st}). Проверьте токен и адрес.'),
+                        'detail': data if isinstance(data, dict) else {},
+                    }, default=str, ensure_ascii=False)}
 
         # ── WEBHOOK: входящие сообщения от MAX ────────────────────
         # MAX шлёт сюда update при каждом сообщении боту. Публичный (без auth).
