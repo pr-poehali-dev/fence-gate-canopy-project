@@ -192,7 +192,7 @@ export default function ContactForm() {
           </span>
         </button>
         <p className="text-white/25 text-xs text-center">
-          Перезвоним за 15 минут или звоните: <a href={`tel:${COMPANY.phoneE164}`} className="text-orange-400/70 hover:text-orange-400">{COMPANY.phone}</a>
+          Перезвоним за 15 минут или звоните: <a href={`tel:${company.phoneE164}`} className="text-orange-400/70 hover:text-orange-400">{company.phone}</a>
         </p>
       </div>
     </form>

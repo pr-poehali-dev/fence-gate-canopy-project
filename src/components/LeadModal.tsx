@@ -47,6 +47,7 @@ export default function LeadModal({
   const [sentChannels, setSentChannels] = useState({
     maxClient: false, emailClient: false, smsClient: false,
   });
+  const [maxLink, setMaxLink] = useState("");
   const closeBtnRef = useRef<HTMLButtonElement>(null);
 
   // Автозаполнение из localStorage при открытии
@@ -136,6 +137,7 @@ export default function LeadModal({
           emailClient: Boolean(res.client_email_sent),
           smsClient:   Boolean(res.client_sms_sent),
         });
+        setMaxLink((res as { max_link?: string }).max_link || "");
         toast.success(`Заявка №${res.order_num || orderNum} принята`, {
           description: "Менеджер свяжется в течение 15 минут.",
         });
@@ -219,10 +221,24 @@ export default function LeadModal({
               )}
             </div>
 
+            {/* Если клиента нет в MAX — предлагаем самому написать боту */}
+            {!sentChannels.maxClient && maxLink && (
+              <a href={maxLink} target="_blank" rel="noopener noreferrer"
+                className="block bg-orange-500/10 border border-orange-500/40 hover:bg-orange-500/20 rounded-xl px-4 py-3 mb-5 text-sm text-orange-300 transition-colors">
+                <div className="flex items-center justify-center gap-2 font-medium">
+                  <Icon name="MessageCircle" size={16} />
+                  Получать статус заказа в MAX
+                </div>
+                <div className="text-[11px] text-orange-300/60 mt-1">
+                  Напишите нам в MAX — и бот будет присылать обновления по заявке
+                </div>
+              </a>
+            )}
+
             <div className="flex flex-col sm:flex-row gap-2 justify-center">
-              <a href={`tel:${COMPANY.phoneE164}`}
+              <a href={`tel:${company.phoneE164}`}
                 className="btn-outline-orange px-4 py-2.5 rounded-xl text-sm inline-flex items-center justify-center gap-2">
-                <Icon name="Phone" size={14} /> {COMPANY.phone}
+                <Icon name="Phone" size={14} /> {company.phone}
               </a>
               <button onClick={onClose}
                 className="btn-orange px-4 py-2.5 rounded-xl text-sm">
@@ -327,8 +343,8 @@ export default function LeadModal({
               </button>
 
               <div className="flex items-center justify-between gap-2 text-[11px] text-white/35 pt-1">
-                <a href={`tel:${COMPANY.phoneE164}`} className="flex items-center gap-1 hover:text-orange-400 transition-colors">
-                  <Icon name="Phone" size={11} /> {COMPANY.phone}
+                <a href={`tel:${company.phoneE164}`} className="flex items-center gap-1 hover:text-orange-400 transition-colors">
+                  <Icon name="Phone" size={11} /> {company.phone}
                 </a>
                 <span>Перезвоним за <b className="text-orange-400/70">15 минут</b></span>
               </div>
