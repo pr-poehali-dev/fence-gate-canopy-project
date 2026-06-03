@@ -1383,11 +1383,21 @@ def handler(event: dict, context) -> dict:
             user_id = sender.get('user_id') or ''
             uname = (sender.get('name') or sender.get('first_name') or '').strip()
             text = ((msg.get('body') or {}).get('text') or cb.get('payload') or '').strip()
+            chat_type = (recipient.get('chat_type') or '').lower()
 
             if not chat_id:
                 return {'statusCode': 200, 'headers': cors, 'body': json.dumps({'ok': True})}
 
-            # Сохраняем входящее
+            # ПРИВАТНОСТЬ: бот ведёт ТОЛЬКО личные диалоги 1-на-1 с клиентом.
+            # Сообщения из канала/группы менеджеров игнорируем — там бот не отвечает,
+            # чтобы переписку с клиентом не видели другие участники.
+            mgr_chat_id = str(settings.get('max_chat_id') or '')
+            is_manager_chat = mgr_chat_id and str(chat_id) == mgr_chat_id
+            is_group = chat_type in ('chat', 'channel', 'group')
+            if is_manager_chat or is_group:
+                return {'statusCode': 200, 'headers': cors, 'body': json.dumps({'ok': True, 'skipped': 'not_private'})}
+
+            # Сохраняем входящее (только личные диалоги)
             _save_message(conn, chat_id, 'in', 'client', text, user_id=user_id, name=uname)
 
             # Команда /start КП-XXXX — отправляем КП по заявке

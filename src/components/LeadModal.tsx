@@ -4,6 +4,7 @@ import { sendLead } from "@/lib/api";
 import { useCompany } from "@/hooks/useCompany";
 import { formatPhoneRU, isPhoneValid, isEmailValid, phoneE164 } from "@/lib/phone";
 import PhoneInput from "@/components/ui/phone-input";
+import { maxBotUrl } from "@/lib/maxLink";
 import { toast } from "sonner";
 
 export interface LeadModalProps {
@@ -225,7 +226,7 @@ export default function LeadModal({
                 ?start=КП-номер → боту уходит автотекст, и он пришлёт КП. */}
             {!sentChannels.maxClient && maxLink && (
               <a
-                href={`${maxLink}${maxLink.includes("?") ? "&" : "?"}start=${encodeURIComponent("КП-" + (sentOrder || ""))}`}
+                href={maxBotUrl(maxLink, "КП-" + (sentOrder || ""))}
                 target="_blank" rel="noopener noreferrer"
                 className="block bg-orange-500/10 border border-orange-500/40 hover:bg-orange-500/20 rounded-xl px-4 py-3 mb-5 text-sm text-orange-300 transition-colors">
                 <div className="flex items-center justify-center gap-2 font-medium">

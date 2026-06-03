@@ -5,6 +5,7 @@ import { sendLead } from "@/lib/api";
 import { isPhoneValid, isEmailValid, phoneE164 } from "@/lib/phone";
 import PhoneInput from "@/components/ui/phone-input";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { maxBotUrl } from "@/lib/maxLink";
 import { toast } from "sonner";
 import {
   CANOPY_TYPES, CANOPY_COVER,
@@ -229,7 +230,7 @@ export default function CalculatorWizard() {
         {/* Если КП не доставлено в MAX — даём клиенту ссылку на бота */}
         {!sent.channels.maxClient && sent.maxLink && (
           <a
-            href={`${sent.maxLink}${sent.maxLink.includes("?") ? "&" : "?"}start=${encodeURIComponent("КП-" + sent.orderNum)}`}
+            href={maxBotUrl(sent.maxLink, "КП-" + sent.orderNum)}
             target="_blank" rel="noopener noreferrer"
             className="block bg-orange-500/10 border border-orange-500/40 hover:bg-orange-500/20 rounded-xl px-5 py-4 mb-5 max-w-md mx-auto transition-colors"
           >
