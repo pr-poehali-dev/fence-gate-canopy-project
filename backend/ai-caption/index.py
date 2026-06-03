@@ -7,11 +7,15 @@ POST / body: { "input": "забор 100 м, высота 2, Красногорс
 затем дёргаем chat/completions. Токен живёт ~30 мин, кэшируем в памяти.
 """
 import json
+import logging
 import os
 import time
 import uuid
 
 import requests
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 OAUTH_URL = "https://ngw.devices.sberbank.ru:9443/api/v2/oauth"
 CHAT_URL = "https://gigachat.devices.sberbank.ru/api/v1/chat/completions"
@@ -43,10 +47,11 @@ def _get_token():
     if _token_cache["token"] and _token_cache["exp"] > now + 60:
         return _token_cache["token"]
 
-    auth_key = os.environ.get("GIGACHAT_AUTH_KEY", "")
+    auth_key = (os.environ.get("GIGACHAT_AUTH_KEY", "") or "").strip()
     if not auth_key:
         raise ValueError("GIGACHAT_AUTH_KEY not configured")
 
+    logger.info("Requesting GigaChat OAuth token, scope=%s, key_len=%d", SCOPE, len(auth_key))
     r = requests.post(
         OAUTH_URL,
         headers={
@@ -59,7 +64,9 @@ def _get_token():
         timeout=20,
         verify=False,
     )
-    r.raise_for_status()
+    logger.info("OAuth status=%s body=%s", r.status_code, r.text[:300])
+    if r.status_code != 200:
+        raise ValueError(f"oauth_failed_{r.status_code}: {r.text[:200]}")
     d = r.json()
     token = d.get("access_token", "")
     expires_at = d.get("expires_at", 0)
@@ -115,7 +122,10 @@ def handler(event, context):
             timeout=40,
             verify=False,
         )
-        r.raise_for_status()
+        logger.info("Chat status=%s", r.status_code)
+        if r.status_code != 200:
+            logger.error("Chat failed body=%s", r.text[:300])
+            return _resp(502, {"error": f"chat_failed_{r.status_code}: {r.text[:200]}"})
         data = r.json()
         text = data.get("choices", [{}])[0].get("message", {}).get("content", "")
 
@@ -128,9 +138,9 @@ def handler(event, context):
             "caption": str(parsed.get("caption", "")).strip(),
             "alt": str(parsed.get("alt", "")).strip(),
         })
-    except requests.exceptions.HTTPError as e:
-        return _resp(502, {"error": f"gigachat_http_error: {e}"})
     except ValueError as e:
+        logger.error("ValueError: %s", e)
         return _resp(400, {"error": str(e)})
     except Exception as e:
-        return _resp(500, {"error": str(e)})
+        logger.exception("Unexpected error")
+        return _resp(500, {"error": f"{type(e).__name__}: {e}"})
