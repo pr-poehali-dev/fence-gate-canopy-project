@@ -4,6 +4,7 @@ import { COMPANY } from "@/lib/company";
 import { sendLead } from "@/lib/api";
 import { isPhoneValid, isEmailValid, phoneE164 } from "@/lib/phone";
 import PhoneInput from "@/components/ui/phone-input";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { toast } from "sonner";
 import {
   CANOPY_TYPES, CANOPY_COVER,
@@ -155,6 +156,9 @@ export default function CalculatorWizard() {
           object_type: OBJECT_LABELS[calc.objectType],
           params: result.kpParams,
           items: result.lineItems,
+          economics: result.econ,
+          delivery_cost: result.deliveryCost,
+          discount: result.discount,
           submitted_at: new Date().toISOString(),
         },
         pdf_base64: pdfBase64,
@@ -297,6 +301,7 @@ export default function CalculatorWizard() {
               setName={setClientName} setPhone={setClientPhone} setEmail={setClientEmail} setCity={setClientCity}
               setAgree={setAgree}
               err={err}
+              calc={calc} set={set}
             />
           )}
         </div>
@@ -816,6 +821,7 @@ function StepExtras({ calc, set, matSum, fenceArea }: { calc: CalcInput; set: (p
 function StepContacts({
   name, phone, email, city, agree,
   setName, setPhone, setEmail, setCity, setAgree, err,
+  calc, set,
 }: {
   name: string; phone: string; email: string; city: string;
   agree: boolean;
@@ -825,10 +831,40 @@ function StepContacts({
   setCity: (v: string) => void;
   setAgree: (v: boolean) => void;
   err: string;
+  calc: CalcInput;
+  set: (p: Partial<CalcInput>) => void;
 }) {
   return (
     <div>
       <StepHeader icon="User" title="Ваши контакты" hint="Отправим КП в PDF на ваш MAX и email. Менеджер свяжется за 15 минут." />
+
+      {/* Логистика и финансы */}
+      <div className="bg-[#0a0c10] border border-[#1e2230] rounded-xl p-3 mb-4 space-y-2.5">
+        <div className="text-[11px] text-orange-400 font-semibold uppercase tracking-wider flex items-center gap-1.5">
+          <Icon name="Truck" size={12} /> Логистика и финансы
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <label className="block">
+            <span className="text-[10px] text-white/45">Расстояние, км</span>
+            <input type="number" min={0} value={calc.distanceKm || 0}
+              onChange={e => set({ distanceKm: Math.max(0, parseInt(e.target.value) || 0) })}
+              className="w-full bg-[#141720] border border-[#1e2230] focus:border-orange-500/50 rounded-lg px-3 py-2 text-sm text-white focus:outline-none" />
+          </label>
+          <label className="block">
+            <span className="text-[10px] text-white/45">Скидка клиенту, %</span>
+            <input type="number" min={0} max={50} value={calc.discountPct || 0}
+              onChange={e => set({ discountPct: Math.min(50, Math.max(0, parseInt(e.target.value) || 0)) })}
+              className="w-full bg-[#141720] border border-[#1e2230] focus:border-orange-500/50 rounded-lg px-3 py-2 text-sm text-white focus:outline-none" />
+          </label>
+        </div>
+        <label className="flex items-center gap-2 cursor-pointer select-none">
+          <input type="checkbox" checked={!!calc.oversize}
+            onChange={e => set({ oversize: e.target.checked })}
+            className="w-4 h-4 accent-orange-500 cursor-pointer" />
+          <span className="text-xs text-white/65">Негабаритный груз (+20% к доставке)</span>
+        </label>
+      </div>
+
       <div className="space-y-3">
         <input type="text" placeholder="Ваше имя" value={name}
           onChange={e => setName(e.target.value)}
@@ -884,6 +920,16 @@ function Channel({ ok, label, icon }: { ok: boolean; label: string; icon: string
   );
 }
 
+// ── Строка внутренней экономики ──────────────────────────────────
+function EconRow({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <span className="text-white/50">{label}</span>
+      <span className={accent ? "text-amber-400 font-bold" : "text-white/80 font-medium"}>{value}</span>
+    </div>
+  );
+}
+
 // ── Боковая панель с итогом ──────────────────────────────────────
 function SummaryPanel({
   calc, orderNum, result,
@@ -892,6 +938,7 @@ function SummaryPanel({
   orderNum: string;
   result: ReturnType<typeof calculate>;
 }) {
+  const isAdmin = useIsAdmin();
   return (
     <div className="bg-[#0a0c10] border-2 border-orange-500/30 rounded-2xl p-5 lg:sticky lg:top-24">
       <div className="flex items-center justify-between mb-4">
@@ -910,6 +957,26 @@ function SummaryPanel({
         <div className="font-oswald font-bold text-3xl sm:text-4xl leading-none">{fmtRub(result.total)}</div>
         <div className="text-[11px] mt-1.5 opacity-75">{OBJECT_LABELS[calc.objectType]}</div>
       </div>
+
+      {/* Внутренняя экономика — только для менеджера (админа) */}
+      {isAdmin && (
+        <div className="bg-[#141720] border border-amber-500/30 rounded-xl p-3 mb-4">
+          <div className="flex items-center gap-1.5 text-[10px] text-amber-400 font-bold uppercase tracking-wider mb-2">
+            <Icon name="Lock" size={11} /> Экономика (видит только менеджер)
+          </div>
+          <div className="space-y-1 text-[11px]">
+            <EconRow label="Себестоимость материалов" value={fmtRub(result.econ.materialsCost)} />
+            <EconRow label="ФОТ бригады (50%)" value={fmtRub(result.econ.fot)} />
+            <EconRow label="Стоимость работ" value={fmtRub(result.econ.workTotal)} />
+            {result.deliveryCost > 0 && <EconRow label="Доставка" value={fmtRub(result.deliveryCost)} />}
+            {result.discount > 0 && <EconRow label="Скидка клиенту" value={"−" + fmtRub(result.discount)} />}
+            {result.econ.minTopUp > 0 && <EconRow label="Доплата до минималки" value={fmtRub(result.econ.minTopUp)} />}
+            <div className="border-t border-[#1e2230] my-1.5" />
+            <EconRow label="Выгода производства" value={fmtRub(result.econ.profit)} accent />
+            <EconRow label="Маржа" value={result.econ.marginPct + "%"} accent />
+          </div>
+        </div>
+      )}
 
       <div className="space-y-2 mb-4 max-h-[260px] overflow-y-auto pr-1">
         {result.lineItems.map((it, i) => (

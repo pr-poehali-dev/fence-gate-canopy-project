@@ -152,7 +152,17 @@ export interface CalcInput {
   canopyLength:  number;       // длина навеса, м
   canopyWidth:   number;       // ширина навеса, м
   canopyCoverId: CanopyCoverId;
+  // ── Логистика и финансы (опционально) ──
+  distanceKm?:   number;       // расстояние доставки, км
+  oversize?:     boolean;      // негабарит (+20% к доставке)
+  discountPct?:  number;       // скидка клиенту, % (только на материалы)
 }
+
+// Константы экономики (по логике АРМ 1С)
+export const MIN_INSTALL_COST = 27000;   // минимальный выезд бригады, ₽
+export const DELIVERY_PER_KM  = 60;      // тариф доставки, ₽/км
+export const FOT_SHARE        = 0.5;     // ФОТ бригады = 50% от работ
+export const MARKUP_PCT       = 20;      // наценка на материалы, %
 
 export interface CalcLine {
   label: string;
@@ -174,8 +184,19 @@ export interface CalcResult {
   installCost:  number;
   paintCost:    number;
   autoCost:     number;
+  deliveryCost: number;        // стоимость доставки
+  discount:     number;        // сумма скидки (только на материалы)
   total:        number;
   kpParams:     Record<string, string>;
+  // ── Внутренняя экономика (видит только менеджер) ──
+  econ: {
+    materialsCost: number;     // себестоимость материалов (без наценки)
+    fot:           number;     // ФОТ бригады = 50% от работ
+    workTotal:     number;     // итоговая стоимость работ (с минималкой)
+    profit:        number;     // выгода производства
+    marginPct:     number;     // процент маржи
+    minTopUp:      number;     // доплата до минималки монтажа (если была)
+  };
 }
 
 /** Расчёт сметы. Чистая функция — без побочных эффектов. */
@@ -275,11 +296,30 @@ export function calculate(c: CalcInput): CalcResult {
 
   // ── Допработы ───────────────────────────────────────
   const matSum = (isCanopy ? canopyCost : postCost + lagCost + fillingCost) + gateCost + wicketCost;
-  const installCost = c.installation ? Math.round(matSum * 0.35) : 0;
+  let installCost = c.installation ? Math.round(matSum * 0.35) : 0;
   const paintCost = c.painting && !isCanopy ? fenceArea * 280 : 0;
   const autoCost = c.automation && c.gateId !== "none" ? 22000 : 0;
 
-  const total = matSum + foundCost + installCost + paintCost + autoCost;
+  // ── Защита минимального выезда бригады (27 000 ₽) ──
+  // Все монтажные работы: монтаж + фундамент + покраска + автоматика.
+  let workTotal = installCost + foundCost + paintCost + autoCost;
+  let minTopUp = 0;
+  if (workTotal > 0 && workTotal < MIN_INSTALL_COST) {
+    minTopUp = MIN_INSTALL_COST - workTotal;
+    workTotal = MIN_INSTALL_COST;
+    installCost += minTopUp; // доплату относим к монтажу
+  }
+
+  // ── Логистика (доставка) ────────────────────────────
+  const distanceKm = Math.max(0, c.distanceKm || 0);
+  let deliveryCost = distanceKm * DELIVERY_PER_KM;
+  if (c.oversize) deliveryCost = Math.round(deliveryCost * 1.2);
+
+  // ── Скидка (только на материалы, работы не уменьшаем) ──
+  const discountPct = Math.min(50, Math.max(0, c.discountPct || 0));
+  const discount = Math.round(matSum * discountPct / 100);
+
+  const total = matSum - discount + foundCost + installCost + paintCost + autoCost + deliveryCost;
 
   // ── Позиции сметы ──────────────────────────────────
   const lineItems: CalcLine[] = isCanopy
@@ -323,6 +363,20 @@ export function calculate(c: CalcInput): CalcResult {
   if (autoCost > 0) {
     lineItems.push({ label: "Автоматика ворот DoorHan", value: autoCost, qty: "1 компл.", unitPrice: autoCost });
   }
+  if (minTopUp > 0) {
+    lineItems.push({ label: "Корректировка до минимальной стоимости монтажа", value: minTopUp });
+  }
+  if (deliveryCost > 0) {
+    lineItems.push({
+      label: `Доставка материалов${c.oversize ? " (негабарит +20%)" : ""}`,
+      value: deliveryCost,
+      qty: `${distanceKm} км`,
+      unitPrice: DELIVERY_PER_KM,
+    });
+  }
+  if (discount > 0) {
+    lineItems.push({ label: `Скидка ${discountPct}% на материалы`, value: -discount });
+  }
 
   // ── Параметры для КП ───────────────────────────────
   const kpParams: Record<string, string> = isCanopy
@@ -345,6 +399,17 @@ export function calculate(c: CalcInput): CalcResult {
         ...(c.wicketId !== "none" ? { "Калитка": `${wicketObj.label} × ${c.wicketCount} шт.` } : {}),
       };
 
+  // ── Внутренняя экономика (для менеджера) ───────────
+  // Себестоимость материалов = продажная сумма / коэффициент наценки.
+  const materialsCost = Math.round((matSum - discount) / (1 + MARKUP_PCT / 100));
+  // ФОТ бригады = 50% от итоговой стоимости работ (с учётом минималки).
+  const fot = Math.round(workTotal * FOT_SHARE);
+  // Выгода производства = Итого − себестоимость материалов − ФОТ − доставка.
+  const profit = Math.round(total - materialsCost - fot - deliveryCost);
+  const marginPct = total > 0
+    ? Math.round(((total - (materialsCost + fot)) / total) * 100)
+    : 0;
+
   return {
     isCanopy,
     fenceArea,
@@ -357,8 +422,18 @@ export function calculate(c: CalcInput): CalcResult {
     installCost,
     paintCost,
     autoCost,
+    deliveryCost,
+    discount,
     total,
     kpParams,
+    econ: {
+      materialsCost,
+      fot,
+      workTotal,
+      profit,
+      marginPct,
+      minTopUp,
+    },
   };
 }
 
