@@ -12,34 +12,20 @@
 client_phone, client_city, dialog_code.
 """
 import json
-import math
 import re
 import random
-
-
-# ── Прайс (синхронизирован с фронтовым calcCatalog) ──────────────
-FENCE_TYPES = {
-    'профнастил': {'label': 'забор из профнастила', 'm2': 850, 'norm': 75},
-    'штакетник':  {'label': 'евроштакетник',        'm2': 1100, 'norm': 50},
-    'рабица':     {'label': 'сетка-рабица',          'm2': 550, 'norm': 100},
-    '3d':         {'label': '3D-сетка',              'm2': 1600, 'norm': 80},
-    'ковка':      {'label': 'кованый забор',         'm2': 4500, 'norm': 40},
-}
-POST_PER_M = 600
-INSTALL_SHARE = 0.35
-MIN_INSTALL = 27000
-DELIVERY_PER_KM = 70
-DELIVERY_MIN = 6000
-AUTO_DISCOUNT = 8
+from calc_engine import calculate, fmt_rub
 
 
 def detect_fence_type(text):
+    """Возвращает objectType сайта (profnastil/shtak/setka/3d/kovka/canopy)."""
     t = (text or '').lower()
-    if 'профнаст' in t or 'профлист' in t: return 'профнастил'
-    if 'штакет' in t or 'евроштакет' in t: return 'штакетник'
-    if 'рабиц' in t or ('сетк' in t and '3d' not in t and '3д' not in t): return 'рабица'
+    if 'профнаст' in t or 'профлист' in t: return 'profnastil'
+    if 'штакет' in t or 'евроштакет' in t: return 'shtak'
+    if 'рабиц' in t or ('сетк' in t and '3d' not in t and '3д' not in t): return 'setka'
     if '3d' in t or '3д' in t: return '3d'
-    if 'ков' in t: return 'ковка'
+    if 'ков' in t: return 'kovka'
+    if 'навес' in t: return 'canopy'
     return ''
 
 
@@ -48,50 +34,45 @@ def parse_number(text):
     return float(m.group(1)) if m else None
 
 
-def calc_estimate(ftype, length, height, distance_km=0):
-    cfg = FENCE_TYPES.get(ftype, FENCE_TYPES['профнастил'])
-    area = length * height
-    materials = round(area * cfg['m2'] + length * POST_PER_M)
-    install = max(round(materials * INSTALL_SHARE), 0)
-    work = install
-    min_topup = 0
-    if 0 < work < MIN_INSTALL:
-        min_topup = MIN_INSTALL - work
-        install += min_topup
-    delivery = max(DELIVERY_MIN, distance_km * DELIVERY_PER_KM) if distance_km else DELIVERY_MIN
-    subtotal = materials + install + delivery
-    discount = round(materials * AUTO_DISCOUNT / 100)
-    total = subtotal - discount
-    days = max(1, math.ceil(length / cfg['norm']))
-    return {
-        'type_label': cfg['label'], 'length': length, 'height': height, 'area': round(area, 1),
-        'materials': materials, 'install': install, 'delivery': delivery,
-        'discount': discount, 'total': total, 'days': days, 'min_topup': min_topup,
-    }
-
-
-def fmt_rub(n):
-    return '{:,}'.format(int(round(n))).replace(',', ' ') + ' ₽'
-
-
 def estimate_text(e, name=''):
     hello = f'{name}, в' if name else 'В'
-    return (
-        f'{hello}от предварительный расчёт 📐\n'
-        f'━━━━━━━━━━━━━━━\n'
-        f'🔧 {e["type_label"].capitalize()}\n'
-        f'📏 Длина: {e["length"]} м · высота: {e["height"]} м\n'
-        f'📐 Площадь: {e["area"]} м²\n'
-        f'━━━━━━━━━━━━━━━\n'
-        f'• Материалы и каркас: {fmt_rub(e["materials"])}\n'
-        f'• Монтаж под ключ: {fmt_rub(e["install"])}\n'
-        f'• Выезд + доставка: {fmt_rub(e["delivery"])}\n'
-        f'• Скидка {AUTO_DISCOUNT}%: −{fmt_rub(e["discount"])}\n'
-        f'━━━━━━━━━━━━━━━\n'
-        f'💰 ИТОГО: {fmt_rub(e["total"])}\n'
-        f'⏱ Срок: ≈ {e["days"]} дн.\n\n'
-        f'Это предварительно. Точную цену менеджер уточнит после замера (бесплатно).'
-    )
+    lines = [
+        f'{hello}от расчёт по тарифам сайта 📐',
+        '━━━━━━━━━━━━━━━',
+        f'🔧 {e["type_label"]}',
+        f'📏 Длина: {e["length"]} м · высота: {e["height"]} м',
+        f'📐 Площадь: {e["area"]} м²',
+        '━━━━━━━━━━━━━━━',
+    ]
+    if e.get('post_cost'):
+        lines.append(f'• Столбы ({e["post_count"]} шт): {fmt_rub(e["post_cost"])}')
+    if e.get('lag_cost'):
+        lines.append(f'• Лаги: {fmt_rub(e["lag_cost"])}')
+    if e.get('filling_cost'):
+        lines.append(f'• {e.get("filling_label") or "Наполнение"}: {fmt_rub(e["filling_cost"])}')
+    if e.get('canopy_cost'):
+        lines.append(f'• Навес: {fmt_rub(e["canopy_cost"])}')
+    if e.get('gate_cost'):
+        lines.append(f'• Ворота: {fmt_rub(e["gate_cost"])}')
+    if e.get('wicket_cost'):
+        lines.append(f'• Калитка: {fmt_rub(e["wicket_cost"])}')
+    if e.get('found_cost'):
+        lines.append(f'• Фундамент ({e["found_label"]}): {fmt_rub(e["found_cost"])}')
+    if e.get('install'):
+        lines.append(f'• Монтаж под ключ: {fmt_rub(e["install"])}')
+    lines.append(f'• Выезд + доставка: {fmt_rub(e["delivery"])}')
+    if e.get('oversize'):
+        lines.append(f'• Негабарит: {fmt_rub(e["oversize"])}')
+    if e.get('discount'):
+        lines.append(f'• Скидка {e["discount_pct"]}%: −{fmt_rub(e["discount"])}')
+    lines += [
+        '━━━━━━━━━━━━━━━',
+        f'💰 ИТОГО: {fmt_rub(e["total"])}',
+        f'⏱ Срок: ≈ {e["days"]} дн.',
+        '',
+        'Расчёт совпадает с калькулятором сайта. Точную цену менеджер уточнит после бесплатного замера.',
+    ]
+    return '\n'.join(lines)
 
 
 # ── Кнопки ───────────────────────────────────────────────────────
@@ -114,11 +95,14 @@ MENU_BUTTONS = [
 ]
 
 CALC_TYPE_BUTTONS = nav_buttons([
-    [{'type': 'callback', 'text': 'Профнастил', 'payload': 'ft_профнастил'}],
-    [{'type': 'callback', 'text': 'Евроштакетник', 'payload': 'ft_штакетник'}],
+    [{'type': 'callback', 'text': 'Профнастил', 'payload': 'ft_profnastil'}],
+    [{'type': 'callback', 'text': 'Евроштакетник', 'payload': 'ft_shtak'}],
     [{'type': 'callback', 'text': '3D-сетка', 'payload': 'ft_3d'}],
-    [{'type': 'callback', 'text': 'Рабица', 'payload': 'ft_рабица'}],
+    [{'type': 'callback', 'text': 'Рабица', 'payload': 'ft_setka'}],
+    [{'type': 'callback', 'text': 'Навес', 'payload': 'ft_canopy'}],
 ])
+
+from calc_engine import OBJECT_LABELS
 
 PRICES_TEXT = (
     '💰 Ориентировочные цены «под ключ» (с монтажом):\n'
@@ -329,13 +313,17 @@ def build_response(conn, chat_id, text, payload, uname, settings):
     if stage == 'calc_type':
         ft = low[3:] if low.startswith('ft_') else detect_fence_type(text)
         if not ft:
-            out['reply'] = 'Не понял тип. Напишите: профнастил, штакетник, 3d или рабица.'
+            out['reply'] = 'Не понял тип. Напишите: профнастил, штакетник, 3d, рабица или навес.'
             out['buttons'] = CALC_TYPE_BUTTONS
             return out
-        draft['ftype'] = ft
+        draft['objectType'] = ft
         out['set_draft'] = draft
         out['set_stage'] = 'calc_length'
-        out['reply'] = f'Отлично — {FENCE_TYPES[ft]["label"]}. Какая длина забора в метрах?'
+        lbl = OBJECT_LABELS.get(ft, 'забор')
+        if ft == 'canopy':
+            out['reply'] = f'{lbl}. Какая длина навеса в метрах?'
+        else:
+            out['reply'] = f'Отлично — {lbl}. Какая длина забора в метрах?'
         out['buttons'] = nav_buttons()
         return out
 
@@ -344,19 +332,55 @@ def build_response(conn, chat_id, text, payload, uname, settings):
         if not ln or ln <= 0:
             out['reply'] = 'Укажите длину в метрах, например: 40'
             return out
-        draft['length'] = ln
+        if draft.get('objectType') == 'canopy':
+            draft['canopyLength'] = ln
+        else:
+            draft['fenceLength'] = ln
         out['set_draft'] = draft
         out['set_stage'] = 'calc_height'
-        out['reply'] = 'Какая высота забора в метрах? (обычно 1.8 или 2.0)'
+        if draft.get('objectType') == 'canopy':
+            out['reply'] = 'Какая ширина навеса в метрах?'
+        else:
+            out['reply'] = 'Какая высота забора в метрах? (обычно 1.8 или 2.0)'
         out['buttons'] = nav_buttons()
         return out
 
     if stage == 'calc_height':
         h = parse_number(text)
         if not h or h <= 0:
-            out['reply'] = 'Укажите высоту в метрах, например: 2'
+            out['reply'] = 'Укажите значение в метрах, например: 2'
             return out
-        e = calc_estimate(draft.get('ftype', 'профнастил'), draft.get('length', 0), h)
+        if draft.get('objectType') == 'canopy':
+            draft['canopyWidth'] = h
+            # навес считаем сразу
+            e = calculate(draft)
+            draft['estimate'] = e
+            out['set_draft'] = draft
+            out['set_stage'] = ' '
+            out['reply'] = estimate_text(e, known_name)
+            out['buttons'] = nav_buttons([
+                [{'type': 'callback', 'text': '📝 Оформить заявку', 'payload': 'order_now'}],
+                [{'type': 'callback', 'text': '👤 Вызвать замерщика', 'payload': 'manager'}],
+            ])
+            return out
+        draft['fenceHeight'] = h
+        out['set_draft'] = draft
+        out['set_stage'] = 'calc_gate'
+        out['reply'] = 'Нужны ли ворота?'
+        out['buttons'] = nav_buttons([
+            [{'type': 'callback', 'text': 'Без ворот', 'payload': 'gate_none'}],
+            [{'type': 'callback', 'text': 'Откатные', 'payload': 'gate_otkatnye'}],
+            [{'type': 'callback', 'text': 'Распашные', 'payload': 'gate_raspashnye'}],
+        ])
+        return out
+
+    if stage == 'calc_gate':
+        gid = low[5:] if low.startswith('gate_') else 'none'
+        if gid not in ('none', 'otkatnye', 'raspashnye', 'sektcionnye'):
+            gid = 'otkatnye' if 'откат' in low else 'raspashnye' if 'распаш' in low else 'none'
+        draft['gateId'] = gid
+        # сразу считаем итог точным движком сайта
+        e = calculate(draft)
         draft['estimate'] = e
         out['set_draft'] = draft
         out['set_stage'] = ' '
@@ -426,7 +450,15 @@ def build_response(conn, chat_id, text, payload, uname, settings):
     ft = detect_fence_type(text)
     nums = re.findall(r'(\d+[.,]?\d*)', (text or '').replace(',', '.'))
     if ft and len(nums) >= 2:
-        e = calc_estimate(ft, float(nums[0]), float(nums[1]))
+        params = {'objectType': ft}
+        if ft == 'canopy':
+            params['canopyLength'] = float(nums[0])
+            params['canopyWidth'] = float(nums[1])
+        else:
+            params['fenceLength'] = float(nums[0])
+            params['fenceHeight'] = float(nums[1])
+        e = calculate(params)
+        draft.update(params)
         draft['estimate'] = e
         out['set_draft'] = draft
         out['reply'] = estimate_text(e, known_name)
@@ -459,24 +491,25 @@ def update_dialog_state(conn, chat_id, save_name='', set_stage='', set_draft=Non
         conn.commit()
 
 
-def ensure_dialog_code(conn, chat_id):
-    """Возвращает код диалога, создавая его при необходимости."""
+def find_chat_by_phone(conn, digits):
+    """Запасной поиск клиента по последним цифрам телефона ИЛИ chat_id."""
+    digits = ''.join(ch for ch in (digits or '') if ch.isdigit())
+    if len(digits) < 3:
+        return ''
     with conn.cursor() as cur:
-        cur.execute("SELECT dialog_code FROM bot_dialogs WHERE chat_id=%s", (str(chat_id),))
+        # сначала по телефону
+        cur.execute(
+            "SELECT chat_id FROM bot_dialogs "
+            "WHERE regexp_replace(client_phone,'[^0-9]','','g') LIKE %s "
+            "AND chat_id <> '' ORDER BY last_at DESC LIMIT 1", ('%' + digits,)
+        )
         row = cur.fetchone()
-        code = (row[0] if row else '') or ''
-        if not code:
-            code = gen_code()
-            cur.execute("UPDATE bot_dialogs SET dialog_code=%s WHERE chat_id=%s",
-                        (code, str(chat_id)))
-            conn.commit()
-        return code
-
-
-def find_chat_by_code(conn, code):
-    """Ищет chat_id по коду диалога (для ответа менеджера из группы)."""
-    with conn.cursor() as cur:
-        cur.execute("SELECT chat_id FROM bot_dialogs WHERE UPPER(dialog_code)=%s LIMIT 1",
-                    (code.upper(),))
+        if row and row[0]:
+            return str(row[0])
+        # затем по chat_id (последние цифры)
+        cur.execute(
+            "SELECT chat_id FROM bot_dialogs "
+            "WHERE chat_id LIKE %s ORDER BY last_at DESC LIMIT 1", ('%' + digits,)
+        )
         row = cur.fetchone()
         return str(row[0]) if row else ''

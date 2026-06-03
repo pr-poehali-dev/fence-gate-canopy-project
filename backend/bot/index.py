@@ -505,6 +505,25 @@ def _upload_pdf_to_s3(b64data: str, order_num: str) -> str:
         return ''
 
 
+def _resolve_manager_name(conn, settings, user_id, uname):
+    """Имя менеджера для подписи клиенту. Берём из профиля (uname),
+    иначе из настройки default_manager_name, иначе 'менеджер'."""
+    name = (uname or '').strip()
+    if name:
+        return name.split()[0]
+    return (settings.get('default_manager_name') or 'менеджер').strip()
+
+
+def _manager_max_link(settings):
+    """Ссылка «написать менеджеру напрямую» (из настроек), нормализованная."""
+    link = (settings.get('manager_max_link') or settings.get('max_link') or '').strip()
+    if not link:
+        return ''
+    if link.startswith('http'):
+        return link
+    return f"https://max.ru/{link.lstrip('@')}"
+
+
 def _build_kp_pdf_for_estimate(order_num, est, lead, settings):
     """Генерирует PDF-КП из расчёта бота и загружает в S3. Возвращает CDN URL."""
     try:
@@ -1449,24 +1468,54 @@ def handler(event: dict, context) -> dict:
             is_manager_chat = mgr_chat_id and str(chat_id) == mgr_chat_id
             is_group = chat_type in ('chat', 'channel', 'group')
 
-            # ── ОТВЕТ МЕНЕДЖЕРА ИЗ ГРУППЫ: "#КОД текст" → клиенту ──
-            # Менеджер пишет в группе: "#A1B2 Здравствуйте, перезвоню в 14:00"
-            # Бот находит клиента по коду и пересылает ему в личку с подписью.
-            m_reply = re.match(r'^\s*#([A-Za-zА-Яа-я0-9]{3,8})\s+(.+)', text, re.DOTALL)
+            # ── ОТВЕТ МЕНЕДЖЕРА ИЗ ГРУППЫ → КЛИЕНТУ ──────────
+            # Менеджер пишет в группе: "1706 Здравствуйте, перезвоню в 14:00"
+            # где 1706 — последние цифры номера заявки. Бот находит клиента
+            # (по телефону заявки → chat_id) и пересылает ему с подписью имени.
+            m_reply = re.match(r'^\s*(\d{3,8})[\s:.\-)]+(.+)', text, re.DOTALL)
             if (is_manager_chat or is_group) and m_reply:
-                from dialog import find_chat_by_code
-                code = m_reply.group(1)
+                from dialog import find_chat_by_phone
+                digits = m_reply.group(1)
                 mgr_text = m_reply.group(2).strip()
-                target = find_chat_by_code(conn, code)
+                target, ord_found = '', ''
+                with conn.cursor() as cur:
+                    # ищем заявку, у которой номер заканчивается на эти цифры
+                    cur.execute(
+                        "SELECT order_num, phone FROM leads "
+                        "WHERE regexp_replace(order_num,'[^0-9]','','g') LIKE %s "
+                        "ORDER BY created_at DESC LIMIT 1", ('%' + digits,)
+                    )
+                    lr = cur.fetchone()
+                    if lr:
+                        ord_found = lr[0]
+                        target = _find_chat_in_dialogs(conn, lr[1] or '')
+                # запасной путь — по chat_id, оканчивающемуся на цифры
+                if not target:
+                    target = find_chat_by_phone(conn, digits)
                 if target and bot_token:
-                    mgr_name = uname or 'менеджер'
+                    # имя менеджера — из профиля участника группы
+                    mgr_name = _resolve_manager_name(conn, settings, user_id, uname)
+                    # автоназначение: фиксируем, кто ведёт клиента
+                    assign_note = ''
+                    with conn.cursor() as cur:
+                        cur.execute("SELECT assigned_manager, assigned_manager_id "
+                                    "FROM bot_dialogs WHERE chat_id=%s", (str(target),))
+                        ar = cur.fetchone()
+                        cur_mgr = (ar[0] if ar else '') or ''
+                        cur_mgr_id = (ar[1] if ar else '') or ''
+                        if not cur_mgr:
+                            cur.execute("UPDATE bot_dialogs SET assigned_manager=%s, "
+                                        "assigned_manager_id=%s WHERE chat_id=%s",
+                                        (mgr_name, str(user_id), str(target)))
+                            conn.commit()
+                            assign_note = f'\n📌 Клиент закреплён за вами ({mgr_name}).'
+                        elif cur_mgr_id and str(user_id) and cur_mgr_id != str(user_id):
+                            assign_note = f'\n⚠️ Внимание: клиента уже ведёт {cur_mgr}.'
                     client_msg = f'💬 Вам ответил менеджер {mgr_name}:\n\n{mgr_text}'
-                    mlink = settings.get('max_link') or ''
+                    mlink = _manager_max_link(settings)
                     btns = []
                     if mlink:
-                        # ссылка «написать менеджеру напрямую»
-                        url = mlink if mlink.startswith('http') else f'https://max.ru/{mlink.lstrip("@")}'
-                        btns = [[{'type': 'link', 'text': '✍️ Написать менеджеру', 'url': url}]]
+                        btns = [[{'type': 'link', 'text': '✍️ Написать менеджеру напрямую', 'url': mlink}]]
                     payload_b = ([{'type': 'inline_keyboard', 'payload': {'buttons': btns}}]
                                  if btns else None)
                     _max_request(
@@ -1480,12 +1529,26 @@ def handler(event: dict, context) -> dict:
                         cur.execute("UPDATE bot_dialogs SET needs_manager=FALSE WHERE chat_id=%s",
                                     (str(target),))
                         conn.commit()
-                    # подтверждение менеджеру в группу
-                    _send_to_max(bot_token, chat_id, f'✅ Отправлено клиенту (#{code})',
+                    _send_to_max(bot_token, chat_id,
+                                 f'✅ Отправлено клиенту по заявке {ord_found or digits}' + assign_note,
                                  phone='', pdf_url='')
                 else:
                     _send_to_max(bot_token, chat_id,
-                                 f'⚠️ Не нашёл клиента с кодом #{code}', phone='', pdf_url='')
+                                 f'⚠️ Не нашёл клиента по цифрам {digits}. '
+                                 f'Проверьте последние цифры номера заявки.', phone='', pdf_url='')
+                return {'statusCode': 200, 'headers': cors, 'body': json.dumps({'ok': True})}
+
+            # ── Знакомство менеджера с ботом при добавлении в группу ──
+            if (is_manager_chat or is_group) and utype in ('bot_added', 'user_added', 'chat_member_added'):
+                if bot_token:
+                    _send_to_max(
+                        bot_token, chat_id,
+                        '👋 Привет, команда! Я бот СтальГрупп.\n'
+                        'Сюда приходят заявки и обращения от клиентов.\n'
+                        'Чтобы ответить клиенту — напишите: `<последние цифры заявки> ваш текст`\n'
+                        'Например: `1706 Здравствуйте! Перезвоню в 14:00`',
+                        phone='', pdf_url=''
+                    )
                 return {'statusCode': 200, 'headers': cors, 'body': json.dumps({'ok': True})}
 
             # ПРИВАТНОСТЬ: бот ведёт ТОЛЬКО личные диалоги 1-на-1 с клиентом.
@@ -1521,8 +1584,6 @@ def handler(event: dict, context) -> dict:
                 save_city=resp.get('save_city') or '',
             )
 
-            from dialog import ensure_dialog_code
-
             # Клиент оформил заявку прямо в чате → лид + PDF-КП + уведомление менеджеру
             new_lead = resp.get('create_lead')
             if new_lead:
@@ -1530,8 +1591,9 @@ def handler(event: dict, context) -> dict:
                     est = new_lead.get('estimate') or {}
                     total_rub = int(est.get('total') or 0)
                     obj_label = (est.get('type_label') or 'Забор').capitalize()
-                    ordn = 'СГ-MAX-' + str(chat_id)[-6:]
-                    code = ensure_dialog_code(conn, chat_id)
+                    # номер заявки оканчивается на цифры chat_id — по ним отвечает менеджер
+                    tail = ''.join(ch for ch in str(chat_id) if ch.isdigit())[-4:] or '0000'
+                    ordn = f'СГ-2026-{tail}'
                     with conn.cursor() as cur:
                         cur.execute(
                             "INSERT INTO leads(order_num,name,phone,city,address,object_type,"
@@ -1550,19 +1612,19 @@ def handler(event: dict, context) -> dict:
                                          'Ваше коммерческое предложение 📄',
                                          phone='', pdf_url=pdf_url2)
                             _save_message(conn, chat_id, 'out', 'bot', 'КП (PDF) отправлено')
-                    # Уведомление менеджерам в группу с кодом для ответа
+                    # Уведомление менеджерам в группу — отвечать по цифрам заявки
                     mgr_chat = settings.get('max_chat_id') or ''
                     if bot_token and mgr_chat:
                         _send_to_max(
                             bot_token, mgr_chat,
-                            f'🔔 *НОВАЯ ЗАЯВКА из бота*\n'
+                            f'🔔 *НОВАЯ ЗАЯВКА из бота* {ordn}\n'
                             f'👤 {new_lead.get("name", "")}\n'
                             f'📱 {new_lead.get("phone", "")}\n'
                             f'📍 {new_lead.get("city", "—")}\n'
                             f'🔧 {obj_label}\n'
                             f'💰 ≈ {total_rub:,} ₽'.replace(',', ' ') + '\n'
                             f'━━━━━━━━━━\n'
-                            f'💬 Ответить клиенту: `#{code} ваш текст`',
+                            f'💬 Ответить клиенту: `{tail} ваш текст`',
                             phone=new_lead.get('phone', ''), pdf_url=''
                         )
                 except Exception:
@@ -1572,13 +1634,13 @@ def handler(event: dict, context) -> dict:
                     except Exception:
                         pass
 
-            # Клиент попросил менеджера → флаг + уведомление в общий чат с кодом
+            # Клиент попросил менеджера → флаг + уведомление в группу
             if resp.get('call_manager'):
                 with conn.cursor() as cur:
                     cur.execute("UPDATE bot_dialogs SET needs_manager=TRUE WHERE chat_id=%s",
                                 (str(chat_id),))
                     conn.commit()
-                code = ensure_dialog_code(conn, chat_id)
+                tail = ''.join(ch for ch in str(chat_id) if ch.isdigit())[-4:] or '0000'
                 mgr_chat = settings.get('max_chat_id') or ''
                 if bot_token and mgr_chat:
                     cli_label = uname or chat_id
@@ -1588,7 +1650,7 @@ def handler(event: dict, context) -> dict:
                         f'👤 Клиент: {cli_label}\n'
                         f'💬 Сообщение: {text[:200]}\n'
                         f'━━━━━━━━━━\n'
-                        f'Ответить: `#{code} ваш текст`',
+                        f'Ответить клиенту: `{tail} ваш текст`',
                         phone='', pdf_url=''
                     )
 
@@ -1622,13 +1684,14 @@ def handler(event: dict, context) -> dict:
             with conn.cursor() as cur:
                 cur.execute(
                     "SELECT id, chat_id, client_name, client_phone, last_message, "
-                    "last_at, unread, needs_manager FROM bot_dialogs "
-                    "ORDER BY last_at DESC LIMIT 200"
+                    "last_at, unread, needs_manager, assigned_manager, client_city "
+                    "FROM bot_dialogs ORDER BY last_at DESC LIMIT 200"
                 )
                 items = [{
                     'id': r[0], 'chat_id': r[1], 'client_name': r[2], 'client_phone': r[3],
                     'last_message': r[4], 'last_at': r[5].isoformat() if r[5] else None,
                     'unread': r[6], 'needs_manager': r[7],
+                    'assigned_manager': r[8], 'client_city': r[9],
                 } for r in cur.fetchall()]
             return {'statusCode': 200, 'headers': cors,
                     'body': json.dumps({'items': items}, default=str)}
