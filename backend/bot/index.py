@@ -504,6 +504,34 @@ def _upload_pdf_to_s3(b64data: str, order_num: str) -> str:
         return ''
 
 
+def _find_chat_in_dialogs(conn, phone):
+    """Ищет chat_id клиента в истории диалогов бота по номеру телефона.
+
+    Срабатывает, если клиент УЖЕ писал боту (знаком с ним) — тогда мы знаем
+    его chat_id и можем отправить КП в личку, даже если MAX не отдаёт его в
+    общей выдаче по номеру.
+    """
+    digits = ''.join(ch for ch in (phone or '') if ch.isdigit())
+    if len(digits) < 10:
+        return ''
+    tail = digits[-10:]  # последние 10 цифр номера
+    try:
+        with conn.cursor() as cur:
+            # сначала точное совпадение по сохранённому телефону диалога
+            cur.execute(
+                "SELECT chat_id FROM bot_dialogs "
+                "WHERE regexp_replace(client_phone, '[^0-9]', '', 'g') LIKE %s "
+                "AND chat_id <> '' ORDER BY last_at DESC LIMIT 1",
+                ('%' + tail,)
+            )
+            row = cur.fetchone()
+            if row and row[0]:
+                return str(row[0])
+    except Exception:
+        pass
+    return ''
+
+
 def _save_message(conn, chat_id, direction, sender, text, user_id='', name='', phone=''):
     """Сохраняет сообщение в историю и обновляет/создаёт диалог."""
     chat_id = str(chat_id)
@@ -775,6 +803,9 @@ def handler(event: dict, context) -> dict:
             if (not is_event and phone and phone not in ('—', '-') and bot_token
                     and _tgl('notify_client_via_max', 'true')):
                 client_chat_id = _find_client_chat_in_max(bot_token, phone, name)
+                # Fallback: клиент уже писал боту — берём chat_id из истории диалогов
+                if not client_chat_id:
+                    client_chat_id = _find_chat_in_dialogs(conn, phone)
                 if client_chat_id:
                     tmpl_max_client = settings.get('client_notify_text') or (
                         '🟧 *{company_name}*\n'
@@ -1415,13 +1446,50 @@ def handler(event: dict, context) -> dict:
                 except Exception:
                     pass
 
-            # Сохраняем состояние (имя, этап, черновик)
+            # Сохраняем состояние (имя, телефон, этап, черновик)
             update_dialog_state(
                 conn, chat_id,
                 save_name=resp.get('save_name') or '',
                 set_stage=resp.get('set_stage') or '',
                 set_draft=resp.get('set_draft'),
+                save_phone=resp.get('save_phone') or '',
             )
+
+            # Клиент оформил заявку прямо в чате → создаём лид + уведомляем менеджера
+            new_lead = resp.get('create_lead')
+            if new_lead:
+                try:
+                    est = new_lead.get('estimate') or {}
+                    total_rub = int(est.get('total') or 0)
+                    obj_label = (est.get('type_label') or 'Забор').capitalize()
+                    ordn = 'СГ-MAX-' + str(chat_id)[-6:]
+                    with conn.cursor() as cur:
+                        cur.execute(
+                            "INSERT INTO leads(order_num,name,phone,city,address,object_type,"
+                            "total_rub,payload_json,delivered_to_max,client_email) "
+                            "VALUES(%s,%s,%s,'','',%s,%s,%s::jsonb,FALSE,'') RETURNING id",
+                            (ordn, new_lead.get('name', ''), new_lead.get('phone', ''),
+                             obj_label, total_rub,
+                             json.dumps({'source': 'MAX-бот', 'estimate': est}, ensure_ascii=False))
+                        )
+                        conn.commit()
+                    mgr_chat = settings.get('max_chat_id') or ''
+                    if bot_token and mgr_chat:
+                        _send_to_max(
+                            bot_token, mgr_chat,
+                            f'🔔 *НОВАЯ ЗАЯВКА из чата бота*\n'
+                            f'👤 {new_lead.get("name", "")}\n'
+                            f'📱 {new_lead.get("phone", "")}\n'
+                            f'🔧 {obj_label}\n'
+                            f'💰 ≈ {total_rub:,} ₽'.replace(',', ' '),
+                            phone=new_lead.get('phone', ''), pdf_url=''
+                        )
+                except Exception:
+                    try:
+                        import traceback
+                        print('[LEAD FROM CHAT ERROR]', traceback.format_exc())
+                    except Exception:
+                        pass
 
             # Клиент попросил менеджера → флаг + уведомление в общий чат
             if resp.get('call_manager'):

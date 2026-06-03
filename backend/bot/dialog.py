@@ -169,7 +169,8 @@ def build_response(conn, chat_id, text, payload, uname, settings):
       set_draft: dict — обновить черновик
     """
     out = {'reply': '', 'buttons': [], 'pdf_url': '', 'call_manager': False,
-           'save_name': '', 'set_stage': '', 'set_draft': None}
+           'save_name': '', 'set_stage': '', 'set_draft': None,
+           'save_phone': '', 'create_lead': None}
 
     # читаем состояние диалога
     with conn.cursor() as cur:
@@ -247,16 +248,46 @@ def build_response(conn, chat_id, text, payload, uname, settings):
             return out
         e = calc_estimate(draft.get('ftype', 'профнастил'), draft.get('length', 0), h)
         out['reply'] = estimate_text(e, known_name)
+        # Сохраняем расчёт в черновик — пригодится при оформлении заявки
+        draft['estimate'] = e
+        out['set_draft'] = draft
         out['set_stage'] = 'after_calc'
-        out['set_draft'] = {}
         if not known_name:
             out['set_stage'] = 'ask_name'
             out['reply'] += '\n\nКак вас зовут? Запишу, чтобы менеджер обращался по имени.'
         else:
             out['buttons'] = [
-                [{'type': 'callback', 'text': '✅ Вызвать замерщика', 'payload': 'manager'}],
+                [{'type': 'callback', 'text': '📝 Оформить заявку', 'payload': 'order_now'}],
+                [{'type': 'callback', 'text': '👤 Вызвать замерщика', 'payload': 'manager'}],
                 [{'type': 'callback', 'text': '📐 Новый расчёт', 'payload': 'calc'}],
             ]
+        return out
+
+    # ── Оформление заявки прямо в чате ───────────────────
+    if low in ('order_now', 'оформить', 'оформить заявку', 'заказать'):
+        out['set_stage'] = 'ask_phone'
+        out['reply'] = ('Отлично! Оставьте номер телефона для связи 📞\n'
+                        'Менеджер свяжется в течение 15 минут и пришлёт точное КП.')
+        return out
+
+    if stage == 'ask_phone':
+        digits = ''.join(ch for ch in (text or '') if ch.isdigit())
+        if len(digits) < 10:
+            out['reply'] = 'Похоже, номер неполный. Напишите телефон, например: +7 999 123-45-67'
+            return out
+        phone = '+7' + digits[-10:]
+        out['save_phone'] = phone
+        out['create_lead'] = {
+            'name': known_name or uname or 'Клиент из MAX',
+            'phone': phone,
+            'estimate': draft.get('estimate') or {},
+        }
+        out['set_stage'] = ' '
+        out['set_draft'] = {}
+        nm = known_name or ''
+        out['reply'] = (f'{nm + ", з" if nm else "З"}аявка принята! ✅\n'
+                        'Менеджер свяжется в течение 15 минут. Спасибо за доверие 🤝')
+        out['buttons'] = [[{'type': 'callback', 'text': '💰 Цены', 'payload': 'prices'}]]
         return out
 
     # ── Знакомство: запоминаем имя ───────────────────────
@@ -266,9 +297,10 @@ def build_response(conn, chat_id, text, payload, uname, settings):
             out['save_name'] = nm
             out['set_stage'] = ' '
             out['reply'] = (f'Приятно познакомиться, {nm}! 🤝\n'
-                            'Хотите вызвать замерщика бесплатно или задать вопрос?')
+                            'Оформить заявку или задать вопрос?')
             out['buttons'] = [
-                [{'type': 'callback', 'text': '✅ Вызвать замерщика', 'payload': 'manager'}],
+                [{'type': 'callback', 'text': '📝 Оформить заявку', 'payload': 'order_now'}],
+                [{'type': 'callback', 'text': '👤 Вызвать замерщика', 'payload': 'manager'}],
                 [{'type': 'callback', 'text': '💰 Цены', 'payload': 'prices'}],
             ]
         else:
@@ -363,7 +395,7 @@ def build_response(conn, chat_id, text, payload, uname, settings):
     return out
 
 
-def update_dialog_state(conn, chat_id, save_name='', set_stage='', set_draft=None):
+def update_dialog_state(conn, chat_id, save_name='', set_stage='', set_draft=None, save_phone=''):
     """Сохраняет состояние диалога."""
     sets, vals = [], []
     if save_name:
@@ -371,6 +403,9 @@ def update_dialog_state(conn, chat_id, save_name='', set_stage='', set_draft=Non
         vals.append(save_name)
         sets.append("client_name=%s")
         vals.append(save_name)
+    if save_phone:
+        sets.append("client_phone=%s")
+        vals.append(save_phone)
     if set_stage:
         sets.append("stage=%s")
         vals.append(set_stage.strip())
