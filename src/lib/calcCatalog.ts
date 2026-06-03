@@ -179,6 +179,8 @@ export interface CalcInput {
   shtakGap:      number;       // зазор между планками, мм
   nashivka:      "one" | "double";   // нашивка листа/штакетника: одно-/двухсторонняя
   paintBoth:     boolean;      // двусторонний окрас металла (прокрас с двух сторон)
+  chess:         boolean;      // штакетник шахматкой (двусторонняя зашивка с зазором)
+  complexHard:   boolean;      // сложный участок (уклон/рельеф)
   direction:     "vert" | "horiz";   // направление монтажа (на цену не влияет)
   coatingId:     CoatingId;
   foundId:       FoundId;
@@ -222,6 +224,10 @@ export interface PricingParams {
   // Зарезервировано под будущие опции (нашивка/окрас) — пока не используются
   nashivkaDouble: number;  // %  (param: nashivka_double)
   paintDouble:    number;  // %  (param: paint_double)
+  // Новые факторы расчёта
+  heightSurcharge: number; // % за каждые +0.5 м высоты свыше 2 м   (param: height_surcharge)
+  complexityHard:  number; // % наценка за сложный участок           (param: complexity_hard)
+  shtakChess:      number; // % к наполнению за штакетник шахматкой   (param: shtak_chess)
 }
 
 // Дефолтные значения параметров
@@ -239,6 +245,9 @@ const DEFAULT_PRICING_PARAMS: PricingParams = {
   fillSetka:     550,
   nashivkaDouble: 0,
   paintDouble:    0,
+  heightSurcharge: 15,
+  complexityHard:  20,
+  shtakChess:      80,
 };
 
 // Текущие (мутабельные) параметры — перезаписываются applyCalcPricing()
@@ -402,6 +411,13 @@ export function calculate(c: CalcInput): CalcResult {
       fillingLabel += " · окрас 2-стор";
     }
   }
+  // Штакетник шахматкой (двусторонняя зашивка с зазором, двойной расход планок)
+  if (isShtak && c.chess) {
+    const k = 1 + PRICING_PARAMS.shtakChess / 100;
+    fillingCost *= k;
+    fillingUnit = Math.round(fillingUnit * k);
+    fillingLabel += " · шахматка";
+  }
 
   // ── Навес ───────────────────────────────────────────
   const canopyArea = isCanopy ? c.canopyLength * c.canopyWidth : 0;
@@ -433,6 +449,25 @@ export function calculate(c: CalcInput): CalcResult {
   // ── Допработы ───────────────────────────────────────
   const matSum = (isCanopy ? canopyCost : postCost + lagCost + fillingCost) + gateCost + wicketCost;
   let installCost = c.installation ? Math.round(matSum * (PRICING_PARAMS.installShare / 100)) : 0;
+
+  // ── Факторы, влияющие на стоимость работ (монтаж) ──
+  // Применяются ПОСЛЕ базового installCost и ДО защиты минималки.
+  // Множители перемножаются (высота × сложность).
+  let workFactor = 1;
+  // Фактор высоты: для забора (не навеса) при высоте > 2 м —
+  // надбавка за каждые полные/начатые +0.5 м свыше 2 м.
+  if (!isCanopy && c.fenceHeight > 2 && PRICING_PARAMS.heightSurcharge > 0) {
+    const steps = Math.ceil((c.fenceHeight - 2) / 0.5);
+    workFactor *= 1 + steps * PRICING_PARAMS.heightSurcharge / 100;
+  }
+  // Сложный участок (уклон/рельеф) — наценка на работы.
+  if (!isCanopy && c.complexHard && PRICING_PARAMS.complexityHard > 0) {
+    workFactor *= 1 + PRICING_PARAMS.complexityHard / 100;
+  }
+  if (workFactor !== 1) {
+    installCost = Math.round(installCost * workFactor);
+  }
+
   const paintCost = c.painting && !isCanopy ? fenceArea * PRICING_PARAMS.paintM2 : 0;
   const autoCost = c.automation && c.gateId !== "none" ? PRICING_PARAMS.autoGate : 0;
 
@@ -567,6 +602,8 @@ export function calculate(c: CalcInput): CalcResult {
         ...(planksCount > 0   ? { "Штакетин":           `${planksCount} шт.` } : {}),
         ...(screwsCount > 0   ? { "Саморезы":           `${screwsCount} шт.` } : {}),
         "Фундамент":      fnd.label,
+        ...(isShtak && c.chess ? { "Тип зашивки": "Шахматка" } : {}),
+        ...(c.complexHard      ? { "Участок": "Сложный (уклон/рельеф)" } : {}),
         ...(c.gateId !== "none"   ? { "Ворота":  `${gateObj.label}, ${c.gateWidth} м × ${c.gateCount} шт.` } : {}),
         ...(c.wicketId !== "none" ? { "Калитка": `${wicketObj.label} × ${c.wicketCount} шт.` } : {}),
       };
@@ -628,6 +665,8 @@ export const DEFAULT_CALC: CalcInput = {
   shtakGap:      5,
   nashivka:      "one",
   paintBoth:     false,
+  chess:         false,
+  complexHard:   false,
   direction:     "vert",
   coatingId:     "polyester",
   foundId:       "betonirovanie",
@@ -752,6 +791,9 @@ export function applyCalcPricing(items: CalcPriceItem[]): void {
   params.autoDiscount   = num(p.get("auto_discount")?.price,   params.autoDiscount);
   params.nashivkaDouble = num(p.get("nashivka_double")?.price, params.nashivkaDouble);
   params.paintDouble    = num(p.get("paint_double")?.price,    params.paintDouble);
+  params.heightSurcharge = num(p.get("height_surcharge")?.price, params.heightSurcharge);
+  params.complexityHard  = num(p.get("complexity_hard")?.price,  params.complexityHard);
+  params.shtakChess      = num(p.get("shtak_chess")?.price,      params.shtakChess);
 
   PRICING_PARAMS = params;
   syncLegacyExports();

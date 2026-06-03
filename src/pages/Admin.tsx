@@ -345,12 +345,6 @@ export default function Admin() {
             <Link to="/admin/calc-prices" className="text-yellow-300/90 hover:text-yellow-300 text-xs flex items-center gap-1 px-2.5 py-1 border border-yellow-500/30 hover:border-yellow-500/60 rounded-lg transition-all">
               <Icon name="Calculator" size={13} /> Прайс калькулятора
             </Link>
-            <Link to="/admin/builder" className="text-pink-300/90 hover:text-pink-300 text-xs flex items-center gap-1 px-2.5 py-1 border border-pink-500/30 hover:border-pink-500/60 rounded-lg transition-all">
-              <Icon name="LayoutPanelTop" size={13} /> Конструктор
-            </Link>
-            <Link to="/admin/onec" className="text-cyan-300/90 hover:text-cyan-300 text-xs flex items-center gap-1 px-2.5 py-1 border border-cyan-500/30 hover:border-cyan-500/60 rounded-lg transition-all">
-              <Icon name="Database" size={13} /> 1С
-            </Link>
             <Link to="/" className="text-white/40 hover:text-orange-400 text-xs flex items-center gap-1">
               <Icon name="ExternalLink" size={13} /> Сайт
             </Link>

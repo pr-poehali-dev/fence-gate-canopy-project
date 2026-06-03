@@ -99,6 +99,7 @@ DEFAULTS = {
     'automation': False, 'painting': False, 'installation': True,
     'canopyType': 'двухскат', 'canopyLength': 6, 'canopyWidth': 4,
     'canopyCoverId': 'polycarb_4', 'distanceKm': 0,
+    'chess': False, 'complexHard': False,
 }
 
 
@@ -110,6 +111,7 @@ def fmt_rub(n):
 PARAMS = {
     'install_share': 35, 'paint_m2': 280, 'auto_gate': 22000,
     'nashivka_double': 60, 'paint_double': 25,
+    'height_surcharge': 15, 'complexity_hard': 20, 'shtak_chess': 80,
 }
 # Наполнение без покрытия, ₽/м² (мутируется из БД, категория fill)
 FILL_PRICES = {'3d': 1600, 'kovka': 4500, 'setka': 550}
@@ -235,6 +237,9 @@ def calculate(inp):
         if c.get('paintBoth') and PARAMS.get('paint_double'):
             filling_cost *= (1 + PARAMS['paint_double'] / 100)
             filling_label += ' · окрас 2-стор'
+        if is_shtak and c.get('chess') and PARAMS.get('shtak_chess'):
+            filling_cost *= (1 + PARAMS['shtak_chess'] / 100)
+            filling_label += ' · шахматка'
 
     canopy_area = c['canopyLength'] * c['canopyWidth'] if is_canopy else 0
     canopy_cost = 0.0
@@ -261,6 +266,15 @@ def calculate(inp):
     mat_sum = (canopy_cost if is_canopy else post_cost + lag_cost + filling_cost) \
             + gate_cost + wicket_cost
     install_cost = round(mat_sum * (PARAMS.get('install_share', 35) / 100)) if c['installation'] else 0
+    # Факторы работ: высота >2 м и сложный участок
+    work_factor = 1.0
+    if not is_canopy and c['fenceHeight'] > 2 and PARAMS.get('height_surcharge'):
+        steps = math.ceil((c['fenceHeight'] - 2) / 0.5)
+        work_factor *= (1 + steps * PARAMS['height_surcharge'] / 100)
+    if c.get('complexHard') and PARAMS.get('complexity_hard'):
+        work_factor *= (1 + PARAMS['complexity_hard'] / 100)
+    if work_factor != 1.0:
+        install_cost = round(install_cost * work_factor)
     paint_cost = fence_area * PARAMS.get('paint_m2', 280) if (c['painting'] and not is_canopy) else 0
     auto_cost = PARAMS.get('auto_gate', 22000) if (c['automation'] and c['gateId'] != 'none') else 0
 
@@ -298,7 +312,8 @@ def calculate(inp):
         'materials': round(mat_sum),
         'post_cost': round(post_cost), 'lag_cost': round(lag_cost),
         'filling_cost': round(filling_cost), 'canopy_cost': round(canopy_cost),
-        'gate_cost': round(gate_cost), 'wicket_cost': round(wicket_cost),
+        'gate_cost': round(gate_cost) if c['gateId'] != 'none' else 0,
+        'wicket_cost': round(wicket_cost) if c['wicketId'] != 'none' else 0,
         'found_cost': round(found_cost), 'found_label': fnd['label'],
         'install': round(install_cost), 'paint': round(paint_cost),
         'auto': round(auto_cost), 'delivery': round(delivery_cost),

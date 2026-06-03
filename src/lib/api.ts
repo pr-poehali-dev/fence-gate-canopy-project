@@ -105,6 +105,26 @@ export async function saveCalcPricing(
   return r.json();
 }
 
+export async function addCalcPriceItem(item: {
+  category: string; label: string; item_key?: string;
+  price?: number; price2?: number; coef?: number; descr?: string;
+}) {
+  const r = await fetch(`${API.prices}?action=calc`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Auth-Token": adminToken.get() },
+    body: JSON.stringify(item),
+  });
+  return r.json();
+}
+
+export async function deleteCalcPriceItem(id: number) {
+  const r = await fetch(`${API.prices}?action=calc&id=${id}`, {
+    method: "DELETE",
+    headers: { "X-Auth-Token": adminToken.get() },
+  });
+  return r.json();
+}
+
 export async function fetchReviews(adminMode = false): Promise<ReviewItem[]> {
   const url = adminMode ? `${API.reviews}?admin=1` : API.reviews;
   const headers: Record<string, string> = {};

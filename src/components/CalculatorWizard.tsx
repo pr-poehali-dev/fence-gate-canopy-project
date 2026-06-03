@@ -564,6 +564,16 @@ function StepSize({ calc, set }: { calc: CalcInput; set: (p: Partial<CalcInput>)
           onChange={v => set({ fenceLength: v })} />
         <RangeRow label="Высота забора" value={calc.fenceHeight} min={1} max={3} step={0.1} unit="м"
           onChange={v => set({ fenceHeight: parseFloat(v.toFixed(1)) })} />
+        <ToggleGroup
+          label="Сложность участка"
+          hint="Сложный (уклон/рельеф) — увеличивает стоимость монтажа"
+          value={calc.complexHard ? "hard" : "simple"}
+          options={[
+            { id: "simple", label: "Простой" },
+            { id: "hard",   label: "Сложный (уклон)" },
+          ]}
+          onChange={v => set({ complexHard: v === "hard" })}
+        />
         <div className="bg-orange-500/5 border border-orange-500/20 rounded-lg px-3 py-2 text-xs text-orange-300/80">
           <Icon name="Info" size={12} className="inline mr-1" />
           Если будут ворота/калитки — их ширина автоматически вычтется из периметра на следующих шагах.
@@ -645,6 +655,18 @@ function StepFilling({ calc, set }: { calc: CalcInput; set: (p: Partial<CalcInpu
         <RangeRow label="Зазор между планками"
           value={calc.shtakGap} min={0} max={100} unit="мм"
           onChange={v => set({ shtakGap: Math.round(v) })} />
+        <div className="mt-4">
+          <ToggleGroup
+            label="Зашивка"
+            hint="Шахматка — двусторонняя зашивка с зазором, глухой вид"
+            value={calc.chess ? "chess" : "plain"}
+            options={[
+              { id: "plain", label: "Обычная" },
+              { id: "chess", label: "Шахматка" },
+            ]}
+            onChange={v => set({ chess: v === "chess" })}
+          />
+        </div>
       </div>
     );
   }

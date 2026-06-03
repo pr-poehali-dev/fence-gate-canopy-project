@@ -92,6 +92,57 @@ def handler(event: dict, context) -> dict:
                 return {'statusCode': 200, 'headers': cors,
                         'body': json.dumps({'ok': True, 'updated': upd})}
 
+            if method == 'POST':
+                # Добавление новой позиции прайса
+                category = ''.join(ch for ch in (cbody.get('category') or '')
+                                   if ch.isalnum() or ch == '_')[:40]
+                label = (cbody.get('label') or '').replace("'", "''")[:160]
+                if not category or not label:
+                    return {'statusCode': 400, 'headers': cors,
+                            'body': json.dumps({'error': 'category_and_label_required'})}
+                # item_key: из запроса или авто-генерация
+                raw_key = (cbody.get('item_key') or '').strip()
+                if not raw_key:
+                    raw_key = 'k' + str(abs(hash(label)) % 1000000)
+                item_key = ''.join(ch for ch in raw_key
+                                   if ch.isalnum() or ch in '_-.')[:60].lower()
+                price = float(cbody.get('price') or 0)
+                price2 = float(cbody.get('price2') or 0)
+                coef = float(cbody.get('coef') or 0)
+                descr = (cbody.get('descr') or '').replace("'", "''")[:255]
+                with conn.cursor() as cur:
+                    cur.execute(
+                        f"SELECT COALESCE(MAX(sort_order),0)+1 FROM calc_pricing "
+                        f"WHERE category='{category}'"
+                    )
+                    sort_order = cur.fetchone()[0]
+                    cur.execute(
+                        f"INSERT INTO calc_pricing(category,item_key,label,price,price2,coef,"
+                        f"descr,sort_order,is_active) VALUES('{category}','{item_key}','{label}',"
+                        f"{price},{price2},{coef},'{descr}',{sort_order},TRUE) "
+                        f"ON CONFLICT(category,item_key) DO UPDATE SET label=EXCLUDED.label, "
+                        f"price=EXCLUDED.price, price2=EXCLUDED.price2, coef=EXCLUDED.coef, "
+                        f"descr=EXCLUDED.descr, updated_at=NOW() RETURNING id"
+                    )
+                    new_id = cur.fetchone()[0]
+                    conn.commit()
+                return {'statusCode': 200, 'headers': cors,
+                        'body': json.dumps({'ok': True, 'id': new_id, 'item_key': item_key})}
+
+            if method == 'DELETE':
+                try:
+                    mid = int(qp.get('id') or 0)
+                except (TypeError, ValueError):
+                    mid = 0
+                if not mid:
+                    return {'statusCode': 400, 'headers': cors,
+                            'body': json.dumps({'error': 'id_required'})}
+                with conn.cursor() as cur:
+                    cur.execute(f"DELETE FROM calc_pricing WHERE id={mid}")
+                    conn.commit()
+                return {'statusCode': 200, 'headers': cors,
+                        'body': json.dumps({'ok': True})}
+
             return {'statusCode': 405, 'headers': cors,
                     'body': json.dumps({'error': 'method_not_allowed'})}
 

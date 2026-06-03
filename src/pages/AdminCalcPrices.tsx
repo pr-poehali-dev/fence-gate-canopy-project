@@ -2,7 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import Icon from "@/components/ui/icon";
-import { adminToken, verifyAdmin, fetchCalcPricing, saveCalcPricing, type CalcPriceItem } from "@/lib/api";
+import {
+  adminToken, verifyAdmin, fetchCalcPricing, saveCalcPricing,
+  addCalcPriceItem, deleteCalcPriceItem, type CalcPriceItem,
+} from "@/lib/api";
 
 const CATEGORY_LABELS: Record<string, string> = {
   post: "Столбы (₽/шт)",
@@ -74,6 +77,37 @@ export default function AdminCalcPrices() {
     }
   };
 
+  const changeLabel = (id: number, value: string) => {
+    setDirty(d => ({ ...d, [id]: { ...(d[id] || {}), label: value } }));
+  };
+  const labelOf = (it: CalcPriceItem) =>
+    dirty[it.id]?.label !== undefined ? (dirty[it.id].label as string) : it.label;
+
+  const addItem = async (category: string) => {
+    const label = window.prompt("Название новой позиции:");
+    if (!label || !label.trim()) return;
+    try {
+      await addCalcPriceItem({ category, label: label.trim(), price: 0 });
+      toast.success("Позиция добавлена");
+      window.dispatchEvent(new Event("cms:invalidate"));
+      await load();
+    } catch {
+      toast.error("Не удалось добавить");
+    }
+  };
+
+  const removeItem = async (it: CalcPriceItem) => {
+    if (!window.confirm(`Удалить «${it.label}»? Позиция исчезнет из калькулятора.`)) return;
+    try {
+      await deleteCalcPriceItem(it.id);
+      toast.success("Позиция удалена");
+      window.dispatchEvent(new Event("cms:invalidate"));
+      await load();
+    } catch {
+      toast.error("Не удалось удалить");
+    }
+  };
+
   const sortedCats = useMemo(
     () => Object.keys(grouped).sort(
       (a, b) => (CATEGORY_ORDER.indexOf(a) + 1 || 99) - (CATEGORY_ORDER.indexOf(b) + 1 || 99)
@@ -115,11 +149,21 @@ export default function AdminCalcPrices() {
 
         {loading && <div className="text-white/40 text-sm">Загрузка…</div>}
 
-        {!loading && sortedCats.map(cat => (
+        {!loading && sortedCats.map(cat => {
+          const isParam = cat === "param";
+          return (
           <div key={cat} className="mb-6">
-            <h2 className="text-sm font-bold text-orange-400 uppercase tracking-wider mb-2">
-              {CATEGORY_LABELS[cat] || cat}
-            </h2>
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-sm font-bold text-orange-400 uppercase tracking-wider">
+                {CATEGORY_LABELS[cat] || cat}
+              </h2>
+              {!isParam && (
+                <button onClick={() => addItem(cat)}
+                  className="text-[11px] text-emerald-400 hover:text-emerald-300 flex items-center gap-1">
+                  <Icon name="Plus" size={12} /> Добавить
+                </button>
+              )}
+            </div>
             <div className="bg-[#141720] border border-[#1e2230] rounded-xl overflow-hidden">
               {grouped[cat].map((it, i) => {
                 const isFound = cat === "found";
@@ -131,7 +175,15 @@ export default function AdminCalcPrices() {
                     className={`flex items-center gap-3 px-3 py-2.5 ${i > 0 ? "border-t border-[#1e2230]" : ""}`}
                   >
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm text-white/90 truncate">{it.label}</div>
+                      {isParam ? (
+                        <div className="text-sm text-white/90 truncate">{it.label}</div>
+                      ) : (
+                        <input
+                          value={labelOf(it)}
+                          onChange={e => changeLabel(it.id, e.target.value)}
+                          className="w-full bg-transparent border-b border-transparent hover:border-[#1e2230] focus:border-orange-500 text-sm text-white/90 outline-none py-0.5"
+                        />
+                      )}
                       {it.descr && <div className="text-[11px] text-white/35 truncate">{it.descr}</div>}
                     </div>
                     {isCoating ? (
@@ -169,12 +221,19 @@ export default function AdminCalcPrices() {
                         )}
                       </>
                     )}
+                    {!isParam && (
+                      <button onClick={() => removeItem(it)}
+                        className="text-white/25 hover:text-red-400 p-1 flex-shrink-0" title="Удалить">
+                        <Icon name="Trash2" size={14} />
+                      </button>
+                    )}
                   </div>
                 );
               })}
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

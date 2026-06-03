@@ -369,7 +369,7 @@ function ServiceCard({ item, idx }: { item: { label: string; href: string; descr
         {img ? (
           <img src={img} alt={item.label} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-300 text-5xl font-oswald">
+          <div className="w-full h-full flex items-center justify-center text-gray-500 text-5xl font-oswald">
             {idx + 1}
           </div>
         )}

@@ -36,9 +36,13 @@
 
     --orange: #f97316;
     --orange-dark: #ea580c;
-    --page-bg: #ffffff;
-    --dark-card: #f9fafb;
-    --dark-border: #1e2230;
+    /* Мягкий тёплый фон вместо чистого белого — приятнее для глаз */
+    --page-bg: #f5f4f1;
+    --page-bg-soft: #faf9f7;
+    --dark-card: #ffffff;
+    --dark-border: #e7e3dc;
+    --text-main: #20242c;
+    --text-soft: #5b6470;
   }
 }
 
@@ -54,7 +58,12 @@
   body {
     font-family: "Golos Text", sans-serif;
     background-color: var(--page-bg);
-    color: #1f2937;
+    background-image: radial-gradient(
+      ellipse 90% 50% at 50% 0%,
+      rgba(249, 115, 22, 0.04) 0%,
+      transparent 55%
+    );
+    color: var(--text-main);
     scroll-behavior: smooth;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;

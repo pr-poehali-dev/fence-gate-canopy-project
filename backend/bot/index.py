@@ -577,6 +577,84 @@ def _build_kp_pdf_for_estimate(order_num, est, lead, settings):
         return ''
 
 
+def _register_lead_client(conn, name, phone, city=''):
+    """Регистрирует клиента из заявки сайта в bot_dialogs.
+
+    Если по телефону уже есть диалог — обновляет имя/город. Иначе создаёт
+    «предзаготовку» с chat_id вида lead:<10цифр>, чтобы клиент сразу появился
+    в разделе «Диалоги» у менеджера. Когда клиент впервые напишет боту,
+    обычный _save_message создаст/подхватит реальный chat_id.
+    """
+    digits = ''.join(ch for ch in (phone or '') if ch.isdigit())
+    if len(digits) < 10:
+        return
+    tail = digits[-10:]
+    with conn.cursor() as cur:
+        cur.execute(
+            "SELECT chat_id FROM bot_dialogs "
+            "WHERE regexp_replace(client_phone,'[^0-9]','','g') LIKE %s "
+            "ORDER BY last_at DESC LIMIT 1", ('%' + tail,)
+        )
+        row = cur.fetchone()
+        if row:
+            cur.execute(
+                "UPDATE bot_dialogs SET "
+                "client_name = CASE WHEN %s <> '' THEN %s ELSE client_name END, "
+                "client_city = CASE WHEN %s <> '' THEN %s ELSE client_city END "
+                "WHERE chat_id = %s",
+                (name, name, city, city, row[0])
+            )
+        else:
+            placeholder = f'lead:{tail}'
+            cur.execute(
+                "INSERT INTO bot_dialogs (chat_id, client_name, client_phone, client_city, "
+                "last_message, unread) VALUES (%s,%s,%s,%s,%s,0) "
+                "ON CONFLICT (chat_id) DO UPDATE SET client_name=EXCLUDED.client_name, "
+                "client_phone=EXCLUDED.client_phone, client_city=EXCLUDED.client_city",
+                (placeholder, name, '+7' + tail, city, 'Заявка с сайта — ожидает контакта в боте')
+            )
+        conn.commit()
+
+
+def _merge_lead_placeholder(conn, real_chat_id):
+    """Когда клиент впервые пишет боту — переносит данные из предзаготовки
+    lead:<tail> (созданной при заявке с сайта) на реальный диалог и удаляет
+    плейсхолдер. Сопоставление по последним 10 цифрам телефона."""
+    real_chat_id = str(real_chat_id)
+    if real_chat_id.startswith('lead:'):
+        return
+    with conn.cursor() as cur:
+        cur.execute(
+            "SELECT client_phone FROM bot_dialogs WHERE chat_id=%s", (real_chat_id,)
+        )
+        row = cur.fetchone()
+        phone = (row[0] if row else '') or ''
+        digits = ''.join(ch for ch in phone if ch.isdigit())
+        # ищем плейсхолдер: либо по телефону диалога, либо просто все lead:*
+        if len(digits) >= 10:
+            tail = digits[-10:]
+            cur.execute(
+                "SELECT chat_id, client_name, client_phone, client_city FROM bot_dialogs "
+                "WHERE chat_id LIKE 'lead:%%' AND chat_id = %s LIMIT 1", ('lead:' + tail,)
+            )
+        else:
+            return
+        ph = cur.fetchone()
+        if not ph:
+            return
+        ph_chat, ph_name, ph_phone, ph_city = ph
+        cur.execute(
+            "UPDATE bot_dialogs SET "
+            "client_name = CASE WHEN COALESCE(client_name,'')='' THEN %s ELSE client_name END, "
+            "client_phone = CASE WHEN COALESCE(client_phone,'')='' THEN %s ELSE client_phone END, "
+            "client_city = CASE WHEN COALESCE(client_city,'')='' THEN %s ELSE client_city END "
+            "WHERE chat_id = %s",
+            (ph_name or '', ph_phone or '', ph_city or '', real_chat_id)
+        )
+        cur.execute("DELETE FROM bot_dialogs WHERE chat_id = %s", (ph_chat,))
+        conn.commit()
+
+
 def _find_chat_in_dialogs(conn, phone):
     """Ищет chat_id клиента в истории диалогов бота по номеру телефона.
 
@@ -590,11 +668,13 @@ def _find_chat_in_dialogs(conn, phone):
     tail = digits[-10:]  # последние 10 цифр номера
     try:
         with conn.cursor() as cur:
-            # сначала точное совпадение по сохранённому телефону диалога
+            # совпадение по телефону; исключаем плейсхолдеры lead:* (в них
+            # нельзя отправить в MAX — клиент ещё не писал боту)
             cur.execute(
                 "SELECT chat_id FROM bot_dialogs "
                 "WHERE regexp_replace(client_phone, '[^0-9]', '', 'g') LIKE %s "
-                "AND chat_id <> '' ORDER BY last_at DESC LIMIT 1",
+                "AND chat_id <> '' AND chat_id NOT LIKE 'lead:%%' "
+                "ORDER BY last_at DESC LIMIT 1",
                 ('%' + tail,)
             )
             row = cur.fetchone()
@@ -870,6 +950,16 @@ def handler(event: dict, context) -> dict:
                 )
                 lead_id = cur.fetchone()[0]
                 conn.commit()
+
+            # ── 1b) Регистрируем клиента в боте (предзаготовка диалога) ──
+            # Чтобы менеджер сразу видел клиента в разделе «Диалоги», а бот
+            # узнал его при первом сообщении. Если клиент уже писал боту —
+            # обновим имя/телефон, новый диалог не плодим.
+            if not is_event and phone and phone not in ('—', '-'):
+                try:
+                    _register_lead_client(conn, name, phone, city)
+                except Exception:
+                    pass
 
             # ── 2) Уведомление клиенту в MAX (если найден чат) ──
             client_max_ok, client_max_info = False, 'skipped'
@@ -1666,6 +1756,12 @@ def handler(event: dict, context) -> dict:
 
             # Сохраняем входящее (только личные диалоги)
             _save_message(conn, chat_id, 'in', 'client', text, user_id=user_id, name=uname)
+
+            # Слияние предзаготовки из заявки сайта (lead:*) с реальным диалогом
+            try:
+                _merge_lead_placeholder(conn, chat_id)
+            except Exception:
+                pass
 
             # ── Диалоговое ядро: расчёт, статусы, знакомство, FAQ ──
             from dialog import build_response, update_dialog_state
