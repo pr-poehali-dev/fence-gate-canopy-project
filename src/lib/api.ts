@@ -350,6 +350,8 @@ export interface BotDialog {
   last_at: string | null;
   unread: number;
   needs_manager: boolean;
+  assigned_manager?: string;
+  client_city?: string;
 }
 
 export interface BotMessage {

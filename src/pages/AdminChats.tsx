@@ -118,7 +118,14 @@ export default function AdminChats() {
                   )}
                 </div>
                 <div className="text-xs text-white/45 truncate">{d.last_message || "—"}</div>
-                <div className="text-[10px] text-white/30 mt-0.5">{fmtTime(d.last_at)}</div>
+                <div className="flex items-center justify-between gap-2 mt-0.5">
+                  <span className="text-[10px] text-white/30">{fmtTime(d.last_at)}</span>
+                  {d.assigned_manager && (
+                    <span className="text-[10px] text-emerald-400 flex items-center gap-1 truncate">
+                      <Icon name="UserCheck" size={10} /> {d.assigned_manager}
+                    </span>
+                  )}
+                </div>
               </button>
             ))}
           </div>
@@ -139,8 +146,16 @@ export default function AdminChats() {
                 <Icon name="User" size={16} className="text-orange-400" />
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium truncate">{active.client_name || `Клиент ${active.chat_id}`}</div>
-                  {active.client_phone && <div className="text-[11px] text-white/40">{active.client_phone}</div>}
+                  <div className="text-[11px] text-white/40 flex items-center gap-2 flex-wrap">
+                    {active.client_phone && <span>{active.client_phone}</span>}
+                    {active.client_city && <span>· {active.client_city}</span>}
+                  </div>
                 </div>
+                {active.assigned_manager && (
+                  <span className="bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 text-[10px] px-2 py-1 rounded-full flex items-center gap-1">
+                    <Icon name="UserCheck" size={11} /> Ведёт: {active.assigned_manager}
+                  </span>
+                )}
                 {active.needs_manager && (
                   <span className="bg-amber-500/15 border border-amber-500/40 text-amber-400 text-[10px] px-2 py-1 rounded-full">
                     Просит менеджера

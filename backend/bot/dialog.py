@@ -89,7 +89,7 @@ def nav_buttons(extra=None):
 MENU_BUTTONS = [
     [{'type': 'callback', 'text': '📐 Рассчитать забор', 'payload': 'calc'}],
     [{'type': 'callback', 'text': '📝 Оформить заявку', 'payload': 'order_now'}],
-    [{'type': 'callback', 'text': '📋 Статус моей заявки', 'payload': 'status'}],
+    [{'type': 'callback', 'text': '📂 Мои заявки', 'payload': 'my_orders'}],
     [{'type': 'callback', 'text': '💰 Цены и прайс', 'payload': 'prices'}],
     [{'type': 'callback', 'text': '👤 Позвать менеджера', 'payload': 'manager'}],
 ]
@@ -272,6 +272,75 @@ def build_response(conn, chat_id, text, payload, uname, settings):
         out['set_stage'] = 'ask_order'
         out['reply'] = 'Напишите номер вашей заявки (например, СГ-2026-1700) — покажу статус.'
         out['buttons'] = nav_buttons()
+        return out
+
+    # ── Мои заявки: список по телефону клиента ──────────
+    if low in ('my_orders', 'мои заявки', 'мои заказы'):
+        out['set_stage'] = ' '
+        phone_digits = ''.join(ch for ch in known_phone if ch.isdigit())
+        rows = []
+        if len(phone_digits) >= 10:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT order_num, object_type, total_rub, created_at FROM leads "
+                    "WHERE regexp_replace(phone,'[^0-9]','','g') LIKE %s "
+                    "ORDER BY created_at DESC LIMIT 10", ('%' + phone_digits[-10:],)
+                )
+                rows = cur.fetchall()
+        if not rows:
+            out['reply'] = ('У вас пока нет заявок 📭\n'
+                            'Хотите рассчитать стоимость и оформить заявку?')
+            out['buttons'] = nav_buttons([
+                [{'type': 'callback', 'text': '📐 Рассчитать', 'payload': 'calc'}],
+                [{'type': 'callback', 'text': '📝 Оформить заявку', 'payload': 'order_now'}],
+            ])
+            return out
+        lines = ['📂 Ваши заявки:', '━━━━━━━━━━━━━━━']
+        btns = []
+        for r in rows:
+            onum, otype, ototal, ocreated = r[0], r[1], r[2], r[3]
+            with conn.cursor() as cur:
+                cur.execute("SELECT status FROM orders WHERE order_num ILIKE %s "
+                            "ORDER BY created_at DESC LIMIT 1", (f'%{onum}%',))
+                st = cur.fetchone()
+            status = st[0] if st else 'new'
+            datestr = ocreated.strftime('%d.%m.%Y') if ocreated else ''
+            lines.append(f'📋 {onum} · {datestr}')
+            lines.append(f'   {otype or "—"} · {fmt_rub(ototal or 0)}')
+            lines.append(f'   {order_status_label(status)}')
+            lines.append('')
+            short = ''.join(ch for ch in onum if ch.isdigit())[-4:]
+            btns.append([{'type': 'callback', 'text': f'🔄 Обновить {onum}', 'payload': f'st_{short}'}])
+        out['reply'] = '\n'.join(lines).strip()
+        out['buttons'] = nav_buttons(btns[:3] + [
+            [{'type': 'callback', 'text': '👤 Связаться с менеджером', 'payload': 'manager'}],
+        ])
+        return out
+
+    # Обновление статуса конкретной заявки по короткому коду st_XXXX
+    if low.startswith('st_'):
+        digits = low[3:]
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT order_num, object_type, total_rub FROM leads "
+                "WHERE regexp_replace(order_num,'[^0-9]','','g') LIKE %s "
+                "ORDER BY created_at DESC LIMIT 1", ('%' + digits,)
+            )
+            lead = cur.fetchone()
+            status = ''
+            if lead:
+                cur.execute("SELECT status FROM orders WHERE order_num ILIKE %s "
+                            "ORDER BY created_at DESC LIMIT 1", (f'%{lead[0]}%',))
+                st = cur.fetchone()
+                status = st[0] if st else 'new'
+        out['set_stage'] = ' '
+        if lead:
+            out['reply'] = (f'📋 Заявка {lead[0]}\n━━━━━━━━━━━━━━━\n'
+                            f'🔧 {lead[1] or "—"}\n💰 {fmt_rub(lead[2] or 0)}\n'
+                            f'📌 Статус: {order_status_label(status)}')
+        else:
+            out['reply'] = 'Заявка не найдена 🤔'
+        out['buttons'] = nav_buttons([[{'type': 'callback', 'text': '📂 Мои заявки', 'payload': 'my_orders'}]])
         return out
 
     if low in ('order_now', 'оформить', 'оформить заявку', 'заказать'):
