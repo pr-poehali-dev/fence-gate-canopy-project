@@ -39,6 +39,15 @@
       "expectedStatus": 200,
       "expectedBody": {"ok": true},
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "Webhook dialog: calc message",
+      "method": "POST",
+      "path": "/?action=webhook",
+      "body": {"message": {"sender": {"user_id": 888777, "name": "Тест"}, "recipient": {"user_id": 888777, "chat_id": 888777, "chat_type": "dialog"}, "body": {"text": "профнастил 40 2"}}},
+      "expectedStatus": 200,
+      "expectedBody": {"ok": true},
+      "bodyMatcher": "partial"
     }
   ]
 }

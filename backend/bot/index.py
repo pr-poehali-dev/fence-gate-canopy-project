@@ -1400,70 +1400,63 @@ def handler(event: dict, context) -> dict:
             # Сохраняем входящее (только личные диалоги)
             _save_message(conn, chat_id, 'in', 'client', text, user_id=user_id, name=uname)
 
-            # Команда /start КП-XXXX — отправляем КП по заявке
-            reply_text, buttons = '', []
-            sent_kp = False
-            low = text.lower()
-            if 'кп' in low or low.startswith('/start кп') or 'order' in low:
-                # ищем последнюю заявку по этому набору (по тексту КП-номера)
-                import re as _re
-                m = _re.search(r'(КП|order)[-_ ]?([A-Za-zА-Яа-я0-9\-]+)', text)
-                ordnum = m.group(2) if m else ''
-                pdf_url = ''
-                with conn.cursor() as cur:
-                    if ordnum:
-                        cur.execute(
-                            "SELECT payload_json FROM leads WHERE order_num ILIKE %s "
-                            "ORDER BY created_at DESC LIMIT 1", (f'%{ordnum}%',)
-                        )
-                    else:
-                        cur.execute(
-                            "SELECT payload_json FROM leads ORDER BY created_at DESC LIMIT 1"
-                        )
-                    row = cur.fetchone()
-                    if row and isinstance(row[0], dict):
-                        pdf_url = row[0].get('pdf_url') or ''
-                if bot_token:
-                    reply = ('Ваше коммерческое предложение готово! 📄'
-                             if pdf_url else
-                             'Заявка принята! Менеджер пришлёт КП в ближайшее время.')
-                    _send_to_max(bot_token, chat_id, reply, phone='', pdf_url=pdf_url)
-                    _save_message(conn, chat_id, 'out', 'bot', reply)
-                    sent_kp = True
+            # ── Диалоговое ядро: расчёт, статусы, знакомство, FAQ ──
+            from dialog import build_response, update_dialog_state
+            try:
+                resp = build_response(conn, chat_id, text, cb.get('payload') or '',
+                                      uname, settings)
+            except Exception as e:
+                resp = {'reply': 'Секунду, передаю менеджеру 👤', 'buttons': [],
+                        'pdf_url': '', 'call_manager': True, 'save_name': '',
+                        'set_stage': '', 'set_draft': None}
+                try:
+                    import traceback
+                    print('[DIALOG ERROR]', traceback.format_exc())
+                except Exception:
+                    pass
 
-            if not sent_kp:
-                reply_text, buttons = _bot_autoreply(text)
-                if not reply_text and not buttons:
-                    # клиент позвал менеджера
-                    with conn.cursor() as cur:
-                        cur.execute(
-                            "UPDATE bot_dialogs SET needs_manager = TRUE WHERE chat_id = %s",
-                            (str(chat_id),)
-                        )
-                        conn.commit()
-                    reply_text = ('Передаю ваш диалог менеджеру 👤 — он ответит здесь в ближайшее время. '
-                                  'Спасибо за ожидание!')
-                    # уведомим менеджера в основной чат
-                    mgr_chat = settings.get('max_chat_id') or ''
-                    if bot_token and mgr_chat:
-                        _send_to_max(
-                            bot_token, mgr_chat,
-                            f'🔔 Клиент {uname or chat_id} просит менеджера в чате бота.\n'
-                            f'Сообщение: {text[:200]}',
-                            phone='', pdf_url=''
-                        )
-                if reply_text and bot_token:
+            # Сохраняем состояние (имя, этап, черновик)
+            update_dialog_state(
+                conn, chat_id,
+                save_name=resp.get('save_name') or '',
+                set_stage=resp.get('set_stage') or '',
+                set_draft=resp.get('set_draft'),
+            )
+
+            # Клиент попросил менеджера → флаг + уведомление в общий чат
+            if resp.get('call_manager'):
+                with conn.cursor() as cur:
+                    cur.execute("UPDATE bot_dialogs SET needs_manager=TRUE WHERE chat_id=%s",
+                                (str(chat_id),))
+                    conn.commit()
+                mgr_chat = settings.get('max_chat_id') or ''
+                if bot_token and mgr_chat:
+                    _send_to_max(
+                        bot_token, mgr_chat,
+                        f'🔔 Клиент {uname or chat_id} просит менеджера в чате бота.\n'
+                        f'Сообщение: {text[:200]}',
+                        phone='', pdf_url=''
+                    )
+
+            # Отправляем ответ бота
+            reply_text = resp.get('reply') or ''
+            buttons = resp.get('buttons') or []
+            pdf_url = resp.get('pdf_url') or ''
+            if reply_text and bot_token:
+                if pdf_url:
+                    _send_to_max(bot_token, chat_id, reply_text, phone='', pdf_url=pdf_url)
+                else:
                     payload_btns = (
                         [{'type': 'inline_keyboard', 'payload': {'buttons': buttons}}]
                         if buttons else None
                     )
-                    st, _ = _max_request(
+                    _max_request(
                         bot_token, 'POST', '/messages',
                         params={'chat_id': int(chat_id) if str(chat_id).lstrip('-').isdigit() else chat_id},
                         json_body={'text': reply_text, 'format': 'markdown',
                                    **({'attachments': payload_btns} if payload_btns else {})},
                     )
-                    _save_message(conn, chat_id, 'out', 'bot', reply_text)
+                _save_message(conn, chat_id, 'out', 'bot', reply_text)
 
             return {'statusCode': 200, 'headers': cors, 'body': json.dumps({'ok': True})}
 
