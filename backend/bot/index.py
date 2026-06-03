@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import urllib.request
 import urllib.parse
 import urllib.error
@@ -501,6 +502,31 @@ def _upload_pdf_to_s3(b64data: str, order_num: str) -> str:
         s3.put_object(Bucket='files', Key=key, Body=raw, ContentType='application/pdf')
         return f"https://cdn.poehali.dev/projects/{os.environ['AWS_ACCESS_KEY_ID']}/bucket/{key}"
     except Exception:
+        return ''
+
+
+def _build_kp_pdf_for_estimate(order_num, est, lead, settings):
+    """Генерирует PDF-КП из расчёта бота и загружает в S3. Возвращает CDN URL."""
+    try:
+        import base64
+        from kp_pdf import build_kp_pdf_bytes
+        company = {
+            'brand': settings.get('company_name') or 'СтальГрупп',
+            'legalName': settings.get('legal_name') or 'ИП Балтаг А. В.',
+            'inn': settings.get('inn') or '',
+            'phone': settings.get('company_phone') or '',
+        }
+        pdf_bytes = build_kp_pdf_bytes(order_num, est, lead, company)
+        if not pdf_bytes:
+            return ''
+        b64 = base64.b64encode(pdf_bytes).decode('ascii')
+        return _upload_pdf_to_s3(b64, order_num)
+    except Exception:
+        try:
+            import traceback
+            print('[KP PDF ERROR]', traceback.format_exc())
+        except Exception:
+            pass
         return ''
 
 
@@ -1419,12 +1445,51 @@ def handler(event: dict, context) -> dict:
             if not chat_id:
                 return {'statusCode': 200, 'headers': cors, 'body': json.dumps({'ok': True})}
 
-            # ПРИВАТНОСТЬ: бот ведёт ТОЛЬКО личные диалоги 1-на-1 с клиентом.
-            # Сообщения из канала/группы менеджеров игнорируем — там бот не отвечает,
-            # чтобы переписку с клиентом не видели другие участники.
             mgr_chat_id = str(settings.get('max_chat_id') or '')
             is_manager_chat = mgr_chat_id and str(chat_id) == mgr_chat_id
             is_group = chat_type in ('chat', 'channel', 'group')
+
+            # ── ОТВЕТ МЕНЕДЖЕРА ИЗ ГРУППЫ: "#КОД текст" → клиенту ──
+            # Менеджер пишет в группе: "#A1B2 Здравствуйте, перезвоню в 14:00"
+            # Бот находит клиента по коду и пересылает ему в личку с подписью.
+            m_reply = re.match(r'^\s*#([A-Za-zА-Яа-я0-9]{3,8})\s+(.+)', text, re.DOTALL)
+            if (is_manager_chat or is_group) and m_reply:
+                from dialog import find_chat_by_code
+                code = m_reply.group(1)
+                mgr_text = m_reply.group(2).strip()
+                target = find_chat_by_code(conn, code)
+                if target and bot_token:
+                    mgr_name = uname or 'менеджер'
+                    client_msg = f'💬 Вам ответил менеджер {mgr_name}:\n\n{mgr_text}'
+                    mlink = settings.get('max_link') or ''
+                    btns = []
+                    if mlink:
+                        # ссылка «написать менеджеру напрямую»
+                        url = mlink if mlink.startswith('http') else f'https://max.ru/{mlink.lstrip("@")}'
+                        btns = [[{'type': 'link', 'text': '✍️ Написать менеджеру', 'url': url}]]
+                    payload_b = ([{'type': 'inline_keyboard', 'payload': {'buttons': btns}}]
+                                 if btns else None)
+                    _max_request(
+                        bot_token, 'POST', '/messages',
+                        params={'chat_id': int(target) if str(target).lstrip('-').isdigit() else target},
+                        json_body={'text': client_msg, 'format': 'markdown',
+                                   **({'attachments': payload_b} if payload_b else {})},
+                    )
+                    _save_message(conn, target, 'out', 'manager', mgr_text)
+                    with conn.cursor() as cur:
+                        cur.execute("UPDATE bot_dialogs SET needs_manager=FALSE WHERE chat_id=%s",
+                                    (str(target),))
+                        conn.commit()
+                    # подтверждение менеджеру в группу
+                    _send_to_max(bot_token, chat_id, f'✅ Отправлено клиенту (#{code})',
+                                 phone='', pdf_url='')
+                else:
+                    _send_to_max(bot_token, chat_id,
+                                 f'⚠️ Не нашёл клиента с кодом #{code}', phone='', pdf_url='')
+                return {'statusCode': 200, 'headers': cors, 'body': json.dumps({'ok': True})}
+
+            # ПРИВАТНОСТЬ: бот ведёт ТОЛЬКО личные диалоги 1-на-1 с клиентом.
+            # Прочие сообщения из группы/канала менеджеров игнорируем.
             if is_manager_chat or is_group:
                 return {'statusCode': 200, 'headers': cors, 'body': json.dumps({'ok': True, 'skipped': 'not_private'})}
 
@@ -1453,9 +1518,12 @@ def handler(event: dict, context) -> dict:
                 set_stage=resp.get('set_stage') or '',
                 set_draft=resp.get('set_draft'),
                 save_phone=resp.get('save_phone') or '',
+                save_city=resp.get('save_city') or '',
             )
 
-            # Клиент оформил заявку прямо в чате → создаём лид + уведомляем менеджера
+            from dialog import ensure_dialog_code
+
+            # Клиент оформил заявку прямо в чате → лид + PDF-КП + уведомление менеджеру
             new_lead = resp.get('create_lead')
             if new_lead:
                 try:
@@ -1463,25 +1531,38 @@ def handler(event: dict, context) -> dict:
                     total_rub = int(est.get('total') or 0)
                     obj_label = (est.get('type_label') or 'Забор').capitalize()
                     ordn = 'СГ-MAX-' + str(chat_id)[-6:]
+                    code = ensure_dialog_code(conn, chat_id)
                     with conn.cursor() as cur:
                         cur.execute(
                             "INSERT INTO leads(order_num,name,phone,city,address,object_type,"
                             "total_rub,payload_json,delivered_to_max,client_email) "
-                            "VALUES(%s,%s,%s,'','',%s,%s,%s::jsonb,FALSE,'') RETURNING id",
+                            "VALUES(%s,%s,%s,%s,'',%s,%s,%s::jsonb,FALSE,'') RETURNING id",
                             (ordn, new_lead.get('name', ''), new_lead.get('phone', ''),
-                             obj_label, total_rub,
+                             new_lead.get('city', ''), obj_label, total_rub,
                              json.dumps({'source': 'MAX-бот', 'estimate': est}, ensure_ascii=False))
                         )
                         conn.commit()
+                    # PDF-КП в чат клиенту
+                    if total_rub > 0:
+                        pdf_url2 = _build_kp_pdf_for_estimate(ordn, est, new_lead, settings)
+                        if pdf_url2 and bot_token:
+                            _send_to_max(bot_token, chat_id,
+                                         'Ваше коммерческое предложение 📄',
+                                         phone='', pdf_url=pdf_url2)
+                            _save_message(conn, chat_id, 'out', 'bot', 'КП (PDF) отправлено')
+                    # Уведомление менеджерам в группу с кодом для ответа
                     mgr_chat = settings.get('max_chat_id') or ''
                     if bot_token and mgr_chat:
                         _send_to_max(
                             bot_token, mgr_chat,
-                            f'🔔 *НОВАЯ ЗАЯВКА из чата бота*\n'
+                            f'🔔 *НОВАЯ ЗАЯВКА из бота*\n'
                             f'👤 {new_lead.get("name", "")}\n'
                             f'📱 {new_lead.get("phone", "")}\n'
+                            f'📍 {new_lead.get("city", "—")}\n'
                             f'🔧 {obj_label}\n'
-                            f'💰 ≈ {total_rub:,} ₽'.replace(',', ' '),
+                            f'💰 ≈ {total_rub:,} ₽'.replace(',', ' ') + '\n'
+                            f'━━━━━━━━━━\n'
+                            f'💬 Ответить клиенту: `#{code} ваш текст`',
                             phone=new_lead.get('phone', ''), pdf_url=''
                         )
                 except Exception:
@@ -1491,18 +1572,23 @@ def handler(event: dict, context) -> dict:
                     except Exception:
                         pass
 
-            # Клиент попросил менеджера → флаг + уведомление в общий чат
+            # Клиент попросил менеджера → флаг + уведомление в общий чат с кодом
             if resp.get('call_manager'):
                 with conn.cursor() as cur:
                     cur.execute("UPDATE bot_dialogs SET needs_manager=TRUE WHERE chat_id=%s",
                                 (str(chat_id),))
                     conn.commit()
+                code = ensure_dialog_code(conn, chat_id)
                 mgr_chat = settings.get('max_chat_id') or ''
                 if bot_token and mgr_chat:
+                    cli_label = uname or chat_id
                     _send_to_max(
                         bot_token, mgr_chat,
-                        f'🔔 Клиент {uname or chat_id} просит менеджера в чате бота.\n'
-                        f'Сообщение: {text[:200]}',
+                        f'🙋 *Обращение от бота*\n'
+                        f'👤 Клиент: {cli_label}\n'
+                        f'💬 Сообщение: {text[:200]}\n'
+                        f'━━━━━━━━━━\n'
+                        f'Ответить: `#{code} ваш текст`',
                         phone='', pdf_url=''
                     )
 

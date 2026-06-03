@@ -1,0 +1,2 @@
+-- Сброс зависших стадий старого сценария — клиенты пойдут по новому потоку.
+UPDATE bot_dialogs SET stage = '' WHERE stage IN ('ask_name', 'ask_phone', 'after_calc', 'calc_type', 'calc_length', 'calc_height', 'ask_order');
