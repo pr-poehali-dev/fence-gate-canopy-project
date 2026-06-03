@@ -93,19 +93,19 @@ def _list_media(cur, service=None):
     if service:
         cur.execute(
             "SELECT id, url, s3_key, service, position, caption, alt_text, "
-            "width, height, size_bytes, is_hidden, is_hero, created_at "
+            "width, height, size_bytes, is_hidden, is_hero, project, created_at "
             "FROM media_library WHERE service = %s "
-            "ORDER BY is_hero DESC, position, id",
+            "ORDER BY is_hero DESC, project, position, id",
             (service,)
         )
     else:
         cur.execute(
             "SELECT id, url, s3_key, service, position, caption, alt_text, "
-            "width, height, size_bytes, is_hidden, is_hero, created_at "
-            "FROM media_library ORDER BY service NULLS LAST, is_hero DESC, position, id"
+            "width, height, size_bytes, is_hidden, is_hero, project, created_at "
+            "FROM media_library ORDER BY service NULLS LAST, is_hero DESC, project, position, id"
         )
     cols = ['id', 'url', 's3_key', 'service', 'position', 'caption', 'alt_text',
-            'width', 'height', 'size_bytes', 'is_hidden', 'is_hero', 'created_at']
+            'width', 'height', 'size_bytes', 'is_hidden', 'is_hero', 'project', 'created_at']
     return [dict(zip(cols, row)) for row in cur.fetchall()]
 
 
@@ -193,10 +193,11 @@ def handler(event, context):
                 )
                 url = _cdn_url(key)
                 service = body.get('service') or None
+                project = (body.get('project') or '').strip()
                 cur.execute(
-                    "INSERT INTO media_library (url, s3_key, size_bytes, width, height, service) "
-                    "VALUES (%s, %s, %s, %s, %s, %s) RETURNING id",
-                    (url, key, len(processed), w, h, service)
+                    "INSERT INTO media_library (url, s3_key, size_bytes, width, height, service, project) "
+                    "VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id",
+                    (url, key, len(processed), w, h, service, project)
                 )
                 new_id = cur.fetchone()[0]
                 conn.commit()
@@ -274,13 +275,37 @@ def handler(event, context):
                 mid = int(body.get('id') or 0)
                 caption = body.get('caption') or ''
                 alt = body.get('alt_text') or ''
-                cur.execute(
-                    "UPDATE media_library SET caption = %s, alt_text = %s, updated_at = NOW() "
-                    "WHERE id = %s",
-                    (caption, alt, mid)
-                )
+                project = body.get('project')
+                if project is not None:
+                    cur.execute(
+                        "UPDATE media_library SET caption = %s, alt_text = %s, "
+                        "project = %s, updated_at = NOW() WHERE id = %s",
+                        (caption, alt, project.strip(), mid)
+                    )
+                else:
+                    cur.execute(
+                        "UPDATE media_library SET caption = %s, alt_text = %s, updated_at = NOW() "
+                        "WHERE id = %s",
+                        (caption, alt, mid)
+                    )
                 conn.commit()
                 return _resp(200, {'ok': True})
+
+            # Назначить проект сразу нескольким фото (объединить в объект)
+            if action == 'set_project':
+                ids = body.get('ids') or []
+                project = (body.get('project') or '').strip()
+                if not ids:
+                    return _resp(400, {'error': 'ids required'})
+                ids = [int(x) for x in ids]
+                placeholders = ','.join(['%s'] * len(ids))
+                cur.execute(
+                    f"UPDATE media_library SET project = %s, updated_at = NOW() "
+                    f"WHERE id IN ({placeholders})",
+                    (project, *ids)
+                )
+                conn.commit()
+                return _resp(200, {'ok': True, 'updated': len(ids)})
 
             return _resp(400, {'error': 'unknown_action'})
 

@@ -15,6 +15,8 @@ interface MediaItem {
   height: number | null;
   size_bytes: number | null;
   is_hidden: boolean;
+  is_hero?: boolean;
+  project?: string;
   created_at: string | null;
 }
 
@@ -59,6 +61,7 @@ export default function AdminMedia() {
   const [busy, setBusy] = useState<Record<number, boolean>>({});
   const [uploadProgress, setUploadProgress] = useState<{ done: number; total: number } | null>(null);
   const [preview, setPreview] = useState<MediaItem | null>(null);
+  const [uploadProject, setUploadProject] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function load() {
@@ -109,18 +112,37 @@ export default function AdminMedia() {
     }
   }
 
-  async function saveCaption(id: number, caption: string, alt_text: string) {
+  async function saveCaption(id: number, caption: string, alt_text: string, project: string) {
     setBusy(b => ({ ...b, [id]: true }));
     try {
       await fetch(API.media, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "caption", id, caption, alt_text }),
+        body: JSON.stringify({ action: "caption", id, caption, alt_text, project }),
       });
-      setItems(arr => arr.map(it => it.id === id ? { ...it, caption, alt_text } : it));
-      setPreview(p => p && p.id === id ? { ...p, caption, alt_text } : p);
+      setItems(arr => arr.map(it => it.id === id ? { ...it, caption, alt_text, project } : it));
+      setPreview(p => p && p.id === id ? { ...p, caption, alt_text, project } : p);
     } catch (e) {
       alert("Ошибка: " + (e as Error).message);
+    } finally {
+      setBusy(b => ({ ...b, [id]: false }));
+    }
+  }
+
+  async function setHero(id: number) {
+    setBusy(b => ({ ...b, [id]: true }));
+    try {
+      const r = await fetch(API.media, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "set_hero", id }),
+      });
+      if (!r.ok) { alert("Сначала привяжите фото к услуге"); return; }
+      const svc = items.find(i => i.id === id)?.service;
+      setItems(arr => arr.map(it =>
+        it.service === svc ? { ...it, is_hero: it.id === id } : it
+      ));
+      setPreview(p => p && p.id === id ? { ...p, is_hero: true } : p);
     } finally {
       setBusy(b => ({ ...b, [id]: false }));
     }
@@ -162,6 +184,7 @@ export default function AdminMedia() {
             filename: f.name,
             content_base64: b64,
             service: filter !== "_all" && filter !== "_unassigned" ? filter : undefined,
+            project: uploadProject.trim() || undefined,
           }),
         });
         if (!r.ok) throw new Error(await r.text());
@@ -204,6 +227,14 @@ export default function AdminMedia() {
           </div>
 
           <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={uploadProject}
+              onChange={e => setUploadProject(e.target.value)}
+              placeholder="Проект (объект), напр. Красногорск 120м"
+              title="Все загружаемые фото попадут в этот проект (объект). Оставьте пустым, если объект не нужен."
+              className="hidden sm:block w-56 bg-[#141720] border border-[#1e2230] rounded-xl px-3 py-2.5 text-sm text-white placeholder:text-white/30 focus:border-orange-500 outline-none"
+            />
             <label className="btn-orange px-4 py-2.5 rounded-xl text-sm cursor-pointer">
               <input
                 ref={fileInputRef}
@@ -215,7 +246,7 @@ export default function AdminMedia() {
               />
               <span className="flex items-center gap-2">
                 <Icon name="Upload" size={16} />
-                Загрузить фото
+                Загрузить {uploadProject.trim() ? "в проект" : "фото"}
               </span>
             </label>
             <button
@@ -301,6 +332,13 @@ export default function AdminMedia() {
                   />
                 </button>
 
+                {/* Бейдж "главное фото" */}
+                {it.is_hero && (
+                  <div className="absolute top-9 left-2 bg-amber-400 text-gray-900 text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1 pointer-events-none">
+                    <Icon name="Star" size={10} /> Главное
+                  </div>
+                )}
+
                 {/* Бейдж услуги или "без категории" */}
                 <div className="absolute top-2 left-2 right-2 flex items-center justify-between gap-1.5 pointer-events-none">
                   {svc ? (
@@ -348,15 +386,33 @@ export default function AdminMedia() {
                       <option key={s.slug} value={s.slug}>{s.label}</option>
                     ))}
                   </select>
+                  {it.project ? (
+                    <div className="mt-1.5 text-[10px] text-orange-400/80 flex items-center gap-1 truncate">
+                      <Icon name="FolderOpen" size={11} className="flex-shrink-0" />
+                      <span className="truncate">{it.project}</span>
+                    </div>
+                  ) : null}
                   <div className="flex items-center justify-between mt-1.5 text-[10px] text-white/35">
                     <span>{fmtSize(it.size_bytes)}</span>
-                    <button
-                      onClick={() => deleteItem(it.id)}
-                      className="text-red-400/60 hover:text-red-400 transition-colors p-0.5"
-                      title="Удалить"
-                    >
-                      <Icon name="Trash2" size={12} />
-                    </button>
+                    <div className="flex items-center gap-1.5">
+                      {it.service && !it.is_hero && (
+                        <button
+                          onClick={() => setHero(it.id)}
+                          disabled={busy[it.id]}
+                          className="text-white/40 hover:text-amber-400 transition-colors p-0.5"
+                          title="Сделать главным фото услуги"
+                        >
+                          <Icon name="Star" size={12} />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => deleteItem(it.id)}
+                        className="text-red-400/60 hover:text-red-400 transition-colors p-0.5"
+                        title="Удалить"
+                      >
+                        <Icon name="Trash2" size={12} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -374,8 +430,10 @@ export default function AdminMedia() {
             <li><span className="text-orange-400">1.</span> Под каждым фото выберите услугу из выпадающего списка — фото сразу появится на странице этой услуги.</li>
             <li><span className="text-orange-400">2.</span> Кнопка «Загрузить фото» — можно перетащить или выбрать несколько файлов сразу. HEIC и большие фото автоматически уменьшатся.</li>
             <li><span className="text-orange-400">3.</span> Фильтры сверху — быстро найти фото конкретной услуги или те, что ещё без категории.</li>
-            <li><span className="text-orange-400">4.</span> Кликните по фото — откроется крупный просмотр, где можно задать подпись (видна в блоке «Наши работы») и alt-текст (для SEO).</li>
-            <li><span className="text-orange-400">5.</span> Корзина — удалить фото из библиотеки (файл в хранилище сохранится).</li>
+            <li><span className="text-orange-400">4.</span> Кликните по фото — откроется крупный просмотр, где можно задать подпись, alt-текст и проект (объект).</li>
+            <li><span className="text-orange-400">5.</span> Звёздочка <Icon name="Star" size={12} className="inline text-amber-400" /> — сделать фото главным для услуги (обложка карточки и заглавное фото на странице).</li>
+            <li><span className="text-orange-400">6.</span> Поле «Проект» сверху — впишите название объекта перед загрузкой, и вся пачка фото попадёт в один объект. В портфолио объект показывается одной карточкой-галереей.</li>
+            <li><span className="text-orange-400">7.</span> Корзина — удалить фото из библиотеки (файл в хранилище сохранится).</li>
           </ul>
         </div>
       </div>
@@ -422,15 +480,34 @@ export default function AdminMedia() {
                 className="w-full bg-[#0a0c10] border border-[#1e2230] rounded-lg text-sm text-white px-3 py-2 mb-4 focus:border-orange-500 outline-none"
               />
 
+              <label className="block text-xs text-white/60 mb-1">Проект / объект (фото объединятся в галерею)</label>
+              <input
+                value={preview.project || ""}
+                onChange={e => setPreview(p => p && { ...p, project: e.target.value })}
+                placeholder="Напр.: Красногорск, 120 м"
+                className="w-full bg-[#0a0c10] border border-[#1e2230] rounded-lg text-sm text-white px-3 py-2 mb-4 focus:border-orange-500 outline-none"
+              />
+
               <button
                 disabled={busy[preview.id]}
-                onClick={() => saveCaption(preview.id, preview.caption || "", preview.alt_text || "")}
-                className="btn-orange w-full py-2.5 rounded-xl text-sm disabled:opacity-60 flex items-center justify-center gap-2"
+                onClick={() => saveCaption(preview.id, preview.caption || "", preview.alt_text || "", preview.project || "")}
+                className="btn-orange w-full py-2.5 rounded-xl text-sm disabled:opacity-60 flex items-center justify-center gap-2 mb-2"
               >
                 <Icon name={busy[preview.id] ? "Loader" : "Check"} size={15}
                   className={busy[preview.id] ? "animate-spin" : ""} />
                 Сохранить
               </button>
+
+              {preview.service && (
+                <button
+                  disabled={busy[preview.id] || preview.is_hero}
+                  onClick={() => setHero(preview.id)}
+                  className="w-full py-2.5 rounded-xl text-sm border border-amber-400/40 text-amber-400 hover:bg-amber-400/10 disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  <Icon name="Star" size={15} />
+                  {preview.is_hero ? "Это главное фото услуги" : "Сделать главным фото услуги"}
+                </button>
+              )}
             </div>
           </div>
         </div>

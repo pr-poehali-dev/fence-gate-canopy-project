@@ -6,6 +6,7 @@ import { useLeadModal } from "@/hooks/useLeadModal";
 import { generatePriceListPDF } from "@/lib/priceListPDF";
 import { sendLead } from "@/lib/api";
 import { usePageContent } from "@/hooks/usePageContent";
+import { useProjectsByService } from "@/hooks/useMediaByService";
 import { EditableText, EditableImage } from "@/components/InlineEditor";
 import EditablePhoto from "@/components/EditablePhoto";
 import QuickQuoteForm from "@/components/QuickQuoteForm";
@@ -134,6 +135,9 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
   // локальные оптимистичные оверрайды фото после редактирования через библиотеку
   const [heroOverride, setHeroOverride] = useState<string | null>(null);
   const [portfolioOverride, setPortfolioOverride] = useState<Record<number, string>>({});
+  // проекты/объекты из медиа-библиотеки (1 карточка = 1 объект с галереей)
+  const projects = useProjectsByService(mediaSlug);
+  const [gallery, setGallery] = useState<{ title: string; photos: string[]; idx: number } | null>(null);
 
   // SEO: title, description, canonical, OG, JSON-LD (Service + FAQ + Breadcrumb)
   useEffect(() => {
@@ -765,37 +769,66 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
             <p className="text-gray-500 max-w-xl mx-auto text-sm">Реальные объекты, сданные за 2024–2026 годы.</p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {p.portfolio.map((item, i) => {
-              const curImg = portfolioOverride[i] || item.img;
-              return (
-              <div key={i} className="group rounded-2xl overflow-hidden bg-gray-50 border border-gray-200 hover:border-orange-500/40 transition-all">
-                <div className="aspect-[4/3] overflow-hidden">
-                  {mediaSlug ? (
-                    <EditablePhoto
-                      src={curImg}
-                      alt={item.location}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      service={mediaSlug}
-                      mode="any"
-                      label="Сменить"
-                      onChange={(url) => setPortfolioOverride(prev => ({ ...prev, [i]: url }))}
-                    />
-                  ) : (
-                    <img src={curImg} alt={item.location} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  )}
-                </div>
-                <div className="p-4 flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-gray-900 text-sm">
-                    <Icon name="MapPin" size={14} className="text-orange-500" />
-                    {item.location}
+          {projects.length > 0 ? (
+            /* Объекты из медиа-библиотеки: 1 карточка = 1 проект (галерея) */
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {projects.map((proj, i) => (
+                <button
+                  key={i}
+                  onClick={() => setGallery({ title: proj.title || proj.caption, photos: proj.photos, idx: 0 })}
+                  className="group text-left rounded-2xl overflow-hidden bg-gray-50 border border-gray-200 hover:border-orange-500/40 transition-all"
+                >
+                  <div className="aspect-[4/3] overflow-hidden relative">
+                    <img src={proj.cover} alt={proj.caption || "Объект"} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    {proj.photos.length > 1 && (
+                      <span className="absolute top-2 right-2 bg-black/70 text-white text-[11px] px-2 py-1 rounded flex items-center gap-1">
+                        <Icon name="Images" size={12} /> {proj.photos.length}
+                      </span>
+                    )}
                   </div>
-                  <span className="text-orange-400 font-oswald font-bold text-sm">{item.size}</span>
+                  {(proj.caption || proj.title) && (
+                    <div className="p-4 flex items-center gap-2 text-gray-900 text-sm">
+                      <Icon name="MapPin" size={14} className="text-orange-500 flex-shrink-0" />
+                      <span className="truncate">{proj.caption || proj.title}</span>
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          ) : (
+            /* Запасной статичный список (если в библиотеке нет фото услуги) */
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {p.portfolio.map((item, i) => {
+                const curImg = portfolioOverride[i] || item.img;
+                return (
+                <div key={i} className="group rounded-2xl overflow-hidden bg-gray-50 border border-gray-200 hover:border-orange-500/40 transition-all">
+                  <div className="aspect-[4/3] overflow-hidden">
+                    {mediaSlug ? (
+                      <EditablePhoto
+                        src={curImg}
+                        alt={item.location}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        service={mediaSlug}
+                        mode="any"
+                        label="Сменить"
+                        onChange={(url) => setPortfolioOverride(prev => ({ ...prev, [i]: url }))}
+                      />
+                    ) : (
+                      <img src={curImg} alt={item.location} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    )}
+                  </div>
+                  <div className="p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-gray-900 text-sm">
+                      <Icon name="MapPin" size={14} className="text-orange-500" />
+                      {item.location}
+                    </div>
+                    <span className="text-orange-400 font-oswald font-bold text-sm">{item.size}</span>
+                  </div>
                 </div>
-              </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
 
@@ -959,6 +992,45 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
         aria-label="Позвонить">
         <Icon name="Phone" size={22} className="text-gray-900" />
       </a>
+
+      {/* Лайтбокс-галерея объекта */}
+      {gallery && (
+        <div className="fixed inset-0 z-[60] bg-black/95 flex items-center justify-center p-4" onClick={() => setGallery(null)}>
+          <button className="absolute top-4 right-4 w-11 h-11 rounded-full bg-white/10 hover:bg-orange-500 flex items-center justify-center text-white" onClick={() => setGallery(null)}>
+            <Icon name="X" size={22} />
+          </button>
+          {gallery.title && (
+            <div className="absolute top-5 left-5 text-white text-sm bg-black/50 px-3 py-1.5 rounded-lg flex items-center gap-2">
+              <Icon name="MapPin" size={14} className="text-orange-400" /> {gallery.title}
+            </div>
+          )}
+          {gallery.photos.length > 1 && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setGallery(g => g && { ...g, idx: (g.idx - 1 + g.photos.length) % g.photos.length }); }}
+              className="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/10 hover:bg-orange-500 flex items-center justify-center text-white">
+              <Icon name="ChevronLeft" size={24} />
+            </button>
+          )}
+          <img
+            src={gallery.photos[gallery.idx]}
+            alt={gallery.title || "Фото объекта"}
+            className="max-w-[90vw] max-h-[85vh] object-contain rounded-xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+          {gallery.photos.length > 1 && (
+            <>
+              <button
+                onClick={(e) => { e.stopPropagation(); setGallery(g => g && { ...g, idx: (g.idx + 1) % g.photos.length }); }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/10 hover:bg-orange-500 flex items-center justify-center text-white">
+                <Icon name="ChevronRight" size={24} />
+              </button>
+              <div className="absolute bottom-5 left-1/2 -translate-x-1/2 bg-black/60 text-white text-sm px-3 py-1.5 rounded-full">
+                {gallery.idx + 1} / {gallery.photos.length}
+              </div>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }
