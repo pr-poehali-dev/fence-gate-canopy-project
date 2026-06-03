@@ -342,6 +342,9 @@ export default function Admin() {
             <Link to="/admin/prices" className="text-amber-300/90 hover:text-amber-300 text-xs flex items-center gap-1 px-2.5 py-1 border border-amber-500/30 hover:border-amber-500/60 rounded-lg transition-all">
               <Icon name="DollarSign" size={13} /> Цены услуг
             </Link>
+            <Link to="/admin/calc-prices" className="text-yellow-300/90 hover:text-yellow-300 text-xs flex items-center gap-1 px-2.5 py-1 border border-yellow-500/30 hover:border-yellow-500/60 rounded-lg transition-all">
+              <Icon name="Calculator" size={13} /> Прайс калькулятора
+            </Link>
             <Link to="/admin/builder" className="text-pink-300/90 hover:text-pink-300 text-xs flex items-center gap-1 px-2.5 py-1 border border-pink-500/30 hover:border-pink-500/60 rounded-lg transition-all">
               <Icon name="LayoutPanelTop" size={13} /> Конструктор
             </Link>

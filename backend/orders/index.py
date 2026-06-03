@@ -11,6 +11,8 @@ DELETE /?id=N                             — удалить заказ
 """
 import json
 import os
+import urllib.request
+import urllib.parse
 from datetime import date, timedelta
 
 import psycopg2
@@ -53,6 +55,73 @@ def _row_to_dict(r):
     if d.get('created_at'):
         d['created_at'] = d['created_at'].isoformat()
     return d
+
+
+STATUS_TEXT = {
+    'new': 'принята в работу 🆕',
+    'measure': 'переведена на этап замера 📐',
+    'contract': 'договор согласован 📝',
+    'production': 'передана в производство 🏭',
+    'montage': 'передана в монтаж 🔧',
+    'done': 'выполнена ✅',
+    'archive': 'перемещена в архив 📦',
+    'cancelled': 'отменена ❌',
+}
+
+
+def _notify_client_status(conn, order_num, phone, status):
+    """Уведомляет клиента в MAX о смене статуса заявки.
+
+    Находит chat_id клиента в истории диалогов бота по телефону, берёт токен
+    бота из настроек и отправляет сообщение. Тихо пропускает, если данных нет.
+    """
+    try:
+        import urllib.request
+        digits = ''.join(ch for ch in (phone or '') if ch.isdigit())
+        if len(digits) < 10:
+            return False
+        with conn.cursor() as cur:
+            cur.execute("SELECT value FROM site_settings WHERE key='max_bot_token'")
+            r = cur.fetchone()
+            token = r[0] if r else ''
+            if not token:
+                return False
+            cur.execute(
+                "SELECT chat_id FROM bot_dialogs "
+                "WHERE regexp_replace(client_phone,'[^0-9]','','g') LIKE %s "
+                "AND chat_id <> '' ORDER BY last_at DESC LIMIT 1", ('%' + digits[-10:],))
+            cr = cur.fetchone()
+            if not cr or not cr[0]:
+                return False
+            chat_id = cr[0]
+        phrase = STATUS_TEXT.get(status, f'обновлена: {status}')
+        text = f'🔔 Ваша заявка {order_num} {phrase}.\nЕсли есть вопросы — напишите нам, мы на связи.'
+        token = str(token).strip().strip('"').strip("'")
+        if token.lower().startswith('bearer '):
+            token = token[7:].strip()
+        cid = int(chat_id) if str(chat_id).lstrip('-').isdigit() else chat_id
+        payload = json.dumps({'text': text, 'format': 'markdown'},
+                             ensure_ascii=False).encode('utf-8')
+        headers = {
+            'Accept': 'application/json',
+            'Authorization': token,
+            'Content-Type': 'application/json; charset=utf-8',
+            'User-Agent': 'StalgrupSite/1.0',
+        }
+        query = '?' + urllib.parse.urlencode({'chat_id': cid})
+        # перебираем оба домена MAX API
+        for host in ('https://platform-api.max.ru', 'https://botapi.max.ru'):
+            try:
+                req = urllib.request.Request(host + '/messages' + query,
+                                             data=payload, method='POST', headers=headers)
+                with urllib.request.urlopen(req, timeout=8) as resp:
+                    if 200 <= resp.status < 300:
+                        return True
+            except Exception:
+                continue
+        return False
+    except Exception:
+        return False
 
 
 def handler(event, context):
@@ -156,10 +225,14 @@ def handler(event, context):
                 if not oid or not status:
                     return _resp(400, {'error': 'id_and_status required'})
                 with conn.cursor() as cur:
-                    cur.execute("UPDATE orders SET status=%s, updated_at=NOW() WHERE id=%s",
-                                (status, oid))
+                    cur.execute("UPDATE orders SET status=%s, updated_at=NOW() WHERE id=%s "
+                                "RETURNING order_num, client_phone", (status, oid))
+                    row = cur.fetchone()
                     conn.commit()
-                return _resp(200, {'ok': True})
+                notified = False
+                if row:
+                    notified = _notify_client_status(conn, row[0], row[1], status)
+                return _resp(200, {'ok': True, 'client_notified': notified})
 
             if action == 'upsert':
                 oid = int(body.get('id') or 0)

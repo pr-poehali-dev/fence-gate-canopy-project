@@ -106,6 +106,73 @@ def fmt_rub(n):
     return '{:,}'.format(int(round(n or 0))).replace(',', ' ') + ' ₽'
 
 
+# Параметры расчёта (мутируются из БД)
+PARAMS = {
+    'install_share': 35, 'paint_m2': 280, 'auto_gate': 22000,
+    'nashivka_double': 60, 'paint_double': 25,
+}
+# Наполнение без покрытия, ₽/м² (мутируется из БД, категория fill)
+FILL_PRICES = {'3d': 1600, 'kovka': 4500, 'setka': 550}
+
+
+def load_pricing_from_db(conn):
+    """Загружает единый прайс из calc_pricing и обновляет справочники/параметры.
+
+    Гарантирует, что бот считает по тем же ценам, что и сайт. Если таблицы
+    нет или БД недоступна — остаются дефолтные значения (без падения).
+    """
+    global MIN_INSTALL_COST, DELIVERY_PER_KM, DELIVERY_MIN, OVERSIZE_COST, AUTO_DISCOUNT_PCT
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT category,item_key,price,price2,coef FROM calc_pricing WHERE is_active=TRUE"
+            )
+            rows = cur.fetchall()
+    except Exception:
+        return  # тихо: используем дефолты
+    for cat, key, price, price2, coef in rows:
+        price = float(price or 0)
+        price2 = float(price2 or 0)
+        coef = float(coef or 0)
+        if cat == 'post' and key in POST_OPTIONS:
+            POST_OPTIONS[key]['pricePerPost'] = price
+        elif cat == 'lag' and key in LAG_OPTIONS:
+            LAG_OPTIONS[key]['pricePerM'] = price
+        elif cat == 'proflist' and key in PROFLIST_OPTIONS:
+            PROFLIST_OPTIONS[key]['priceM2'] = price
+        elif cat == 'shtak' and key in SHTAK_OPTIONS:
+            SHTAK_OPTIONS[key]['pricePerM'] = price
+        elif cat == 'coating' and key in COATING_OPTIONS:
+            COATING_OPTIONS[key]['surcharge'] = coef
+        elif cat == 'found' and key in FOUND_OPTIONS:
+            FOUND_OPTIONS[key]['perPost'] = price
+            FOUND_OPTIONS[key]['perM'] = price2
+        elif cat == 'gate' and key in GATE_OPTIONS:
+            GATE_OPTIONS[key]['base'] = price
+            GATE_OPTIONS[key]['perM'] = price2
+        elif cat == 'wicket' and key in WICKET_OPTIONS:
+            WICKET_OPTIONS[key]['price'] = price
+        elif cat == 'canopy_type' and key in CANOPY_TYPES:
+            CANOPY_TYPES[key]['priceM2'] = price
+        elif cat == 'canopy_cover' and key in CANOPY_COVER:
+            CANOPY_COVER[key]['priceM2'] = price
+        elif cat == 'fill':
+            FILL_PRICES[key] = price
+        elif cat == 'param':
+            if key == 'min_install':
+                MIN_INSTALL_COST = price
+            elif key == 'delivery_per_km':
+                DELIVERY_PER_KM = price
+            elif key == 'delivery_min':
+                DELIVERY_MIN = price
+            elif key == 'oversize':
+                OVERSIZE_COST = price
+            elif key == 'auto_discount':
+                AUTO_DISCOUNT_PCT = price
+            else:
+                PARAMS[key] = price
+
+
 def calculate(inp):
     """Точная копия calculate() из calcCatalog.ts. inp — dict частичных параметров."""
     c = dict(DEFAULTS)
@@ -151,14 +218,23 @@ def calculate(inp):
         filling_cost = total_planks * price_per_plank
         filling_label = f"Штакетник {sh['label']} ({coat['label']})"
     elif c['objectType'] == '3d':
-        filling_cost = fence_area * 1600
+        filling_cost = fence_area * FILL_PRICES.get('3d', 1600)
         filling_label = '3D-сетка сварная'
     elif c['objectType'] == 'kovka':
-        filling_cost = fence_area * 4500
+        filling_cost = fence_area * FILL_PRICES.get('kovka', 4500)
         filling_label = 'Ковка художественная'
     elif c['objectType'] == 'setka':
-        filling_cost = fence_area * 550
+        filling_cost = fence_area * FILL_PRICES.get('setka', 550)
         filling_label = 'Сетка-рабица оцинкованная'
+
+    # Нашивка двухсторонняя / двусторонний окрас (только проф/штакетник)
+    if (is_prof or is_shtak) and filling_cost > 0:
+        if c.get('nashivka') == 'double' and PARAMS.get('nashivka_double'):
+            filling_cost *= (1 + PARAMS['nashivka_double'] / 100)
+            filling_label += ' · двухсторонняя'
+        if c.get('paintBoth') and PARAMS.get('paint_double'):
+            filling_cost *= (1 + PARAMS['paint_double'] / 100)
+            filling_label += ' · окрас 2-стор'
 
     canopy_area = c['canopyLength'] * c['canopyWidth'] if is_canopy else 0
     canopy_cost = 0.0
@@ -184,9 +260,9 @@ def calculate(inp):
 
     mat_sum = (canopy_cost if is_canopy else post_cost + lag_cost + filling_cost) \
             + gate_cost + wicket_cost
-    install_cost = round(mat_sum * 0.35) if c['installation'] else 0
-    paint_cost = fence_area * 280 if (c['painting'] and not is_canopy) else 0
-    auto_cost = 22000 if (c['automation'] and c['gateId'] != 'none') else 0
+    install_cost = round(mat_sum * (PARAMS.get('install_share', 35) / 100)) if c['installation'] else 0
+    paint_cost = fence_area * PARAMS.get('paint_m2', 280) if (c['painting'] and not is_canopy) else 0
+    auto_cost = PARAMS.get('auto_gate', 22000) if (c['automation'] and c['gateId'] != 'none') else 0
 
     work_total = install_cost + found_cost + paint_cost + auto_cost
     min_topup = 0

@@ -41,8 +41,60 @@ def handler(event: dict, context) -> dict:
     cors = {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'}
     dsn = os.environ.get('DATABASE_URL')
     conn = psycopg2.connect(dsn)
+    qp = event.get('queryStringParameters') or {}
+    action = (qp.get('action') or '').strip()
 
     try:
+        # ── ЕДИНЫЙ ПРАЙС КАЛЬКУЛЯТОРА (calc_pricing) ──────────
+        if action == 'calc':
+            if method == 'GET':
+                with conn.cursor() as cur:
+                    cur.execute(
+                        "SELECT id,category,item_key,label,price,price2,coef,descr,"
+                        "sort_order,is_active FROM calc_pricing "
+                        "ORDER BY category, sort_order, id"
+                    )
+                    items = [{
+                        'id': r[0], 'category': r[1], 'item_key': r[2], 'label': r[3],
+                        'price': float(r[4] or 0), 'price2': float(r[5] or 0),
+                        'coef': float(r[6] or 0), 'descr': r[7] or '',
+                        'sort_order': r[8], 'is_active': r[9],
+                    } for r in cur.fetchall()]
+                return {'statusCode': 200, 'headers': cors,
+                        'body': json.dumps({'items': items})}
+
+            if not _auth_ok(event.get('headers'), conn):
+                return {'statusCode': 401, 'headers': cors,
+                        'body': json.dumps({'error': 'unauthorized'})}
+
+            cbody = json.loads(event.get('body') or '{}')
+            if method == 'PUT':
+                items = cbody.get('items') or []
+                upd = 0
+                with conn.cursor() as cur:
+                    for it in items:
+                        try:
+                            mid = int(it.get('id') or 0)
+                        except (TypeError, ValueError):
+                            mid = 0
+                        if not mid:
+                            continue
+                        price = float(it.get('price') or 0)
+                        price2 = float(it.get('price2') or 0)
+                        coef = float(it.get('coef') or 0)
+                        label = (it.get('label') or '').replace("'", "''")
+                        cur.execute(
+                            f"UPDATE calc_pricing SET price={price}, price2={price2}, "
+                            f"coef={coef}, label='{label}', updated_at=NOW() WHERE id={mid}"
+                        )
+                        upd += 1
+                    conn.commit()
+                return {'statusCode': 200, 'headers': cors,
+                        'body': json.dumps({'ok': True, 'updated': upd})}
+
+            return {'statusCode': 405, 'headers': cors,
+                    'body': json.dumps({'error': 'method_not_allowed'})}
+
         if method == 'GET':
             with conn.cursor() as cur:
                 cur.execute(

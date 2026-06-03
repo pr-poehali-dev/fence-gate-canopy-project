@@ -12,6 +12,7 @@ import AdminContent from "./pages/AdminContent";
 import AdminMedia from "./pages/AdminMedia";
 import AdminMenu from "./pages/AdminMenu";
 import AdminPrices from "./pages/AdminPrices";
+import AdminCalcPrices from "./pages/AdminCalcPrices";
 import AdminBuilder from "./pages/AdminBuilder";
 import AdminOnec from "./pages/AdminOnec";
 import AdminChats from "./pages/AdminChats";
@@ -60,6 +61,7 @@ const App = () => (
           <Route path="/admin/media" element={<AdminMedia />} />
           <Route path="/admin/menu" element={<AdminMenu />} />
           <Route path="/admin/prices" element={<AdminPrices />} />
+          <Route path="/admin/calc-prices" element={<AdminCalcPrices />} />
           <Route path="/admin/builder" element={<AdminBuilder />} />
           <Route path="/admin/onec" element={<AdminOnec />} />
           <Route path="/admin/chats" element={<AdminChats />} />

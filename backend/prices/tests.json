@@ -19,6 +19,20 @@
       "method": "DELETE",
       "path": "/?id=99999",
       "expectedStatus": 401
+    },
+    {
+      "name": "Get calc pricing list",
+      "method": "GET",
+      "path": "/?action=calc",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Calc pricing PUT requires auth",
+      "method": "PUT",
+      "path": "/?action=calc",
+      "headers": {"Content-Type": "application/json"},
+      "body": {"items": []},
+      "expectedStatus": 401
     }
   ]
 }

@@ -74,6 +74,37 @@ export async function fetchPrices(): Promise<PriceItem[]> {
   return d.items || [];
 }
 
+// ── Единый прайс калькулятора (calc_pricing) ──────────
+export interface CalcPriceItem {
+  id: number;
+  category: string;
+  item_key: string;
+  label: string;
+  price: number;
+  price2: number;
+  coef: number;
+  descr: string;
+  sort_order: number;
+  is_active: boolean;
+}
+
+export async function fetchCalcPricing(): Promise<CalcPriceItem[]> {
+  const r = await fetch(`${API.prices}?action=calc`);
+  const d = await r.json();
+  return d.items || [];
+}
+
+export async function saveCalcPricing(
+  items: { id: number; label?: string; price?: number; price2?: number; coef?: number }[]
+) {
+  const r = await fetch(`${API.prices}?action=calc`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", "X-Auth-Token": adminToken.get() },
+    body: JSON.stringify({ items }),
+  });
+  return r.json();
+}
+
 export async function fetchReviews(adminMode = false): Promise<ReviewItem[]> {
   const url = adminMode ? `${API.reviews}?admin=1` : API.reviews;
   const headers: Record<string, string> = {};

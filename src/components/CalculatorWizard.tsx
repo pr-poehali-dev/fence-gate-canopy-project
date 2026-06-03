@@ -6,6 +6,7 @@ import { isPhoneValid, isEmailValid, phoneE164 } from "@/lib/phone";
 import PhoneInput from "@/components/ui/phone-input";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useCompany } from "@/hooks/useCompany";
+import { useCalcPricing } from "@/hooks/useCalcPricing";
 import { maxBotUrl } from "@/lib/maxLink";
 import { toast } from "sonner";
 import {
@@ -80,6 +81,10 @@ const CANOPY_STEPS: { id: CanopyStep; label: string; icon: string }[] = [
 // ── Компонент ─────────────────────────────────────────────────────
 export default function CalculatorWizard() {
   const company = useCompany();
+  // Подгрузка цен калькулятора из БД (CMS). При недоступности API
+  // используются дефолтные цены из calcCatalog. ready переключается
+  // после применения прайса → пересчитываем смету (см. useMemo ниже).
+  const { ready: pricingReady } = useCalcPricing();
   const [calc, setCalc] = useState<CalcInput>(DEFAULT_CALC);
   const [stepIdx, setStepIdx] = useState(0);
   const [orderNum] = useState(() => nextOrderNumber());
@@ -103,7 +108,10 @@ export default function CalculatorWizard() {
   const currentStep = steps[Math.min(stepIdx, steps.length - 1)].id;
 
   const set = (p: Partial<CalcInput>) => setCalc(c => ({ ...c, ...p }));
-  const result = useMemo(() => calculate(calc), [calc]);
+  // pricingReady в зависимостях: после применения цен из БД смета
+  // пересчитывается с актуальными значениями справочников.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const result = useMemo(() => calculate(calc), [calc, pricingReady]);
 
   // ── Навигация ───────────────────────────────────────────────────
   const goNext = () => setStepIdx(i => Math.min(i + 1, steps.length - 1));
@@ -680,6 +688,72 @@ function StepCoating({ calc, set }: { calc: CalcInput; set: (p: Partial<CalcInpu
           <ChoiceCard key={c.id} active={calc.coatingId === c.id}
             title={c.label} desc={c.desc}
             onClick={() => set({ coatingId: c.id })} />
+        ))}
+      </div>
+
+      {/* ── Нашивка / окрас / направление (только проф и штакетник) ── */}
+      <div className="mt-5 space-y-4">
+        <ToggleGroup
+          label="Нашивка"
+          hint="Двухсторонняя — зашивка листа/штакетника с двух сторон"
+          value={calc.nashivka}
+          options={[
+            { id: "one",    label: "Односторонняя" },
+            { id: "double", label: "Двухсторонняя" },
+          ]}
+          onChange={v => set({ nashivka: v as CalcInput["nashivka"] })}
+        />
+        <ToggleGroup
+          label="Окрас металла"
+          hint="Двусторонний прокрас — защита и эстетика с обеих сторон"
+          value={calc.paintBoth ? "both" : "one"}
+          options={[
+            { id: "one",  label: "Односторонний" },
+            { id: "both", label: "Двусторонний" },
+          ]}
+          onChange={v => set({ paintBoth: v === "both" })}
+        />
+        <ToggleGroup
+          label="Направление монтажа"
+          hint="Влияет только на внешний вид, на цену — нет"
+          value={calc.direction}
+          options={[
+            { id: "vert",  label: "Вертикально" },
+            { id: "horiz", label: "Горизонтально" },
+          ]}
+          onChange={v => set({ direction: v as CalcInput["direction"] })}
+        />
+      </div>
+    </div>
+  );
+}
+
+// Группа кнопок-переключателей (в стиле выбора рядов лаг)
+function ToggleGroup({
+  label, hint, value, options, onChange,
+}: {
+  label: string;
+  hint?: string;
+  value: string;
+  options: { id: string; label: string }[];
+  onChange: (v: string) => void;
+}) {
+  return (
+    <div>
+      <div className="flex items-baseline justify-between mb-2">
+        <span className="text-sm font-semibold text-white/80">{label}</span>
+        {hint && <span className="text-[11px] text-white/40">{hint}</span>}
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        {options.map(o => (
+          <button key={o.id} type="button" onClick={() => onChange(o.id)}
+            className={`py-3 rounded-xl text-sm font-semibold border-2 transition-all ${
+              value === o.id
+                ? "border-orange-500 bg-orange-500/10 text-white"
+                : "border-[#1e2230] bg-[#0a0c10] text-white/60 hover:border-orange-500/40"
+            }`}>
+            {o.label}
+          </button>
         ))}
       </div>
     </div>

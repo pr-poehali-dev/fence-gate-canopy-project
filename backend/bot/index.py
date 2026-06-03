@@ -1670,6 +1670,12 @@ def handler(event: dict, context) -> dict:
             # ── Диалоговое ядро: расчёт, статусы, знакомство, FAQ ──
             from dialog import build_response, update_dialog_state
             try:
+                # подгружаем единый прайс из БД (как на сайте) перед расчётом
+                from calc_engine import load_pricing_from_db
+                load_pricing_from_db(conn)
+            except Exception:
+                pass
+            try:
                 resp = build_response(conn, chat_id, text, cb.get('payload') or '',
                                       uname, settings)
             except Exception as e:
