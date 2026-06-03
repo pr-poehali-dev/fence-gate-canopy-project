@@ -1,14 +1,14 @@
 // Backend API endpoints
 export const API = {
-  prices:  "https://functions.poehali.dev/5ce688dd-ed6c-4c7d-8e4b-899b4943fcf0",
-  auth:    "https://functions.poehali.dev/4c4b6b0c-ac97-4644-94b6-63d724b326a2",
-  reviews: "https://functions.poehali.dev/4d424d2e-b164-46ab-ad42-7f4ce291d054",
-  bot:     "https://functions.poehali.dev/88f39f73-7b49-4be2-9331-cd25cf22e4d6",
-  content: "https://functions.poehali.dev/b32babe3-8a20-4ca6-807a-2a27e30e1da9",
-  media:   "https://functions.poehali.dev/fdb7dc55-e1be-4615-a71a-c084ee62dc80",
-  menu:    "https://functions.poehali.dev/b3ed1f9c-1452-40d7-9499-2347b1095ab7",
-  builder: "https://functions.poehali.dev/aac3941d-c9e4-4eed-a5d5-599a2e6010ba",
-  onec:    "https://functions.poehali.dev/33719a5b-98a2-4fbe-87dd-3cf8d5ada3b8",
+  prices:  "https://functions.poehali.dev/28ffb3c5-48d8-4d7f-8fcb-73bf365b5742",
+  auth:    "https://functions.poehali.dev/2246078f-ff3b-42c7-87d3-1e87b861b83d",
+  reviews: "https://functions.poehali.dev/38075237-04b7-4c96-ba87-52c22e3a9681",
+  bot:     "https://functions.poehali.dev/809fa147-084f-45cd-85bd-b12cdf8a001f",
+  content: "https://functions.poehali.dev/a1c505b5-65c0-452c-ae02-91f63dbdfbe4",
+  media:   "https://functions.poehali.dev/cf4a4be5-20fe-4155-a938-e1638ded5fc9",
+  menu:    "https://functions.poehali.dev/0c22aa85-bb9a-4e7e-815a-76ae25252353",
+  builder: "https://functions.poehali.dev/064ff0e6-b48d-4f62-9858-d47bbe6df074",
+  onec:    "https://functions.poehali.dev/2780474d-2df2-4d35-a3c7-d58ad2b7fea1",
 };
 
 export interface PriceItem {
@@ -67,23 +67,36 @@ export async function submitReview(payload: {
 }
 
 export async function loginAdmin(login: string, password: string): Promise<string | null> {
-  const r = await fetch(`${API.auth}?action=login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ login, password }),
-  });
-  if (!r.ok) return null;
-  const d = await r.json();
-  if (d.token) { adminToken.set(d.token); return d.token; }
-  return null;
+  try {
+    const r = await fetch(`${API.auth}?action=login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ login, password }),
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!r.ok) return null;
+    const d = await r.json();
+    if (d.token) { adminToken.set(d.token); return d.token; }
+    return null;
+  } catch {
+    return null;
+  }
 }
 
 export async function verifyAdmin(): Promise<boolean> {
   const t = adminToken.get();
   if (!t) return false;
-  const r = await fetch(`${API.auth}?action=verify`, { headers: { "X-Auth-Token": t } });
-  const d = await r.json();
-  return !!d.authorized;
+  try {
+    const r = await fetch(`${API.auth}?action=verify`, {
+      headers: { "X-Auth-Token": t },
+      signal: AbortSignal.timeout(12000),
+    });
+    if (!r.ok) return false;
+    const d = await r.json();
+    return !!d.authorized;
+  } catch {
+    return false;
+  }
 }
 
 export async function updatePrices(items: { slug: string; title: string; price: number }[]) {
