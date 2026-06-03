@@ -101,27 +101,46 @@ def handler(event, context):
     )
     user = (f"Услуга: {service}. " if service else "") + f"Данные: {raw_input}"
 
-    try:
-        token = _get_token()
-        r = requests.post(
+    payload = {
+        "model": "GigaChat",
+        "temperature": 0.6,
+        "max_tokens": 120,
+        "stream": False,
+        "messages": [
+            {"role": "system", "content": system},
+            {"role": "user", "content": user},
+        ],
+    }
+
+    def _call_chat(token, read_timeout):
+        return requests.post(
             CHAT_URL,
             headers={
                 "Authorization": f"Bearer {token}",
                 "Content-Type": "application/json",
                 "Accept": "application/json",
             },
-            json={
-                "model": "GigaChat",
-                "temperature": 0.6,
-                "max_tokens": 120,
-                "messages": [
-                    {"role": "system", "content": system},
-                    {"role": "user", "content": user},
-                ],
-            },
-            timeout=22,
+            json=payload,
+            # (connect, read) — быстро ловим проблему соединения
+            timeout=(8, read_timeout),
             verify=False,
         )
+
+    try:
+        token = _get_token()
+        # До 2 попыток: первое соединение к хосту Сбера бывает «холодным»
+        last_err = None
+        r = None
+        for attempt in range(2):
+            try:
+                r = _call_chat(token, read_timeout=18)
+                break
+            except requests.exceptions.Timeout as te:
+                last_err = te
+                logger.warning("Chat attempt %d timeout, retrying", attempt + 1)
+                continue
+        if r is None:
+            raise last_err or requests.exceptions.Timeout()
         logger.info("Chat status=%s", r.status_code)
         if r.status_code != 200:
             logger.error("Chat failed body=%s", r.text[:300])
