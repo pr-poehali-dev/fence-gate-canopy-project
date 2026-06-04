@@ -87,7 +87,9 @@ def nav_buttons(extra=None):
 
 
 MENU_BUTTONS = [
-    [{'type': 'callback', 'text': '📐 Рассчитать забор', 'payload': 'calc'}],
+    [{'type': 'callback', 'text': '🧱 Рассчитать забор', 'payload': 'calc_fence'}],
+    [{'type': 'callback', 'text': '🏠 Рассчитать навес', 'payload': 'calc_canopy'}],
+    [{'type': 'callback', 'text': '🚧 Откатные ворота', 'payload': 'calc_gate'}],
     [{'type': 'callback', 'text': '📝 Оформить заявку', 'payload': 'order_now'}],
     [{'type': 'callback', 'text': '📂 Мои заявки', 'payload': 'my_orders'}],
     [{'type': 'callback', 'text': '💰 Цены и прайс', 'payload': 'prices'}],
@@ -99,7 +101,6 @@ CALC_TYPE_BUTTONS = nav_buttons([
     [{'type': 'callback', 'text': 'Евроштакетник', 'payload': 'ft_shtak'}],
     [{'type': 'callback', 'text': '3D-сетка', 'payload': 'ft_3d'}],
     [{'type': 'callback', 'text': 'Рабица', 'payload': 'ft_setka'}],
-    [{'type': 'callback', 'text': 'Навес', 'payload': 'ft_canopy'}],
 ])
 
 from calc_engine import OBJECT_LABELS
@@ -250,7 +251,28 @@ def build_response(conn, chat_id, text, payload, uname, settings):
         return out
 
     # ── Команды меню ─────────────────────────────────────
-    if low in ('calc', 'рассчитать', 'расчет', 'расчёт'):
+    # Быстрый расчёт навеса — сразу спрашиваем размеры
+    if low == 'calc_canopy':
+        draft['objectType'] = 'canopy'
+        out['set_draft'] = draft
+        out['set_stage'] = 'calc_length'
+        out['reply'] = '🏠 Навес. Какая длина навеса в метрах?'
+        out['buttons'] = nav_buttons()
+        return out
+
+    # Быстрый расчёт откатных ворот — забор из профнастила + откатные ворота
+    if low == 'calc_gate':
+        draft['objectType'] = 'profnastil'
+        draft['gateId'] = 'otkatnye'
+        out['set_draft'] = draft
+        out['set_stage'] = 'calc_length'
+        out['reply'] = ('🚧 Откатные ворота с забором из профнастила.\n'
+                        'Какая длина забора в метрах? (если нужны только ворота — укажите ширину проёма)')
+        out['buttons'] = nav_buttons()
+        return out
+
+    # Рассчитать забор — выбор типа наполнения
+    if low in ('calc', 'calc_fence', 'рассчитать', 'расчет', 'расчёт'):
         out['set_stage'] = 'calc_type'
         out['reply'] = 'Какой забор посчитать? Выберите или напишите тип:'
         out['buttons'] = CALC_TYPE_BUTTONS

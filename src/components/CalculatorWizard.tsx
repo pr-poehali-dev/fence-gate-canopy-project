@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 import { COMPANY } from "@/lib/company";
 import { sendLead } from "@/lib/api";
@@ -79,7 +79,9 @@ const CANOPY_STEPS: { id: CanopyStep; label: string; icon: string }[] = [
 ];
 
 // ── Компонент ─────────────────────────────────────────────────────
-export default function CalculatorWizard() {
+export type CalcPreset = "fence" | "canopy" | "gate";
+
+export default function CalculatorWizard({ preset }: { preset?: CalcPreset } = {}) {
   const company = useCompany();
   // Подгрузка цен калькулятора из БД (CMS). При недоступности API
   // используются дефолтные цены из calcCatalog. ready переключается
@@ -88,6 +90,23 @@ export default function CalculatorWizard() {
   const [calc, setCalc] = useState<CalcInput>(DEFAULT_CALC);
   const [stepIdx, setStepIdx] = useState(0);
   const [orderNum] = useState(() => nextOrderNumber());
+
+  // Применение пресета (быстрые кнопки забор / навес / откатные ворота)
+  useEffect(() => {
+    if (!preset) return;
+    if (preset === "canopy") {
+      setCalc(c => ({ ...c, objectType: "canopy" }));
+      setStepIdx(1);
+    } else if (preset === "gate") {
+      setCalc(c => ({ ...c, objectType: "profnastil", gateId: "otkatnye" }));
+      // перейти на шаг "Ворота" в ветке забора
+      const i = FENCE_STEPS.findIndex(s => s.id === "gates");
+      setStepIdx(i >= 0 ? i : 1);
+    } else {
+      setCalc(c => ({ ...c, objectType: "profnastil" }));
+      setStepIdx(1);
+    }
+  }, [preset]);
 
   const [clientName, setClientName] = useState("");
   const [clientPhone, setClientPhone] = useState("");
@@ -356,7 +375,7 @@ export default function CalculatorWizard() {
             type="button"
             onClick={goBack}
             disabled={stepIdx === 0}
-            className="px-4 sm:px-5 py-3 rounded-xl border border-[#1e2230] text-white/70 hover:text-white hover:border-orange-500/40 disabled:opacity-30 disabled:cursor-not-allowed text-sm flex items-center gap-2"
+            className="px-4 sm:px-5 py-3 rounded-xl border-2 border-gray-300 bg-white text-gray-700 font-medium hover:border-orange-500 hover:text-orange-600 disabled:opacity-40 disabled:cursor-not-allowed text-sm flex items-center gap-2 transition-colors shadow-sm"
           >
             <Icon name="ChevronLeft" size={16} /> Назад
           </button>

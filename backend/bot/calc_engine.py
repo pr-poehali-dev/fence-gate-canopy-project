@@ -31,9 +31,9 @@ LAG_OPTIONS = {
     '40x40x2':   {'label': '40×40×2 мм',   'pricePerM': 155},
 }
 PROFLIST_OPTIONS = {
-    'C8':   {'label': 'С8',   'priceM2': 720},
-    'C20':  {'label': 'С20',  'priceM2': 980},
-    'HC35': {'label': 'НС35', 'priceM2': 1240},
+    'C8':  {'label': 'С8',  'priceM2': 780},
+    'C20': {'label': 'С20', 'priceM2': 1020},
+    'C21': {'label': 'С21', 'priceM2': 1080},
 }
 SHTAK_OPTIONS = {
     'sh_flat':  {'label': 'Плоский 100 мм',    'pricePerM': 85},
@@ -55,10 +55,9 @@ CANOPY_TYPES = {
     'полукруг': {'label': 'Полукруг', 'priceM2': 4800},
 }
 CANOPY_COVER = {
-    'profnastil':       {'label': 'Профнастил С8',     'priceM2': 320},
-    'polycarb_4':       {'label': 'Поликарбонат 4 мм', 'priceM2': 480},
-    'polycarb_8':       {'label': 'Поликарбонат 8 мм', 'priceM2': 720},
-    'profnastil_color': {'label': 'Профнастил цветной','priceM2': 420},
+    'polycarb':         {'label': 'Поликарбонат 8 мм', 'priceM2': 720},
+    'profnastil_c21':   {'label': 'Профлист С21',       'priceM2': 540},
+    'metallocherepica': {'label': 'Металлочерепица',    'priceM2': 690},
 }
 FOUND_OPTIONS = {
     'prisypka':      {'label': 'Присыпка щебнем', 'perPost': 0,    'perM': 0,    'gift': True},
@@ -97,7 +96,7 @@ DEFAULTS = {
     'automation': False, 'painting': False, 'installation': True,
     'canopyType': 'двухскат', 'canopyLength': 6, 'canopyWidth': 4,
     'canopyHeight': 2.2,
-    'canopyCoverId': 'polycarb_4', 'distanceKm': 0,
+    'canopyCoverId': 'polycarb', 'distanceKm': 0,
     'chess': False, 'complexHard': False, 'canopySnow': 'light',
 }
 

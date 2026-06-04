@@ -1,8 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import SiteHeader from "@/components/SiteHeader";
-import CalculatorWizard from "@/components/CalculatorWizard";
+import CalculatorWizard, { type CalcPreset } from "@/components/CalculatorWizard";
 import HomeTrust from "@/components/home/HomeTrust";
 import HomeGuarantee from "@/components/home/HomeGuarantee";
 import HomeReviews from "@/components/home/HomeReviews";
@@ -56,9 +56,16 @@ export default function Index() {
     ...kovkaPhotos,
   ].filter(Boolean).slice(0, 6);
 
+  const [calcPreset, setCalcPreset] = useState<CalcPreset>("fence");
+
   useEffect(() => {
     document.title = "СтальГрупп — заборы под ключ в Москве и МО, цена от 1 450 ₽/м";
   }, []);
+
+  const pickPreset = (p: CalcPreset) => {
+    setCalcPreset(p);
+    document.getElementById("calculator")?.scrollIntoView({ behavior: "smooth" });
+  };
 
   const fenceCat = menu.find(c => c.label.toLowerCase().includes("забор"));
   const gateCat  = menu.find(c => c.label.toLowerCase().includes("ворота"));
@@ -68,7 +75,7 @@ export default function Index() {
   ].slice(0, 7);
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 font-golos">
+    <div className="min-h-screen bg-white text-gray-900 font-golos pb-16 lg:pb-0">
       <SiteHeader />
 
       {/* HERO */}
@@ -198,7 +205,30 @@ export default function Index() {
             </h2>
             <p className="text-gray-500 max-w-xl mx-auto">Пошаговый расчёт — материалы, фундамент, ворота, монтаж и доставка</p>
           </div>
-          <CalculatorWizard />
+
+          {/* Быстрый выбор: что считаем */}
+          <div className="flex flex-wrap justify-center gap-3 mb-8">
+            {([
+              { id: "fence",  label: "Забор",            icon: "Fence" },
+              { id: "canopy", label: "Навес",            icon: "Home" },
+              { id: "gate",   label: "Откатные ворота",  icon: "DoorOpen" },
+            ] as { id: CalcPreset; label: string; icon: string }[]).map(p => (
+              <button
+                key={p.id}
+                onClick={() => pickPreset(p.id)}
+                className={`flex items-center gap-2 px-5 py-3 rounded-xl border-2 font-semibold text-sm transition-all ${
+                  calcPreset === p.id
+                    ? "border-orange-500 bg-orange-500 text-white shadow-lg shadow-orange-500/30"
+                    : "border-gray-300 bg-white text-gray-700 hover:border-orange-400 hover:text-orange-600"
+                }`}
+              >
+                <Icon name={p.icon} size={18} />
+                {p.label}
+              </button>
+            ))}
+          </div>
+
+          <CalculatorWizard preset={calcPreset} />
         </div>
       </section>
 
@@ -361,12 +391,21 @@ export default function Index() {
         </div>
       </footer>
 
-      <a
-        href={`tel:${company.phoneE164}`}
-        className="lg:hidden fixed bottom-5 right-5 z-40 w-14 h-14 bg-orange-500 hover:bg-orange-600 rounded-full shadow-2xl flex items-center justify-center animate-pulse"
-      >
-        <Icon name="Phone" size={22} className="text-white" />
-      </a>
+      {/* Липкая мобильная панель: звонок + расчёт всегда под рукой */}
+      <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur border-t border-gray-200 px-3 py-2.5 flex gap-2 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+        <a
+          href={`tel:${company.phoneE164}`}
+          className="flex-1 flex items-center justify-center gap-2 bg-gray-900 text-white font-bold py-3 rounded-xl text-sm"
+        >
+          <Icon name="Phone" size={17} /> Позвонить
+        </a>
+        <button
+          onClick={() => pickPreset("fence")}
+          className="flex-1 flex items-center justify-center gap-2 bg-orange-500 text-white font-bold py-3 rounded-xl text-sm shadow-lg shadow-orange-500/30"
+        >
+          <Icon name="Calculator" size={17} /> Рассчитать
+        </button>
+      </div>
     </div>
   );
 }

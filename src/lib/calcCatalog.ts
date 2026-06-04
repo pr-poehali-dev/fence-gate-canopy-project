@@ -56,11 +56,11 @@ const DEFAULT_LAG_OPTIONS: LagOption[] = [
   { id: "40x40x2",   label: "40×40×2 мм",   pricePerM: 155, desc: "Квадратная, для 3D-сетки" },
 ];
 
-// Профлист (цена за м²)
+// Профлист (цена за м²) — в наличии всегда С8, С20, С21
 const DEFAULT_PROFLIST_OPTIONS: ProflistOption[] = [
-  { id: "C8",   label: "С8",   height_mm: 8,  priceM2: 720,  desc: "Стандарт — самый популярный для забора" },
-  { id: "C20",  label: "С20",  height_mm: 20, priceM2: 980,  desc: "Жёсткий, промышленный" },
-  { id: "HC35", label: "НС35", height_mm: 35, priceM2: 1240, desc: "Несущий, ворота, промзона" },
+  { id: "C8",   label: "С8",   height_mm: 8,  priceM2: 780,  desc: "Стандарт — самый популярный для забора" },
+  { id: "C20",  label: "С20",  height_mm: 20, priceM2: 1020, desc: "Жёсткий, усиленный профиль" },
+  { id: "C21",  label: "С21",  height_mm: 21, priceM2: 1080, desc: "Повышенная жёсткость, ровная волна" },
 ];
 
 // Штакетник (цена за п.м.)
@@ -88,12 +88,11 @@ const DEFAULT_CANOPY_TYPES: CanopyType[] = [
   { id: "полукруг", label: "Полукруг", priceM2: 4800, desc: "Веерный свод" },
 ];
 
-// Покрытие навеса
+// Покрытие навеса — металлочерепица, поликарбонат, профлист С21
 const DEFAULT_CANOPY_COVER: CanopyCover[] = [
-  { id: "profnastil",       label: "Профнастил С8",        priceM2: 320 },
-  { id: "polycarb_4",       label: "Поликарбонат 4 мм",     priceM2: 480 },
-  { id: "polycarb_8",       label: "Поликарбонат 8 мм",     priceM2: 720 },
-  { id: "profnastil_color", label: "Профнастил цветной",    priceM2: 420 },
+  { id: "polycarb",      label: "Поликарбонат 8 мм",   priceM2: 720 },
+  { id: "profnastil_c21",label: "Профлист С21",         priceM2: 540 },
+  { id: "metallocherepica", label: "Металлочерепица",   priceM2: 690 },
 ];
 
 // Фундамент
@@ -732,7 +731,7 @@ export const DEFAULT_CALC: CalcInput = {
   canopyLength:  5,
   canopyWidth:   4,
   canopyHeight:  2.2,
-  canopyCoverId: "polycarb_4",
+  canopyCoverId: "polycarb",
   canopySnow:    "light",
 };
 
