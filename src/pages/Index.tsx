@@ -271,8 +271,8 @@ export default function Index() {
             <div className="flex items-center gap-2 mb-3">
               <img
                 src="https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/33123399-f344-46dc-adea-1165734f8f3f.png"
-                alt="СТАЛЬ ГРУП"
-                className="h-20 w-auto bg-white rounded-lg px-3 py-2"
+                alt="СТАЛЬ ГРУПП — заборы, ворота, навесы"
+                className="h-24 w-auto bg-white rounded-xl px-4 py-2.5"
               />
             </div>
             <p className="text-sm text-white/60">Производство и монтаж заборов в Москве и МО с 2008 года.</p>
@@ -367,7 +367,7 @@ function ServiceCard({ item, idx }: { item: { label: string; href: string; descr
     >
       <div className="aspect-[4/3] bg-gray-100 overflow-hidden relative">
         {img ? (
-          <img src={img} alt={item.label} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          <img src={img} alt={item.description ? `${item.label} — ${item.description}` : item.label} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-500 text-5xl font-oswald">
             {idx + 1}

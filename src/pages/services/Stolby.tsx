@@ -176,11 +176,11 @@ export default function Stolby() {
                 value={cms("hero_title")}
                 html
                 as="h1"
-                className="font-oswald font-bold text-4xl sm:text-5xl lg:text-6xl text-white leading-tight mb-5"
+                className="font-oswald font-bold text-4xl sm:text-5xl lg:text-6xl text-gray-900 leading-tight mb-5"
                 fallback="Столбы для забора"
               />
 
-              <p className="text-white/60 text-base sm:text-lg mb-6 leading-relaxed max-w-xl">
+              <p className="text-gray-600 text-base sm:text-lg mb-6 leading-relaxed max-w-xl">
                 Полный цикл по столбам для забора: профильная труба, кирпичная кладка и декоративные блоки. Подбираем сечение, материал и количество под ваш забор, грунт и бюджет.
               </p>
 
@@ -192,7 +192,7 @@ export default function Stolby() {
                   "Шапки металл/бетон, фонари, декоративные навершия",
                   "Гарантия 3 года на конструкцию",
                 ].map((b) => (
-                  <li key={b} className="flex items-start gap-2.5 text-white/75 text-sm">
+                  <li key={b} className="flex items-start gap-2.5 text-gray-600 text-sm">
                     <Icon name="CheckCircle2" size={18} className="text-orange-400 flex-shrink-0 mt-0.5" />
                     <span>{b}</span>
                   </li>
@@ -250,7 +250,7 @@ export default function Stolby() {
                     <Icon name="ShieldCheck" size={20} className="text-gray-900" />
                   </div>
                   <div>
-                    <div className="font-oswald font-bold text-white text-base">Гарантия 3 года</div>
+                    <div className="font-oswald font-bold text-gray-900 text-base">Гарантия 3 года</div>
                     <div className="text-gray-500 text-xs">По договору</div>
                   </div>
                 </div>
@@ -287,10 +287,10 @@ export default function Stolby() {
                 <Icon name="Square" size={14} className="text-orange-400" />
                 <span className="text-orange-400 text-xs font-medium uppercase tracking-wider">Тип 1 · Стандарт</span>
               </div>
-              <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-white mb-4">
+              <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-gray-900 mb-4">
                 Столбы из <span className="text-orange-400">профильной трубы</span>
               </h2>
-              <p className="text-white/60 leading-relaxed mb-5">
+              <p className="text-gray-600 leading-relaxed mb-5">
                 Самый распространённый и универсальный вариант: оцинкованная профтруба с порошковой покраской в цвет забора. Быстрый монтаж за 1–2 дня, оптимальное соотношение цены и надёжности. Подходит под любое заполнение.
               </p>
               <ul className="space-y-2 mb-6">
@@ -300,7 +300,7 @@ export default function Stolby() {
                   "Бетонирование М300, глубина 1.2 м",
                   "Сроки монтажа: 1–2 дня на 100 м.п.",
                 ].map((b) => (
-                  <li key={b} className="flex items-start gap-2.5 text-white/75 text-sm">
+                  <li key={b} className="flex items-start gap-2.5 text-gray-600 text-sm">
                     <Icon name="CheckCircle2" size={18} className="text-orange-400 flex-shrink-0 mt-0.5" />
                     {b}
                   </li>
@@ -322,13 +322,13 @@ export default function Stolby() {
           </div>
 
           {/* Прайс */}
-          <h3 className="font-oswald font-bold text-xl text-white mb-5">Цены на столбы из профтрубы</h3>
+          <h3 className="font-oswald font-bold text-xl text-gray-900 mb-5">Цены на столбы из профтрубы</h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
             {PROFTRUBA_ROWS.map((r) => (
               <div key={r.size} className="bg-gray-50 border border-gray-200 rounded-2xl p-5 hover:border-orange-500/40 transition-colors">
-                <div className="font-oswald font-semibold text-white text-base mb-1">{r.size}</div>
+                <div className="font-oswald font-semibold text-gray-900 text-base mb-1">{r.size}</div>
                 <div className="text-orange-400 font-oswald font-bold text-2xl mb-2">{r.price}</div>
-                <div className="text-white/45 text-xs leading-relaxed">{r.desc}</div>
+                <div className="text-gray-500 text-xs leading-relaxed">{r.desc}</div>
               </div>
             ))}
           </div>
@@ -337,8 +337,8 @@ export default function Stolby() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
             <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5">
               <Icon name="Plus" size={20} className="text-green-400 mb-2" />
-              <div className="font-oswald font-semibold text-white text-sm mb-2">Плюсы профтрубы</div>
-              <ul className="text-white/55 text-xs space-y-1 leading-relaxed">
+              <div className="font-oswald font-semibold text-gray-900 text-sm mb-2">Плюсы профтрубы</div>
+              <ul className="text-gray-600 text-xs space-y-1 leading-relaxed">
                 <li>· Самый бюджетный из надёжных вариантов</li>
                 <li>· Быстрый монтаж — 1–2 дня</li>
                 <li>· Любое заполнение: профнастил, штакетник, ковка</li>
@@ -348,8 +348,8 @@ export default function Stolby() {
             </div>
             <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5">
               <Icon name="Minus" size={20} className="text-red-400 mb-2" />
-              <div className="font-oswald font-semibold text-white text-sm mb-2">Минусы профтрубы</div>
-              <ul className="text-white/55 text-xs space-y-1 leading-relaxed">
+              <div className="font-oswald font-semibold text-gray-900 text-sm mb-2">Минусы профтрубы</div>
+              <ul className="text-gray-600 text-xs space-y-1 leading-relaxed">
                 <li>· Менее «премиальный» вид, чем кирпич</li>
                 <li>· Требует обновления покраски через 10–15 лет</li>
                 <li>· Не подходит для очень тяжёлых ворот без усиления</li>
@@ -358,7 +358,7 @@ export default function Stolby() {
           </div>
 
           {/* FAQ профтруба */}
-          <h3 className="font-oswald font-bold text-xl text-white mb-5">Вопросы по профтрубе</h3>
+          <h3 className="font-oswald font-bold text-xl text-gray-900 mb-5">Вопросы по профтрубе</h3>
           <div className="space-y-3">
             {PROFTRUBA_FAQ.map((f, i) => {
               const key = `proftruba-${i}`;
@@ -375,7 +375,7 @@ export default function Stolby() {
                     onClick={() => setOpenFaq(open ? null : key)}
                     className="w-full text-left p-5 flex items-center justify-between gap-4"
                   >
-                    <span className="font-oswald font-semibold text-white text-base pr-4">{f.q}</span>
+                    <span className="font-oswald font-semibold text-gray-900 text-base pr-4">{f.q}</span>
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
                         open ? "bg-orange-500 text-gray-900 rotate-45" : "bg-white text-orange-400"
@@ -385,7 +385,7 @@ export default function Stolby() {
                     </div>
                   </button>
                   {open && (
-                    <div className="px-5 pb-5 text-white/60 text-sm leading-relaxed border-t border-gray-200 pt-4">
+                    <div className="px-5 pb-5 text-gray-600 text-sm leading-relaxed border-t border-gray-200 pt-4">
                       {f.a}
                     </div>
                   )}
@@ -416,10 +416,10 @@ export default function Stolby() {
                 <Icon name="Building" size={14} className="text-orange-400" />
                 <span className="text-orange-400 text-xs font-medium uppercase tracking-wider">Тип 2 · Премиум · 80+ лет</span>
               </div>
-              <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-white mb-4">
+              <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-gray-900 mb-4">
                 <span className="text-orange-400">Кирпичные</span> столбы
               </h2>
-              <p className="text-white/60 leading-relaxed mb-5">
+              <p className="text-gray-600 leading-relaxed mb-5">
                 Классика премиум-сегмента: облицовочный кирпич + стальной сердечник внутри (профтруба 80×80×3). Кладка ведётся на морозостойкий раствор М150 с цветной расшивкой швов. Обязательно ставится на ростверк — это гарантирует, что кладка не треснет от пучения.
               </p>
               <ul className="space-y-2 mb-6">
@@ -430,7 +430,7 @@ export default function Stolby() {
                   "Шапки металл / бетон, опционально фонари",
                   "Срок службы 80+ лет (клинкер) / 60–80 лет (керамика)",
                 ].map((b) => (
-                  <li key={b} className="flex items-start gap-2.5 text-white/75 text-sm">
+                  <li key={b} className="flex items-start gap-2.5 text-gray-600 text-sm">
                     <Icon name="CheckCircle2" size={18} className="text-orange-400 flex-shrink-0 mt-0.5" />
                     {b}
                   </li>
@@ -439,13 +439,13 @@ export default function Stolby() {
             </div>
           </div>
 
-          <h3 className="font-oswald font-bold text-xl text-white mb-5">Цены на кирпичные столбы</h3>
+          <h3 className="font-oswald font-bold text-xl text-gray-900 mb-5">Цены на кирпичные столбы</h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
             {KIRPICH_ROWS.map((r) => (
               <div key={r.size} className="bg-gray-50 border border-gray-200 rounded-2xl p-5 hover:border-orange-500/40 transition-colors">
-                <div className="font-oswald font-semibold text-white text-base mb-1">{r.size}</div>
+                <div className="font-oswald font-semibold text-gray-900 text-base mb-1">{r.size}</div>
                 <div className="text-orange-400 font-oswald font-bold text-2xl mb-2">{r.price}</div>
-                <div className="text-white/45 text-xs leading-relaxed">{r.desc}</div>
+                <div className="text-gray-500 text-xs leading-relaxed">{r.desc}</div>
               </div>
             ))}
           </div>
@@ -453,8 +453,8 @@ export default function Stolby() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
             <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5">
               <Icon name="Plus" size={20} className="text-green-400 mb-2" />
-              <div className="font-oswald font-semibold text-white text-sm mb-2">Плюсы кирпича</div>
-              <ul className="text-white/55 text-xs space-y-1 leading-relaxed">
+              <div className="font-oswald font-semibold text-gray-900 text-sm mb-2">Плюсы кирпича</div>
+              <ul className="text-gray-600 text-xs space-y-1 leading-relaxed">
                 <li>· Премиальный вид участка</li>
                 <li>· Срок службы 80+ лет</li>
                 <li>· Идеально под ковку и комбинированные заборы</li>
@@ -463,8 +463,8 @@ export default function Stolby() {
             </div>
             <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5">
               <Icon name="Minus" size={20} className="text-red-400 mb-2" />
-              <div className="font-oswald font-semibold text-white text-sm mb-2">Минусы кирпича</div>
-              <ul className="text-white/55 text-xs space-y-1 leading-relaxed">
+              <div className="font-oswald font-semibold text-gray-900 text-sm mb-2">Минусы кирпича</div>
+              <ul className="text-gray-600 text-xs space-y-1 leading-relaxed">
                 <li>· Требует обязательного ростверка</li>
                 <li>· Кладку лучше вести с апреля по октябрь</li>
                 <li>· Дороже профтрубы в 15–20 раз</li>
@@ -473,7 +473,7 @@ export default function Stolby() {
             </div>
           </div>
 
-          <h3 className="font-oswald font-bold text-xl text-white mb-5">Вопросы по кирпичу</h3>
+          <h3 className="font-oswald font-bold text-xl text-gray-900 mb-5">Вопросы по кирпичу</h3>
           <div className="space-y-3">
             {KIRPICH_FAQ.map((f, i) => {
               const key = `kirpich-${i}`;
@@ -490,7 +490,7 @@ export default function Stolby() {
                     onClick={() => setOpenFaq(open ? null : key)}
                     className="w-full text-left p-5 flex items-center justify-between gap-4"
                   >
-                    <span className="font-oswald font-semibold text-white text-base pr-4">{f.q}</span>
+                    <span className="font-oswald font-semibold text-gray-900 text-base pr-4">{f.q}</span>
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
                         open ? "bg-orange-500 text-gray-900 rotate-45" : "bg-white text-orange-400"
@@ -500,7 +500,7 @@ export default function Stolby() {
                     </div>
                   </button>
                   {open && (
-                    <div className="px-5 pb-5 text-white/60 text-sm leading-relaxed border-t border-gray-200 pt-4">
+                    <div className="px-5 pb-5 text-gray-600 text-sm leading-relaxed border-t border-gray-200 pt-4">
                       {f.a}
                     </div>
                   )}
@@ -520,10 +520,10 @@ export default function Stolby() {
                 <Icon name="Box" size={14} className="text-orange-400" />
                 <span className="text-orange-400 text-xs font-medium uppercase tracking-wider">Тип 3 · Декоративные</span>
               </div>
-              <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-white mb-4">
+              <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-gray-900 mb-4">
                 Столбы из <span className="text-orange-400">декоративных блоков</span>
               </h2>
-              <p className="text-white/60 leading-relaxed mb-5">
+              <p className="text-gray-600 leading-relaxed mb-5">
                 Современная альтернатива классической кирпичной кладке. Пустотелые бетонные блоки 300×300 или 400×400 мм с готовой декоративной лицевой поверхностью: «рваный камень», «колотый кирпич», гладкие фактуры. Облицовка не нужна — выглядит как готовая отделка.
               </p>
               <ul className="space-y-2 mb-6">
@@ -534,7 +534,7 @@ export default function Stolby() {
                   "8–12 цветов: серый, графит, бежевый, терракот",
                   "Срок службы 40–50 лет, монтаж за 1–2 недели",
                 ].map((b) => (
-                  <li key={b} className="flex items-start gap-2.5 text-white/75 text-sm">
+                  <li key={b} className="flex items-start gap-2.5 text-gray-600 text-sm">
                     <Icon name="CheckCircle2" size={18} className="text-orange-400 flex-shrink-0 mt-0.5" />
                     {b}
                   </li>
@@ -555,13 +555,13 @@ export default function Stolby() {
             </div>
           </div>
 
-          <h3 className="font-oswald font-bold text-xl text-white mb-5">Цены на блочные столбы</h3>
+          <h3 className="font-oswald font-bold text-xl text-gray-900 mb-5">Цены на блочные столбы</h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
             {BLOKI_ROWS.map((r) => (
               <div key={r.size} className="bg-gray-50 border border-gray-200 rounded-2xl p-5 hover:border-orange-500/40 transition-colors">
-                <div className="font-oswald font-semibold text-white text-base mb-1">{r.size}</div>
+                <div className="font-oswald font-semibold text-gray-900 text-base mb-1">{r.size}</div>
                 <div className="text-orange-400 font-oswald font-bold text-2xl mb-2">{r.price}</div>
-                <div className="text-white/45 text-xs leading-relaxed">{r.desc}</div>
+                <div className="text-gray-500 text-xs leading-relaxed">{r.desc}</div>
               </div>
             ))}
           </div>
@@ -569,8 +569,8 @@ export default function Stolby() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
             <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5">
               <Icon name="Plus" size={20} className="text-green-400 mb-2" />
-              <div className="font-oswald font-semibold text-white text-sm mb-2">Плюсы блоков</div>
-              <ul className="text-white/55 text-xs space-y-1 leading-relaxed">
+              <div className="font-oswald font-semibold text-gray-900 text-sm mb-2">Плюсы блоков</div>
+              <ul className="text-gray-600 text-xs space-y-1 leading-relaxed">
                 <li>· В 1.5–2 раза дешевле кирпичных</li>
                 <li>· Монтаж в 2 раза быстрее</li>
                 <li>· Готовая фактура «рваный камень»</li>
@@ -580,8 +580,8 @@ export default function Stolby() {
             </div>
             <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5">
               <Icon name="Minus" size={20} className="text-red-400 mb-2" />
-              <div className="font-oswald font-semibold text-white text-sm mb-2">Минусы блоков</div>
-              <ul className="text-white/55 text-xs space-y-1 leading-relaxed">
+              <div className="font-oswald font-semibold text-gray-900 text-sm mb-2">Минусы блоков</div>
+              <ul className="text-gray-600 text-xs space-y-1 leading-relaxed">
                 <li>· Срок службы меньше кирпича (40–50 лет vs 80+)</li>
                 <li>· Требует гидрофобизации от высолов</li>
                 <li>· Грубая фактура — не для всех стилей</li>
@@ -590,7 +590,7 @@ export default function Stolby() {
             </div>
           </div>
 
-          <h3 className="font-oswald font-bold text-xl text-white mb-5">Вопросы по блокам</h3>
+          <h3 className="font-oswald font-bold text-xl text-gray-900 mb-5">Вопросы по блокам</h3>
           <div className="space-y-3">
             {BLOKI_FAQ.map((f, i) => {
               const key = `bloki-${i}`;
@@ -607,7 +607,7 @@ export default function Stolby() {
                     onClick={() => setOpenFaq(open ? null : key)}
                     className="w-full text-left p-5 flex items-center justify-between gap-4"
                   >
-                    <span className="font-oswald font-semibold text-white text-base pr-4">{f.q}</span>
+                    <span className="font-oswald font-semibold text-gray-900 text-base pr-4">{f.q}</span>
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
                         open ? "bg-orange-500 text-gray-900 rotate-45" : "bg-white text-orange-400"
@@ -617,7 +617,7 @@ export default function Stolby() {
                     </div>
                   </button>
                   {open && (
-                    <div className="px-5 pb-5 text-white/60 text-sm leading-relaxed border-t border-gray-200 pt-4">
+                    <div className="px-5 pb-5 text-gray-600 text-sm leading-relaxed border-t border-gray-200 pt-4">
                       {f.a}
                     </div>
                   )}
@@ -633,10 +633,10 @@ export default function Stolby() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <span className="section-tag">Сравнение</span>
-            <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-white mb-3">
+            <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-gray-900 mb-3">
               КАКОЙ СТОЛБ <span className="text-orange-400">ВЫБРАТЬ?</span>
             </h2>
-            <p className="text-white/50 max-w-xl mx-auto text-sm">
+            <p className="text-gray-500 max-w-xl mx-auto text-sm">
               Сравните три типа по ключевым параметрам и выберите оптимальный под ваш забор.
             </p>
           </div>
@@ -645,10 +645,10 @@ export default function Stolby() {
             <table className="w-full text-sm min-w-[700px]">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="text-left py-4 px-3 text-white/50 font-medium text-xs uppercase tracking-wider">
+                  <th className="text-left py-4 px-3 text-gray-500 font-medium text-xs uppercase tracking-wider">
                     Параметр
                   </th>
-                  <th className="text-center py-4 px-3 text-white/70 font-medium text-xs uppercase tracking-wider">
+                  <th className="text-center py-4 px-3 text-gray-600 font-medium text-xs uppercase tracking-wider">
                     Профтруба
                   </th>
                   <th className="text-center py-4 px-3 text-orange-400 font-medium text-xs uppercase tracking-wider">
@@ -657,7 +657,7 @@ export default function Stolby() {
                       премиум
                     </span>
                   </th>
-                  <th className="text-center py-4 px-3 text-white/70 font-medium text-xs uppercase tracking-wider">
+                  <th className="text-center py-4 px-3 text-gray-600 font-medium text-xs uppercase tracking-wider">
                     Блоки
                   </th>
                 </tr>
@@ -672,18 +672,18 @@ export default function Stolby() {
                   { p: "Внешний вид",       a: "Минимализм",    b: "Премиум",      c: "Декоративный" },
                   { p: "Под ковку",         a: "Можно",         b: "Идеально",     c: "Можно" },
                 ].map((r) => (
-                  <tr key={r.p} className="border-b border-[#1a1f2e] hover:bg-white/40 transition-colors">
-                    <td className="py-3.5 px-3 text-white font-medium">{r.p}</td>
-                    <td className="py-3.5 px-3 text-center text-white/70 font-oswald">{r.a}</td>
+                  <tr key={r.p} className="border-b border-gray-200 hover:bg-white/40 transition-colors">
+                    <td className="py-3.5 px-3 text-gray-900 font-medium">{r.p}</td>
+                    <td className="py-3.5 px-3 text-center text-gray-600 font-oswald">{r.a}</td>
                     <td className="py-3.5 px-3 text-center text-orange-400 font-oswald font-bold">{r.b}</td>
-                    <td className="py-3.5 px-3 text-center text-white/70 font-oswald">{r.c}</td>
+                    <td className="py-3.5 px-3 text-center text-gray-600 font-oswald">{r.c}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
 
-          <div className="mt-8 bg-orange-500/5 border border-orange-500/20 rounded-2xl p-5 text-sm text-white/60 flex items-start gap-3">
+          <div className="mt-8 bg-orange-500/5 border border-orange-500/20 rounded-2xl p-5 text-sm text-gray-600 flex items-start gap-3">
             <Icon name="Info" size={18} className="text-orange-400 flex-shrink-0 mt-0.5" />
             <div>
               <span className="text-orange-400 font-medium">Совет инженера:</span> для большинства частных домов с заборами 2–2.2 м оптимум — профтруба 80×80×2 (надёжно и недорого). Если бюджет позволяет и хочется «вау»-эффекта — кирпич 2×2 на ростверке. Блоки — компромисс между ценой и декоративностью.
@@ -733,7 +733,7 @@ export default function Stolby() {
 
             <div className="lg:col-span-2">
               <div className="bg-gray-50/95 backdrop-blur border-2 border-orange-500/30 rounded-3xl p-7 shadow-2xl shadow-orange-500/10">
-                <div className="font-oswald font-bold text-2xl text-white mb-1">Точный расчёт</div>
+                <div className="font-oswald font-bold text-2xl text-gray-900 mb-1">Точный расчёт</div>
                 <p className="text-gray-500 text-xs mb-5">Менеджер перезвонит в течение 15 минут</p>
                 <button
                   onClick={() =>
@@ -754,7 +754,7 @@ export default function Stolby() {
                     />
                   </span>
                 </button>
-                <p className="text-white/30 text-[11px] text-center mt-3">
+                <p className="text-gray-500 text-[11px] text-center mt-3">
                   Согласие с{" "}
                   <a
                     href="/privacy"
@@ -781,7 +781,7 @@ export default function Stolby() {
             <Icon name="ChevronLeft" size={16} />
             Вернуться на главную
           </Link>
-          <div className="text-white/30 text-xs">© 2009–2026 ООО «СтальГрупп» · 8 800 123-45-67</div>
+          <div className="text-gray-500 text-xs">© 2009–2026 ООО «СтальГрупп» · 8 800 123-45-67</div>
         </div>
       </footer>
     </div>

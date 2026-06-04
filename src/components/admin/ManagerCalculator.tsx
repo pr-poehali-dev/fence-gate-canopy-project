@@ -187,6 +187,19 @@ export default function ManagerCalculator({
               )}
               <Sel label="Калитка" value={calc.wicketId} onChange={v => set({ wicketId: v })}
                 opts={WICKET_OPTIONS.map(o => ({ id: o.id, label: o.label }))} />
+              {calc.objectType === "shtak" && (
+                <>
+                  <Num label="Зазор планок, мм" value={calc.shtakGap} onChange={v => set({ shtakGap: v })} />
+                  <Sel label="Зашивка" value={calc.chess ? "1" : "0"} onChange={v => set({ chess: v === "1" })}
+                    opts={[{ id: "0", label: "Обычная" }, { id: "1", label: "Шахматка" }]} />
+                </>
+              )}
+              {(calc.objectType === "profnastil" || calc.objectType === "shtak") && (
+                <Sel label="Окрас металла" value={calc.paintBoth ? "1" : "0"} onChange={v => set({ paintBoth: v === "1" })}
+                  opts={[{ id: "0", label: "Односторонний" }, { id: "1", label: "Двусторонний" }]} />
+              )}
+              <Sel label="Сложность участка" value={calc.complexHard ? "1" : "0"} onChange={v => set({ complexHard: v === "1" })}
+                opts={[{ id: "0", label: "Простой" }, { id: "1", label: "Сложный (уклон)" }]} />
             </>
           )}
           <Num label="Доставка, км от МКАД" value={calc.distanceKm || 0} onChange={v => set({ distanceKm: v })} />

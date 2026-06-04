@@ -65,8 +65,8 @@ export default function SiteHeader() {
         <Link to="/" className="flex items-center gap-2 shrink-0">
           <img
             src="https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/33123399-f344-46dc-adea-1165734f8f3f.png"
-            alt="СТАЛЬ ГРУП — заборы, ворота, навесы под ключ"
-            className="h-16 sm:h-20 w-auto"
+            alt="СТАЛЬ ГРУПП — заборы, ворота, навесы под ключ"
+            className="h-20 sm:h-24 w-auto drop-shadow-sm"
           />
         </Link>
 
@@ -166,8 +166,8 @@ export default function SiteHeader() {
               <div className="flex items-center gap-2">
                 <img
                   src="https://cdn.poehali.dev/projects/fe32b63a-5996-4288-9a02-963fced45aa0/bucket/33123399-f344-46dc-adea-1165734f8f3f.png"
-                  alt="СТАЛЬ ГРУП"
-                  className="h-14 w-auto"
+                  alt="СТАЛЬ ГРУПП"
+                  className="h-16 w-auto"
                 />
               </div>
               <button onClick={() => setMobileOpen(false)} className="w-10 h-10 rounded-lg bg-gray-100 text-gray-700 flex items-center justify-center">
