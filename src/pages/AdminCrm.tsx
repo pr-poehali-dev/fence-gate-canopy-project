@@ -210,8 +210,8 @@ export default function AdminCrm() {
 
       {/* Модалка редактирования */}
       {edit && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 overflow-y-auto" onClick={() => setEdit(null)}>
-          <div onClick={e => e.stopPropagation()} className="bg-[#141720] border border-[#1e2230] rounded-2xl w-full max-w-2xl p-6 my-auto">
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-start sm:items-center justify-center p-2 sm:p-4 overflow-y-auto" onClick={() => setEdit(null)}>
+          <div onClick={e => e.stopPropagation()} className="bg-[#141720] border border-[#1e2230] rounded-2xl w-full max-w-2xl p-4 sm:p-6 my-2 sm:my-auto max-h-[95vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-5">
               <h3 className="font-oswald font-bold text-xl">{edit.id ? "Редактировать заказ" : "Новый заказ"}</h3>
               <button onClick={() => setEdit(null)} className="text-white/40 hover:text-white"><Icon name="X" size={20} /></button>

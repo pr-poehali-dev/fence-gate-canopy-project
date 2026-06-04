@@ -136,8 +136,8 @@ export default function ManagerCalculator({
   };
 
   return (
-    <div className="fixed inset-0 z-[60] bg-black/85 flex items-start justify-center p-4 overflow-y-auto" onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} className="bg-[#141720] border border-[#1e2230] rounded-2xl w-full max-w-3xl p-5 my-6">
+    <div className="fixed inset-0 z-[60] bg-black/85 flex items-start justify-center p-2 sm:p-4 overflow-y-auto" onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} className="bg-[#141720] border border-[#1e2230] rounded-2xl w-full max-w-3xl p-3 sm:p-5 my-2 sm:my-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-oswald font-bold text-xl flex items-center gap-2">
             <Icon name="Calculator" size={20} className="text-orange-400" /> Детальный расчёт
@@ -273,12 +273,12 @@ export default function ManagerCalculator({
           </div>
         </div>
 
-        <div className="flex flex-wrap justify-end gap-2">
+        <div className="flex flex-col sm:flex-row sm:justify-end gap-2">
           <button onClick={makePdf} disabled={pdfBusy}
-            className="px-4 py-2 rounded-lg text-sm border border-[#1e2230] text-white/70 hover:text-white disabled:opacity-50 flex items-center gap-1.5">
+            className="px-4 py-2.5 rounded-lg text-sm border border-[#1e2230] text-white/70 hover:text-white disabled:opacity-50 flex items-center justify-center gap-1.5">
             <Icon name={pdfBusy ? "Loader" : "FileText"} size={15} className={pdfBusy ? "animate-spin" : ""} /> Скачать КП (PDF)
           </button>
-          <button onClick={apply} className="btn-orange px-5 py-2 rounded-lg text-sm flex items-center gap-1.5">
+          <button onClick={apply} className="btn-orange px-5 py-2.5 rounded-lg text-sm flex items-center justify-center gap-1.5">
             <Icon name="Check" size={15} /> Перенести в заказ
           </button>
         </div>
