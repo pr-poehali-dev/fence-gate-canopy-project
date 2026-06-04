@@ -62,7 +62,7 @@ export default function Foundations() {
   const detailsNode = (
     <>
       {/* ── БЕТОНИРОВАНИЕ ── */}
-      <section id="tab-betonirovanie" className="py-20 scroll-mt-20">
+      <section id="tab-betonirovanie" className="py-20 scroll-mt-20 bg-slate-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
             <div>
@@ -186,7 +186,7 @@ export default function Foundations() {
       </section>
 
       {/* ── ВИНТОВЫЕ СВАИ ── */}
-      <section id="tab-svai" className="py-20 scroll-mt-20">
+      <section id="tab-svai" className="py-20 scroll-mt-20 bg-slate-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
             <div>

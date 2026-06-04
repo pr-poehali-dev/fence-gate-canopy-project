@@ -462,7 +462,7 @@ export default function ServicePage(p: ServiceProps & { pageSlug?: string; media
       </section>
 
       {/* ── ПРАЙС-ЛИСТ ── */}
-      <section id="prices" className="py-20">
+      <section id="prices" className="py-20 bg-transparent">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <span className="section-tag">Прайс</span>
