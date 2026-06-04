@@ -197,6 +197,7 @@ export interface CalcInput {
   canopyLength:  number;       // длина навеса, м
   canopyWidth:   number;       // ширина навеса, м
   canopyCoverId: CanopyCoverId;
+  canopySnow?:   "light" | "heavy";  // снеговая нагрузка навеса (обычная/усиленная)
   // ── Логистика и финансы (опционально) ──
   distanceKm?:   number;       // расстояние доставки, км
   oversize?:     boolean;      // негабарит (+20% к доставке)
@@ -228,6 +229,10 @@ export interface PricingParams {
   heightSurcharge: number; // % за каждые +0.5 м высоты свыше 2 м   (param: height_surcharge)
   complexityHard:  number; // % наценка за сложный участок           (param: complexity_hard)
   shtakChess:      number; // % к наполнению за штакетник шахматкой   (param: shtak_chess)
+  // Детальный расчёт навеса
+  canopyFrameM2:   number; // каркас навеса (фермы+обрешётка), ₽/м²   (param: canopy_frame_m2)
+  canopySnowHeavy: number; // % за усиленную снеговую нагрузку        (param: canopy_snow_heavy)
+  canopyPostPrice: number; // опорный столб навеса, ₽/шт              (param: canopy_post_price)
 }
 
 // Дефолтные значения параметров
@@ -248,6 +253,9 @@ const DEFAULT_PRICING_PARAMS: PricingParams = {
   heightSurcharge: 15,
   complexityHard:  20,
   shtakChess:      80,
+  canopyFrameM2:   1450,
+  canopySnowHeavy: 18,
+  canopyPostPrice: 1800,
 };
 
 // Текущие (мутабельные) параметры — перезаписываются applyCalcPricing()
@@ -419,13 +427,35 @@ export function calculate(c: CalcInput): CalcResult {
     fillingLabel += " · шахматка";
   }
 
-  // ── Навес ───────────────────────────────────────────
+  // ── Навес (детальный расчёт) ────────────────────────
+  // Разбивка: каркас (фермы+обрешётка) + кровельное покрытие + опорные
+  // столбы + надбавка за усиленную снеговую нагрузку.
   const canopyArea = isCanopy ? c.canopyLength * c.canopyWidth : 0;
   let canopyCost = 0;
+  let canopyFrameCost = 0;     // каркас: фермы, прогоны, обрешётка
+  let canopyCoverCost = 0;     // кровельное покрытие
+  let canopyPostsCost = 0;     // опорные столбы навеса
+  let canopyPostsN = 0;
+  let canopySnowAdd = 0;       // надбавка за усиленную снеговую нагрузку
+  let canopyFrameUnit = 0;
+  let canopyCoverUnit = 0;
   if (isCanopy) {
     const ct = CANOPY_TYPES.find(x => x.id === c.canopyType)!;
     const cc = CANOPY_COVER.find(x => x.id === c.canopyCoverId)!;
-    canopyCost = canopyArea * (ct.priceM2 + cc.priceM2);
+    // Каркас: базовый каркас (param) + надбавка формы кровли (CANOPY_TYPES.priceM2)
+    canopyFrameUnit = PRICING_PARAMS.canopyFrameM2 + ct.priceM2;
+    canopyFrameCost = canopyArea * canopyFrameUnit;
+    // Кровельное покрытие
+    canopyCoverUnit = cc.priceM2;
+    canopyCoverCost = canopyArea * canopyCoverUnit;
+    // Опорные столбы: 1 столб на ~6 м² площади, минимум 4
+    canopyPostsN = Math.max(4, Math.ceil(canopyArea / 6));
+    canopyPostsCost = canopyPostsN * PRICING_PARAMS.canopyPostPrice;
+    // Снеговая нагрузка: усиленная → надбавка % к каркасу
+    if (c.canopySnow === "heavy" && PRICING_PARAMS.canopySnowHeavy > 0) {
+      canopySnowAdd = Math.round(canopyFrameCost * PRICING_PARAMS.canopySnowHeavy / 100);
+    }
+    canopyCost = canopyFrameCost + canopyCoverCost + canopyPostsCost + canopySnowAdd;
   }
 
   // ── Фундамент ───────────────────────────────────────
@@ -510,11 +540,28 @@ export function calculate(c: CalcInput): CalcResult {
   const lineItems: CalcLine[] = isCanopy
     ? [
         {
-          label: `Навес «${CANOPY_TYPES.find(x=>x.id===c.canopyType)!.label}» ${c.canopyLength}×${c.canopyWidth} м`,
-          value: canopyCost,
+          label: `Каркас навеса «${CANOPY_TYPES.find(x=>x.id===c.canopyType)!.label}»: фермы, прогоны, обрешётка`,
+          value: canopyFrameCost,
           qty: `${canopyArea.toFixed(1)} м²`,
-          unitPrice: Math.round((CANOPY_TYPES.find(x=>x.id===c.canopyType)!.priceM2 + CANOPY_COVER.find(x=>x.id===c.canopyCoverId)!.priceM2)),
+          unitPrice: Math.round(canopyFrameUnit),
         },
+        {
+          label: `Кровля: ${CANOPY_COVER.find(x=>x.id===c.canopyCoverId)!.label}`,
+          value: canopyCoverCost,
+          qty: `${canopyArea.toFixed(1)} м²`,
+          unitPrice: Math.round(canopyCoverUnit),
+        },
+        {
+          label: "Опорные столбы навеса (профтруба 80×80, бетонирование)",
+          value: canopyPostsCost,
+          qty: `${canopyPostsN} шт.`,
+          unitPrice: PRICING_PARAMS.canopyPostPrice,
+        },
+        ...(canopySnowAdd > 0
+          ? [{ label: `Усиление под снеговую нагрузку (+${PRICING_PARAMS.canopySnowHeavy}%)`, value: canopySnowAdd, qty: "усиленный каркас" }]
+          : []),
+        { label: "↳ Кровельные саморезы с EPDM, торцевые планки", value: 0, qty: "комплект" },
+        { label: "↳ Антикоррозийная обработка + порошковая покраска", value: 0, qty: `${canopyArea.toFixed(1)} м²` },
       ]
     : [
         { label: `Столбы ${postObj.label} (заглубление ${(c.fenceHeight * 0.6 + 0.6).toFixed(1)} м)`, value: postCost, qty: `${postCount} шт.`, unitPrice: postObj.pricePerPost * Math.ceil(postHeight/3) },
@@ -588,6 +635,8 @@ export function calculate(c: CalcInput): CalcResult {
         "Длина × Ширина": `${c.canopyLength} × ${c.canopyWidth} м`,
         "Площадь":      `${canopyArea.toFixed(1)} м²`,
         "Покрытие":     CANOPY_COVER.find(x=>x.id===c.canopyCoverId)!.label,
+        "Опорные столбы": `${canopyPostsN} шт.`,
+        "Снеговая нагрузка": c.canopySnow === "heavy" ? "Усиленная (≥240 кг/м²)" : "Обычная",
       }
     : {
         "Тип ограждения": OBJECT_LABELS[c.objectType],
@@ -683,6 +732,7 @@ export const DEFAULT_CALC: CalcInput = {
   canopyLength:  5,
   canopyWidth:   4,
   canopyCoverId: "polycarb_4",
+  canopySnow:    "light",
 };
 
 // ────────────────────────────────────────────────────────────────────
@@ -794,6 +844,9 @@ export function applyCalcPricing(items: CalcPriceItem[]): void {
   params.heightSurcharge = num(p.get("height_surcharge")?.price, params.heightSurcharge);
   params.complexityHard  = num(p.get("complexity_hard")?.price,  params.complexityHard);
   params.shtakChess      = num(p.get("shtak_chess")?.price,      params.shtakChess);
+  params.canopyFrameM2   = num(p.get("canopy_frame_m2")?.price,  params.canopyFrameM2);
+  params.canopySnowHeavy = num(p.get("canopy_snow_heavy")?.price, params.canopySnowHeavy);
+  params.canopyPostPrice = num(p.get("canopy_post_price")?.price, params.canopyPostPrice);
 
   PRICING_PARAMS = params;
   syncLegacyExports();

@@ -17,6 +17,7 @@ interface EditLine {
   label: string;
   qty: string;
   value: number;
+  unitPrice?: number;
 }
 
 export interface ManagerCalcResult {
@@ -55,7 +56,7 @@ export default function ManagerCalculator({
   // Базовые строки из расчёта
   const baseLines: EditLine[] = useMemo(
     () => result.lineItems.map((l: CalcLine) => ({
-      label: l.label, qty: l.qty || "", value: l.value,
+      label: l.label, qty: l.qty || "", value: l.value, unitPrice: l.unitPrice,
     })),
     [result]
   );
@@ -64,6 +65,14 @@ export default function ManagerCalculator({
 
   // Итог пересчитывается по текущим строкам сметы (с учётом ручных правок)
   const total = useMemo(() => lines.reduce((s, l) => s + (l.value || 0), 0), [lines]);
+
+  // Прозрачная экономика (масштабируется при ручных правках сметы)
+  const ratio = result.total > 0 ? total / result.total : 1;
+  const profitLive = Math.round(
+    total - result.econ.materialsCost * ratio - result.econ.fot * ratio
+    - result.deliveryCost - result.oversizeFee
+  );
+  const marginLive = total > 0 ? Math.round((profitLive / total) * 100) : 0;
 
   const set = (p: Partial<CalcInput>) => {
     setCalc(c => ({ ...c, ...p }));
@@ -76,21 +85,18 @@ export default function ManagerCalculator({
     );
     setManualLines(next);
   };
-  const addLine = () => setManualLines([...lines, { label: "Доп. работа", qty: "1", value: 0 }]);
+  const addLine = () => setManualLines([...lines, { label: "Доп. работа", qty: "1", value: 0, unitPrice: 0 }]);
   const removeLine = (i: number) => setManualLines(lines.filter((_, idx) => idx !== i));
 
-  const buildResult = (): ManagerCalcResult => {
-    const ratio = result.total > 0 ? total / result.total : 1;
-    return {
-      total,
-      materials: Math.round(result.econ.materialsCost * ratio),
-      fot: Math.round(result.econ.fot * ratio),
-      profit: Math.round(total - result.econ.materialsCost * ratio - result.econ.fot * ratio),
-      object_type: OBJECT_LABELS[calc.objectType],
-      lines,
-      order_num: orderNum,
-    };
-  };
+  const buildResult = (): ManagerCalcResult => ({
+    total,
+    materials: Math.round(result.econ.materialsCost * ratio),
+    fot: Math.round(result.econ.fot * ratio),
+    profit: profitLive,
+    object_type: OBJECT_LABELS[calc.objectType],
+    lines,
+    order_num: orderNum,
+  });
 
   const apply = () => {
     onApply(buildResult());
@@ -155,6 +161,9 @@ export default function ManagerCalculator({
                 opts={CANOPY_COVER.map(o => ({ id: o.id, label: o.label }))} />
               <Num label="Длина, м" value={calc.canopyLength} onChange={v => set({ canopyLength: v })} />
               <Num label="Ширина, м" value={calc.canopyWidth} onChange={v => set({ canopyWidth: v })} />
+              <Sel label="Снеговая нагрузка" value={calc.canopySnow || "light"}
+                onChange={v => set({ canopySnow: v as "light" | "heavy" })}
+                opts={[{ id: "light", label: "Обычная" }, { id: "heavy", label: "Усиленная (снег)" }]} />
             </>
           ) : (
             <>
@@ -205,21 +214,30 @@ export default function ManagerCalculator({
           <Num label="Доставка, км от МКАД" value={calc.distanceKm || 0} onChange={v => set({ distanceKm: v })} />
         </div>
 
-        {/* Редактируемая смета */}
+        {/* Редактируемая смета — детальная и прозрачная */}
         <div className="bg-[#0a0c10] border border-[#1e2230] rounded-xl p-3 mb-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-orange-400 uppercase tracking-wider">Смета (можно править)</span>
+            <span className="text-xs font-semibold text-orange-400 uppercase tracking-wider">Детальная смета (можно править)</span>
             <button onClick={addLine} className="text-[11px] text-emerald-400 hover:text-emerald-300 flex items-center gap-1">
               <Icon name="Plus" size={12} /> Строка
             </button>
           </div>
+          {/* Заголовок таблицы */}
+          <div className="flex items-center gap-1.5 px-1 pb-1.5 text-[9px] uppercase tracking-wider text-white/30">
+            <span className="flex-1">Наименование</span>
+            <span className="w-16 text-center">Кол-во</span>
+            <span className="w-16 text-right">Цена/ед</span>
+            <span className="w-24 text-right">Сумма</span>
+            <span className="w-6" />
+          </div>
           <div className="space-y-1.5 max-h-[34vh] overflow-y-auto pr-1">
             {lines.map((l, i) => (
-              <div key={i} className="flex items-center gap-1.5">
+              <div key={i} className={`flex items-center gap-1.5 ${l.value === 0 && l.label.startsWith("↳") ? "opacity-70" : ""}`}>
                 <input value={l.label} onChange={e => editLine(i, "label", e.target.value)}
                   className="flex-1 min-w-0 bg-[#141720] border border-[#1e2230] focus:border-orange-500 rounded-lg px-2 py-1.5 text-xs text-white outline-none" />
-                <input value={l.qty} onChange={e => editLine(i, "qty", e.target.value)} placeholder="кол-во"
-                  className="w-16 bg-[#141720] border border-[#1e2230] focus:border-orange-500 rounded-lg px-2 py-1.5 text-xs text-white/70 text-center outline-none" />
+                <input value={l.qty} onChange={e => editLine(i, "qty", e.target.value)} placeholder="—"
+                  className="w-16 bg-[#141720] border border-[#1e2230] focus:border-orange-500 rounded-lg px-2 py-1.5 text-[11px] text-white/70 text-center outline-none" />
+                <span className="w-16 text-right text-[11px] text-white/35">{l.unitPrice ? fmtRub(l.unitPrice) : "—"}</span>
                 <input type="number" value={l.value} onChange={e => editLine(i, "value", e.target.value)}
                   className="w-24 bg-[#141720] border border-[#1e2230] focus:border-orange-500 rounded-lg px-2 py-1.5 text-xs text-white text-right outline-none" />
                 <button onClick={() => removeLine(i)} className="text-white/30 hover:text-red-400 p-1"><Icon name="Trash2" size={13} /></button>
@@ -233,16 +251,24 @@ export default function ManagerCalculator({
           )}
         </div>
 
+        {/* Прозрачная экономика для менеджера */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+          <EconCard label="Материалы (себест.)" value={fmtRub(Math.round(result.econ.materialsCost * ratio))} />
+          <EconCard label="ФОТ бригады" value={fmtRub(Math.round(result.econ.fot * ratio))} />
+          <EconCard label="Логистика" value={fmtRub(result.deliveryCost + result.oversizeFee)} />
+          <EconCard label="Маржа" value={`${marginLive}%`} accent />
+        </div>
+
         {/* Итог */}
         <div className="flex items-center justify-between bg-orange-500/10 border border-orange-500/30 rounded-xl px-4 py-3 mb-4">
           <div>
             <div className="text-[11px] text-white/50">Итого по смете (предварительно)</div>
             <div className="font-oswald font-bold text-2xl text-orange-400">{fmtRub(total)}</div>
+            <div className="text-[10px] text-white/35 mt-0.5">Срок ≈ {result.workDays} дн.</div>
           </div>
           <div className="text-right text-[11px] text-white/45">
-            <div>Себест.: {fmtRub(result.econ.materialsCost)}</div>
-            <div>ФОТ: {fmtRub(result.econ.fot)}</div>
-            <div className="text-emerald-400">Выгода ≈ {fmtRub(buildResult().profit)}</div>
+            <div className="text-emerald-400 font-semibold text-sm">Выгода ≈ {fmtRub(profitLive)}</div>
+            <div className="mt-0.5">после скидки {result.discount > 0 ? fmtRub(result.discount) : "—"}</div>
           </div>
         </div>
 
@@ -256,6 +282,15 @@ export default function ManagerCalculator({
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+function EconCard({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+  return (
+    <div className={`rounded-lg border px-2.5 py-2 ${accent ? "border-emerald-500/40 bg-emerald-500/10" : "border-[#1e2230] bg-[#0a0c10]"}`}>
+      <div className="text-[9px] uppercase tracking-wider text-white/40 leading-tight">{label}</div>
+      <div className={`font-oswald font-bold text-sm mt-0.5 ${accent ? "text-emerald-400" : "text-white/90"}`}>{value}</div>
     </div>
   );
 }

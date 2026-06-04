@@ -99,7 +99,7 @@ DEFAULTS = {
     'automation': False, 'painting': False, 'installation': True,
     'canopyType': 'двухскат', 'canopyLength': 6, 'canopyWidth': 4,
     'canopyCoverId': 'polycarb_4', 'distanceKm': 0,
-    'chess': False, 'complexHard': False,
+    'chess': False, 'complexHard': False, 'canopySnow': 'light',
 }
 
 
@@ -112,6 +112,7 @@ PARAMS = {
     'install_share': 35, 'paint_m2': 280, 'auto_gate': 22000,
     'nashivka_double': 60, 'paint_double': 25,
     'height_surcharge': 15, 'complexity_hard': 20, 'shtak_chess': 80,
+    'canopy_frame_m2': 1450, 'canopy_snow_heavy': 18, 'canopy_post_price': 1800,
 }
 # Наполнение без покрытия, ₽/м² (мутируется из БД, категория fill)
 FILL_PRICES = {'3d': 1600, 'kovka': 4500, 'setka': 550}
@@ -246,7 +247,16 @@ def calculate(inp):
     if is_canopy:
         ct = CANOPY_TYPES.get(c['canopyType'], CANOPY_TYPES['двухскат'])
         cc = CANOPY_COVER.get(c['canopyCoverId'], CANOPY_COVER['polycarb_4'])
-        canopy_cost = canopy_area * (ct['priceM2'] + cc['priceM2'])
+        # Детальный расчёт: каркас + кровля + опорные столбы + снеговая надбавка
+        frame_unit = PARAMS.get('canopy_frame_m2', 1450) + ct['priceM2']
+        frame_cost = canopy_area * frame_unit
+        cover_cost = canopy_area * cc['priceM2']
+        posts_n = max(4, math.ceil(canopy_area / 6))
+        posts_cost = posts_n * PARAMS.get('canopy_post_price', 1800)
+        snow_add = 0.0
+        if c.get('canopySnow') == 'heavy' and PARAMS.get('canopy_snow_heavy'):
+            snow_add = round(frame_cost * PARAMS['canopy_snow_heavy'] / 100)
+        canopy_cost = frame_cost + cover_cost + posts_cost + snow_add
 
     fnd = FOUND_OPTIONS.get(c['foundId'], FOUND_OPTIONS['prisypka'])
     if is_canopy or fnd['gift']:
