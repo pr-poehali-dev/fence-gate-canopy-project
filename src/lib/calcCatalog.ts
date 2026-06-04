@@ -58,10 +58,8 @@ const DEFAULT_LAG_OPTIONS: LagOption[] = [
 
 // Профлист (цена за м²)
 const DEFAULT_PROFLIST_OPTIONS: ProflistOption[] = [
-  { id: "C8",   label: "С8",   height_mm: 8,  priceM2: 720,  desc: "Лёгкий, горизонт. и вертик." },
-  { id: "C10",  label: "С10",  height_mm: 10, priceM2: 850,  desc: "Самый популярный для забора" },
+  { id: "C8",   label: "С8",   height_mm: 8,  priceM2: 720,  desc: "Стандарт — самый популярный для забора" },
   { id: "C20",  label: "С20",  height_mm: 20, priceM2: 980,  desc: "Жёсткий, промышленный" },
-  { id: "MP20", label: "МП20", height_mm: 20, priceM2: 1050, desc: "С-образный, повышенная жёсткость" },
   { id: "HC35", label: "НС35", height_mm: 35, priceM2: 1240, desc: "Несущий, ворота, промзона" },
 ];
 
@@ -196,6 +194,7 @@ export interface CalcInput {
   canopyType:    CanopyTypeId;
   canopyLength:  number;       // длина навеса, м
   canopyWidth:   number;       // ширина навеса, м
+  canopyHeight?: number;       // высота навеса, м (стандарт 2.20)
   canopyCoverId: CanopyCoverId;
   canopySnow?:   "light" | "heavy";  // снеговая нагрузка навеса (обычная/усиленная)
   // ── Логистика и финансы (опционально) ──
@@ -633,6 +632,7 @@ export function calculate(c: CalcInput): CalcResult {
         "Тип объекта":  "Навес / беседка",
         "Форма кровли": CANOPY_TYPES.find(x=>x.id===c.canopyType)!.label,
         "Длина × Ширина": `${c.canopyLength} × ${c.canopyWidth} м`,
+        "Высота":       `${(c.canopyHeight ?? 2.2).toFixed(2)} м`,
         "Площадь":      `${canopyArea.toFixed(1)} м²`,
         "Покрытие":     CANOPY_COVER.find(x=>x.id===c.canopyCoverId)!.label,
         "Опорные столбы": `${canopyPostsN} шт.`,
@@ -709,7 +709,7 @@ export const DEFAULT_CALC: CalcInput = {
   postId:        "60x60x2",
   lagId:         "40x25x2",
   lagRows:       2,
-  proflistId:    "C10",
+  proflistId:    "C8",
   shtakId:       "sh_m",
   shtakGap:      5,
   nashivka:      "one",
@@ -731,6 +731,7 @@ export const DEFAULT_CALC: CalcInput = {
   canopyType:    "односкат",
   canopyLength:  5,
   canopyWidth:   4,
+  canopyHeight:  2.2,
   canopyCoverId: "polycarb_4",
   canopySnow:    "light",
 };

@@ -32,9 +32,7 @@ LAG_OPTIONS = {
 }
 PROFLIST_OPTIONS = {
     'C8':   {'label': 'С8',   'priceM2': 720},
-    'C10':  {'label': 'С10',  'priceM2': 850},
     'C20':  {'label': 'С20',  'priceM2': 980},
-    'MP20': {'label': 'МП20', 'priceM2': 1050},
     'HC35': {'label': 'НС35', 'priceM2': 1240},
 }
 SHTAK_OPTIONS = {
@@ -92,12 +90,13 @@ OBJECT_LABELS = {
 DEFAULTS = {
     'objectType': 'profnastil', 'fenceLength': 30, 'fenceHeight': 2,
     'postId': '60x60x2', 'lagId': '40x25x2', 'lagRows': 2,
-    'proflistId': 'C10', 'shtakId': 'sh_flat', 'shtakGap': 20,
+    'proflistId': 'C8', 'shtakId': 'sh_flat', 'shtakGap': 20,
     'coatingId': 'polyester', 'foundId': 'prisypka',
     'gateId': 'none', 'gateCount': 1, 'gateWidth': 4,
     'wicketId': 'none', 'wicketCount': 1, 'wicketWidth': 1,
     'automation': False, 'painting': False, 'installation': True,
     'canopyType': 'двухскат', 'canopyLength': 6, 'canopyWidth': 4,
+    'canopyHeight': 2.2,
     'canopyCoverId': 'polycarb_4', 'distanceKm': 0,
     'chess': False, 'complexHard': False, 'canopySnow': 'light',
 }

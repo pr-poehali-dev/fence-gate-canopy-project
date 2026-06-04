@@ -4,6 +4,7 @@ import Icon from "@/components/ui/icon";
 import SiteHeader from "@/components/SiteHeader";
 import CalculatorWizard from "@/components/CalculatorWizard";
 import HomeTrust from "@/components/home/HomeTrust";
+import HomeGuarantee from "@/components/home/HomeGuarantee";
 import HomeReviews from "@/components/home/HomeReviews";
 import HomeFaq from "@/components/home/HomeFaq";
 import { useLeadModal } from "@/hooks/useLeadModal";
@@ -254,6 +255,9 @@ export default function Index() {
 
       {/* ПОЧЕМУ МЫ / ДОВЕРИЕ */}
       <HomeTrust />
+
+      {/* БЕЗОПАСНАЯ СДЕЛКА / ГАРАНТИИ */}
+      <HomeGuarantee />
 
       {/* ОТЗЫВЫ КЛИЕНТОВ */}
       <HomeReviews />

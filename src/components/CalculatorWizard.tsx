@@ -871,12 +871,15 @@ function StepCanopySize({
 }: { calc: CalcInput; set: (p: Partial<CalcInput>) => void; area: number }) {
   return (
     <div>
-      <StepHeader icon="Ruler" title="Размеры навеса" hint="Укажите длину и ширину — площадь посчитается автоматически" />
+      <StepHeader icon="Ruler" title="Размеры навеса" hint="Укажите длину, ширину и высоту — площадь посчитается автоматически" />
       <div className="space-y-3">
         <RangeRow label="Длина навеса" value={calc.canopyLength} min={2} max={20} step={0.5}
           onChange={v => set({ canopyLength: v })} />
         <RangeRow label="Ширина навеса" value={calc.canopyWidth} min={2} max={12} step={0.5}
           onChange={v => set({ canopyWidth: v })} />
+        <RangeRow label="Высота навеса" value={calc.canopyHeight ?? 2.2} min={2} max={4} step={0.1}
+          onChange={v => set({ canopyHeight: parseFloat(v.toFixed(1)) })} />
+        <p className="text-[11px] text-white/40 -mt-1">Стандартная высота навеса — 2.20 м (комфортный заезд авто).</p>
         <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4 flex items-center justify-between">
           <div className="flex items-center gap-2 text-white/80 text-sm">
             <Icon name="Calculator" size={16} className="text-orange-400" />

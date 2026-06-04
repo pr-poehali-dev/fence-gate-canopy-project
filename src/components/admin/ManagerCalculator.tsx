@@ -161,6 +161,7 @@ export default function ManagerCalculator({
                 opts={CANOPY_COVER.map(o => ({ id: o.id, label: o.label }))} />
               <Num label="Длина, м" value={calc.canopyLength} onChange={v => set({ canopyLength: v })} />
               <Num label="Ширина, м" value={calc.canopyWidth} onChange={v => set({ canopyWidth: v })} />
+              <Num label="Высота, м" value={calc.canopyHeight ?? 2.2} onChange={v => set({ canopyHeight: v })} />
               <Sel label="Снеговая нагрузка" value={calc.canopySnow || "light"}
                 onChange={v => set({ canopySnow: v as "light" | "heavy" })}
                 opts={[{ id: "light", label: "Обычная" }, { id: "heavy", label: "Усиленная (снег)" }]} />
