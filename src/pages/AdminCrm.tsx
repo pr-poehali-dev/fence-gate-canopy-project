@@ -8,6 +8,10 @@ import {
   type Order, type OrderStatus, type OrdersStats,
 } from "@/lib/api";
 import ManagerCalculator, { type ManagerCalcResult } from "@/components/admin/ManagerCalculator";
+import { generateKpPDF } from "@/lib/kpPdf";
+import { useCompany } from "@/hooks/useCompany";
+
+interface EstimateLine { label: string; qty?: string; value: number; unitPrice?: number; }
 
 const STATUSES: { id: OrderStatus; label: string; color: string }[] = [
   { id: "new",        label: "Новый",       color: "#3b82f6" },
@@ -46,6 +50,7 @@ export default function AdminCrm() {
       materials_cost: r.materials,
       fot: r.fot,
       profit: r.profit,
+      items_json: r.lines,
     }));
     setCalcOpen(false);
   };
@@ -77,7 +82,8 @@ export default function AdminCrm() {
     if (!edit) return;
     setSaving(true);
     try {
-      await upsertOrder(edit);
+      // backend upsert ждёт поле items для сохранения сметы в items_json
+      await upsertOrder({ ...edit, items: edit.items_json } as Partial<Order> & { items?: unknown[] });
       toast.success("Заказ сохранён");
       setEdit(null);
       await load();
@@ -250,6 +256,13 @@ export default function AdminCrm() {
                   className="w-full bg-[#0a0c10] border border-[#1e2230] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-500 resize-none" />
               </div>
             </div>
+
+            <SavedEstimate
+              lines={(edit.items_json as EstimateLine[]) || []}
+              orderNum={edit.order_num || ""}
+              clientName={edit.client_name || ""}
+              objectType={edit.object_type || ""}
+            />
             <div className="flex flex-wrap justify-between items-center gap-2 mt-5">
               <button onClick={() => setCalcOpen(true)}
                 className="px-4 py-2 rounded-lg text-sm border border-orange-500/40 text-orange-400 hover:border-orange-500/70 flex items-center gap-1.5">
@@ -307,6 +320,71 @@ function NumField({ label, value, onChange }: { label: string; value: number; on
       <label className="block text-xs text-white/50 mb-1">{label}</label>
       <input type="number" value={value} onChange={e => onChange(parseFloat(e.target.value) || 0)}
         className="w-full bg-[#0a0c10] border border-[#1e2230] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-500" />
+    </div>
+  );
+}
+
+const fmtR = (n: number) => Math.round(n || 0).toLocaleString("ru-RU") + " ₽";
+
+function SavedEstimate({ lines, orderNum, clientName, objectType }: {
+  lines: EstimateLine[]; orderNum: string; clientName: string; objectType: string;
+}) {
+  const company = useCompany();
+  const [busy, setBusy] = useState(false);
+  if (!lines || lines.length === 0) return null;
+  const total = lines.reduce((s, l) => s + (l.value || 0), 0);
+
+  const makePdf = async () => {
+    setBusy(true);
+    try {
+      await generateKpPDF(
+        orderNum || `СГ-${Date.now().toString().slice(-5)}`,
+        lines.map(l => ({ label: l.label, value: l.value, qty: l.qty })),
+        total,
+        {
+          "Объект": objectType || "—",
+          ...(clientName ? { "Клиент": clientName } : {}),
+        },
+        {
+          company: {
+            brand: company.name, legalName: company.legalName, shortName: company.legalName,
+            inn: company.inn, ogrnip: company.ogrn, legalAddress: company.legalAddress,
+            phone: company.phone, email: company.email, site: company.site,
+          },
+        }
+      );
+      toast.success("КП сформировано");
+    } catch {
+      toast.error("Не удалось сформировать КП");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="mt-4 bg-[#0a0c10] border border-[#1e2230] rounded-xl p-3">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs font-semibold text-orange-400 uppercase tracking-wider flex items-center gap-1.5">
+          <Icon name="ReceiptText" size={13} /> Сохранённая смета ({lines.length})
+        </span>
+        <button onClick={makePdf} disabled={busy}
+          className="text-[11px] text-white/70 hover:text-white disabled:opacity-50 flex items-center gap-1">
+          <Icon name={busy ? "Loader" : "FileDown"} size={12} className={busy ? "animate-spin" : ""} /> Скачать КП
+        </button>
+      </div>
+      <div className="space-y-1 max-h-44 overflow-y-auto pr-1">
+        {lines.map((l, i) => (
+          <div key={i} className={`flex items-center gap-2 text-xs ${l.value === 0 ? "text-white/40" : "text-white/80"}`}>
+            <span className="flex-1 min-w-0 truncate">{l.label}</span>
+            {l.qty && <span className="text-white/35 text-[11px] flex-shrink-0">{l.qty}</span>}
+            <span className="w-20 text-right flex-shrink-0">{l.value ? fmtR(l.value) : "—"}</span>
+          </div>
+        ))}
+      </div>
+      <div className="flex items-center justify-between mt-2 pt-2 border-t border-[#1e2230]">
+        <span className="text-xs text-white/50">Итого</span>
+        <span className="font-oswald font-bold text-orange-400">{fmtR(total)}</span>
+      </div>
     </div>
   );
 }

@@ -3,6 +3,9 @@ import { Link } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import SiteHeader from "@/components/SiteHeader";
 import CalculatorWizard from "@/components/CalculatorWizard";
+import HomeTrust from "@/components/home/HomeTrust";
+import HomeReviews from "@/components/home/HomeReviews";
+import HomeFaq from "@/components/home/HomeFaq";
 import { useLeadModal } from "@/hooks/useLeadModal";
 import { useSiteMenu } from "@/hooks/useSiteMenu";
 import { useMediaByService } from "@/hooks/useMediaByService";
@@ -234,7 +237,7 @@ export default function Index() {
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
             {portfolioPhotos.map((src, i) => (
               <div key={i} className="group relative aspect-[4/3] overflow-hidden rounded-2xl shadow-md hover:shadow-xl transition-all">
-                <img src={src} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                <img src={src} alt={`Готовый объект СтальГрупп — ${PORTFOLIO_LOCS[i % PORTFOLIO_LOCS.length]}`} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
                   <div className="text-white">
                     <div className="flex items-center gap-1 text-xs mb-1">
@@ -248,6 +251,15 @@ export default function Index() {
           </div>
         </div>
       </section>
+
+      {/* ПОЧЕМУ МЫ / ДОВЕРИЕ */}
+      <HomeTrust />
+
+      {/* ОТЗЫВЫ КЛИЕНТОВ */}
+      <HomeReviews />
+
+      {/* ЧАСТЫЕ ВОПРОСЫ */}
+      <HomeFaq />
 
       {/* CTA */}
       <section className="py-14 bg-gradient-to-br from-orange-500 to-orange-600 text-white">
