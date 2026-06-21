@@ -27,7 +27,7 @@ const STAGES = [
   { n: 2, title: "Бесплатный замер", desc: "Выезд на участок в день обращения" },
   { n: 3, title: "Смета и договор",  desc: "Фиксируем цену и сроки на бумаге" },
   { n: 4, title: "Монтаж 1-2 дня",   desc: "Своя бригада со всем оборудованием" },
-  { n: 5, title: "Сдача + гарантия", desc: "Акт, чек, договор, гарантийный талон" },
+  { n: 5, title: "Оплата и документы", desc: "Принимаем оплату официально — при расчёте на участке выдаём стандартную квитанцию по форме КО-1 (Приходный кассовый ордер) из 1С, акт, договор и гарантийный талон" },
 ];
 
 const PORTFOLIO_LOCS = [
@@ -385,7 +385,16 @@ export default function Index() {
             </button>
           </div>
         </div>
-        <div className="max-w-7xl mx-auto px-4 mt-8 pt-6 border-t border-white/10 text-xs text-white/40 text-center space-y-1">
+        {/* SEO-облако локаций — индексируется поисковиками */}
+        <div className="max-w-7xl mx-auto px-4 mt-8 pt-6 border-t border-white/10">
+          <p className="text-[11px] leading-relaxed text-white/35 text-center">
+            Оперативно осуществляем замер и монтаж в городах: Люберцы, Котельники, Реутов, Балашиха,
+            Дзержинский, Лыткарино, Видное, Железнодорожный и любых населённых пунктах в радиусе
+            25 км от МКАД. Производство заборов, откатных ворот, навесов и площадок для авто под ключ —
+            собственная металлобаза в Люберцах.
+          </p>
+        </div>
+        <div className="max-w-7xl mx-auto px-4 mt-6 pt-6 border-t border-white/10 text-xs text-white/40 text-center space-y-1">
           <div>© {new Date().getFullYear()} {company.name}. Все права защищены.</div>
           <div>{company.legalName} · ИНН {company.inn} · ОГРН {company.ogrn}</div>
         </div>

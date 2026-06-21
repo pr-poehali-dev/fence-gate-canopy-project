@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import Icon from "@/components/ui/icon";
 import { COMPANY } from "@/lib/company";
 import { sendLead } from "@/lib/api";
@@ -201,6 +201,13 @@ export default function CalculatorWizard({ preset }: { preset?: CalcPreset } = {
           object_type: OBJECT_LABELS[calc.objectType],
           params: result.kpParams,
           items: result.lineItems,
+          materials_spec: result.materialsSpec,
+          // Готовый текст спецификации для менеджера (с переносами строк)
+          materials_text: [
+            !calc.objectType.includes("canopy") ? `Чистая длина полотна: ${result.netFenceLen.toFixed(1)} м` : "",
+            "Спецификация материалов:",
+            ...result.materialsSpec.map(m => `• ${m.name} — ${m.qty} — ${Math.round(m.sum).toLocaleString("ru-RU")} ₽`),
+          ].filter(Boolean).join("\n"),
           economics: result.econ,
           delivery_cost: result.deliveryCost,
           discount: result.discount,
@@ -1093,6 +1100,29 @@ function EconRow({ label, value, accent }: { label: string; value: string; accen
   );
 }
 
+// ── Плавный «набегающий» счётчик рублей для live-итога ───────────
+function useCountUp(target: number, duration = 500) {
+  const [val, setVal] = useState(target);
+  const fromRef = useRef(target);
+  useEffect(() => {
+    const from = fromRef.current;
+    const diff = target - from;
+    if (diff === 0) return;
+    const start = performance.now();
+    let raf = 0;
+    const tick = (now: number) => {
+      const p = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - p, 3);
+      setVal(Math.round(from + diff * eased));
+      if (p < 1) raf = requestAnimationFrame(tick);
+      else fromRef.current = target;
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration]);
+  return val;
+}
+
 // ── Боковая панель с итогом ──────────────────────────────────────
 function SummaryPanel({
   calc, orderNum, result,
@@ -1102,6 +1132,7 @@ function SummaryPanel({
   result: ReturnType<typeof calculate>;
 }) {
   const isAdmin = useIsAdmin();
+  const animatedTotal = useCountUp(Math.round(result.total));
   return (
     <div className="bg-[#0a0c10] border-2 border-orange-500/30 rounded-2xl p-5 lg:sticky lg:top-24">
       <div className="flex items-center justify-between mb-4">
@@ -1117,7 +1148,7 @@ function SummaryPanel({
 
       <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-4 mb-4 text-gray-900">
         <div className="text-[10px] uppercase tracking-widest opacity-70 mb-1">Итоговая стоимость</div>
-        <div className="font-oswald font-bold text-3xl sm:text-4xl leading-none">{fmtRub(result.total)}</div>
+        <div className="font-oswald font-bold text-3xl sm:text-4xl leading-none tabular-nums">{fmtRub(animatedTotal)}</div>
         <div className="text-[11px] mt-1.5 opacity-75">{OBJECT_LABELS[calc.objectType]}</div>
       </div>
 
@@ -1143,9 +1174,30 @@ function SummaryPanel({
         </div>
       )}
 
+      {/* Детализированная спецификация материалов (номенклатура) */}
+      {result.materialsSpec.length > 0 && (
+        <div className="bg-[#0a0c10] border border-[#1e2230] rounded-xl p-3 mb-4">
+          <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-orange-400 mb-2">
+            <Icon name="ClipboardList" size={13} /> Спецификация материалов
+          </div>
+          <ul className="space-y-1.5">
+            {result.materialsSpec.map((m, i) => (
+              <li key={m.name}
+                className="flex items-start justify-between gap-2 text-xs animate-in fade-in slide-in-from-left-2 duration-300">
+                <span className="flex-1 min-w-0 text-white/75 leading-snug">
+                  <span className="text-orange-400">•</span> {m.name}
+                  <span className="text-white/45"> — {m.qty}</span>
+                </span>
+                <span className="font-semibold text-white whitespace-nowrap">{fmtRub(m.sum)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <div className="space-y-2 mb-4 max-h-[260px] overflow-y-auto pr-1">
         {result.lineItems.map((it, i) => (
-          <div key={i} className="flex items-start justify-between gap-2 py-2 border-b border-[#1e2230] last:border-0">
+          <div key={it.label + i} className="flex items-start justify-between gap-2 py-2 border-b border-[#1e2230] last:border-0 animate-in fade-in duration-300">
             <div className="flex-1 min-w-0">
               <div className="text-xs sm:text-sm text-white/80 leading-snug">{it.label}</div>
               {it.qty && <div className="text-[10px] text-white/35 mt-0.5">{it.qty}</div>}

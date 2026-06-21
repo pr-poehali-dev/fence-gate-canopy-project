@@ -291,6 +291,16 @@ export interface CalcLine {
   unitPrice?: number;
   value: number;
   isGift?: boolean;
+  /** Тип позиции: материал (номенклатура) / работа / услуга.
+   *  Материалы попадают в детализированную спецификацию materialsSpec. */
+  kind?: "material" | "work" | "service";
+}
+
+/** Позиция детализированной спецификации материалов (для Live-сметы и заявки). */
+export interface MaterialSpecItem {
+  name: string;   // наименование номенклатуры
+  qty:  string;   // количество с единицей измерения (шт. / пог. м / м²)
+  sum:  number;   // стоимость позиции, ₽
 }
 
 export interface CalcResult {
@@ -300,6 +310,7 @@ export interface CalcResult {
   postCount:    number;
   canopyArea:   number;
   lineItems:    CalcLine[];
+  materialsSpec: MaterialSpecItem[];  // детализированная спецификация (шт./пог.м/м²)
   matSum:       number;
   foundCost:    number;
   installCost:  number;
@@ -542,29 +553,32 @@ export function calculate(c: CalcInput): CalcResult {
           value: canopyFrameCost,
           qty: `${canopyArea.toFixed(1)} м²`,
           unitPrice: Math.round(canopyFrameUnit),
+          kind: "material" as const,
         },
         {
           label: `Кровля: ${CANOPY_COVER.find(x=>x.id===c.canopyCoverId)!.label}`,
           value: canopyCoverCost,
           qty: `${canopyArea.toFixed(1)} м²`,
           unitPrice: Math.round(canopyCoverUnit),
+          kind: "material" as const,
         },
         {
           label: "Опорные столбы навеса (профтруба 80×80, бетонирование)",
           value: canopyPostsCost,
           qty: `${canopyPostsN} шт.`,
           unitPrice: PRICING_PARAMS.canopyPostPrice,
+          kind: "material" as const,
         },
         ...(canopySnowAdd > 0
-          ? [{ label: `Усиление под снеговую нагрузку (+${PRICING_PARAMS.canopySnowHeavy}%)`, value: canopySnowAdd, qty: "усиленный каркас" }]
+          ? [{ label: `Усиление под снеговую нагрузку (+${PRICING_PARAMS.canopySnowHeavy}%)`, value: canopySnowAdd, qty: "усиленный каркас", kind: "material" as const }]
           : []),
         { label: "↳ Кровельные саморезы с EPDM, торцевые планки", value: 0, qty: "комплект" },
         { label: "↳ Антикоррозийная обработка + порошковая покраска", value: 0, qty: `${canopyArea.toFixed(1)} м²` },
       ]
     : [
-        { label: `Столбы ${postObj.label} (заглубление ${(c.fenceHeight * 0.6 + 0.6).toFixed(1)} м)`, value: postCost, qty: `${postCount} шт.`, unitPrice: postObj.pricePerPost * Math.ceil(postHeight/3) },
-        { label: `Лаги ${lagObj.label}, ${c.lagRows} ряда, сварка MIG/MAG`,                          value: lagCost,  qty: `${lagTotalM.toFixed(1)} м.п.`, unitPrice: lagObj.pricePerM },
-        { label: fillingLabel,                                                                       value: fillingCost, qty: fillingQty, unitPrice: fillingUnit },
+        { label: `Столбы ${postObj.label} (заглубление ${(c.fenceHeight * 0.6 + 0.6).toFixed(1)} м)`, value: postCost, qty: `${postCount} шт.`, unitPrice: postObj.pricePerPost * Math.ceil(postHeight/3), kind: "material" as const },
+        { label: `Лаги ${lagObj.label}, ${c.lagRows} ряда, сварка MIG/MAG`,                          value: lagCost,  qty: `${lagTotalM.toFixed(1)} м.п.`, unitPrice: lagObj.pricePerM, kind: "material" as const },
+        { label: fillingLabel,                                                                       value: fillingCost, qty: fillingQty, unitPrice: fillingUnit, kind: "material" as const },
       ];
 
   // Детализация комплектующих (входят в стоимость узлов выше — цена 0)
@@ -593,10 +607,10 @@ export function calculate(c: CalcInput): CalcResult {
     lineItems.push({ label: "Присыпка щебнем 🎁 — В ПОДАРОК", value: 0, isGift: true });
   }
   if (gateCost > 0) {
-    lineItems.push({ label: `${gateObj.label} ворота, ${c.gateWidth} м × ${c.gateCount} шт.`, value: gateCost, qty: `${c.gateCount} шт.`, unitPrice: oneGateCost });
+    lineItems.push({ label: `Каркас ${gateObj.label.toLowerCase()} ворот, ${c.gateWidth} м × ${c.gateCount} шт.`, value: gateCost, qty: `${c.gateCount} шт.`, unitPrice: oneGateCost, kind: "material" });
   }
   if (wicketCost > 0) {
-    lineItems.push({ label: `Калитка: ${wicketObj.label} × ${c.wicketCount} шт.`, value: wicketCost, qty: `${c.wicketCount} шт.`, unitPrice: wicketObj.price });
+    lineItems.push({ label: `Калитка: ${wicketObj.label} × ${c.wicketCount} шт.`, value: wicketCost, qty: `${c.wicketCount} шт.`, unitPrice: wicketObj.price, kind: "material" });
   }
   if (installCost > 0) {
     lineItems.push({ label: `Монтаж под ключ (${PRICING_PARAMS.installShare}%)`, value: installCost });
@@ -605,7 +619,7 @@ export function calculate(c: CalcInput): CalcResult {
     lineItems.push({ label: `Порошковая покраска ${PRICING_PARAMS.paintM2} ₽/м²`, value: paintCost, qty: `${fenceArea.toFixed(1)} м²`, unitPrice: PRICING_PARAMS.paintM2 });
   }
   if (autoCost > 0) {
-    lineItems.push({ label: "Автоматика ворот DoorHan", value: autoCost, qty: "1 компл.", unitPrice: autoCost });
+    lineItems.push({ label: "Автоматика ворот DoorHan", value: autoCost, qty: "1 компл.", unitPrice: autoCost, kind: "material" });
   }
   if (minTopUp > 0) {
     lineItems.push({ label: "Корректировка до минимальной стоимости монтажа", value: minTopUp });
@@ -624,6 +638,16 @@ export function calculate(c: CalcInput): CalcResult {
   if (discount > 0) {
     lineItems.push({ label: `Скидка ${discountPct}% на материалы`, value: -discount });
   }
+
+  // ── Детализированная спецификация материалов ───────
+  // Собираем только номенклатуру (kind === "material"): шт. / пог. м / м².
+  const materialsSpec: MaterialSpecItem[] = lineItems
+    .filter(li => li.kind === "material")
+    .map(li => ({
+      name: li.label,
+      qty:  li.qty || "1 шт.",
+      sum:  Math.round(li.value),
+    }));
 
   // ── Параметры для КП ───────────────────────────────
   const kpParams: Record<string, string> = isCanopy
@@ -679,6 +703,7 @@ export function calculate(c: CalcInput): CalcResult {
     postCount,
     canopyArea,
     lineItems,
+    materialsSpec,
     matSum,
     foundCost,
     installCost,
